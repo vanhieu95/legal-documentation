@@ -168,3 +168,63 @@ credentials, generated-document content, or other sensitive payloads.
   verification).
 - **Deviations or blockers:** None. A temporary local PostgreSQL cluster was used because no system
   server was listening; it was stopped after the tests.
+
+## IAM-002 — Deliver secure Vietnamese login and POST logout
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Delivered purpose-built Vietnamese Administrator login, a protected dashboard
+  placeholder, and authenticated POST-only logout using Django authentication and database-backed
+  sessions. Active Administrator-group users and active superusers can sign in; unknown, inactive,
+  and non-Administrator principals receive the same generic response with cleared fields. Login
+  rotates the session identifier, logout flushes the session, and validated local `next` targets
+  fail closed for external, protocol-relative, control-character, backslash, and malformed values.
+- **Important files changed:** `apps/accounts/{forms,views,urls}.py`, focused authentication tests,
+  Vietnamese login/dashboard-placeholder templates, auth CSS and local CSP-compatible JavaScript,
+  root URLs/settings, and Playwright/frontend tests. A non-debug browser-test settings profile uses
+  a migrated disposable SQLite database so runtime auth tests do not depend on an in-memory
+  runserver database.
+- **Migrations created:** None.
+- **Focused tests executed:** 21 authentication tests passed, covering Administrator and superuser
+  success, unknown/wrong/inactive/non-Administrator generic failure, CSRF on login and normal/HTMX
+  logout, safe and hostile redirects, session rotation, logout invalidation/replay, `GET` logout
+  rejection, forced-session authorization denial, Vietnamese labels/locale, credential clearing,
+  and non-cacheable auth responses. The combined accounts/frontend suite passed 38 tests; the full
+  accounts suite passed 35 on SQLite and 36 tests including the migration-profile integration test
+  passed on isolated PostgreSQL 18.6.
+- **Broader checks executed:** Ruff lint and format, mypy, Django system check, migration drift,
+  Tailwind build, vendored-asset verification, message extraction/compilation, and the full
+  coverage suite passed. The final ordinary suite reported 79 passed, one intentionally skipped
+  PostgreSQL-profile test, and 99.42% overall branch coverage; the PostgreSQL profile was exercised
+  separately without a skip.
+- **Browser and accessibility verification:** All 16 pinned-Chromium tests passed. Login was checked
+  at 375px and 1440px with keyboard navigation, visible focus, no page overflow, generic error
+  summary focus, cleared fields, empty local/session storage, local assets, strict no-eval CSP, and
+  JavaScript-disabled failure. A live-server workflow additionally passed Administrator login,
+  non-Administrator denial, local/external redirect behavior, dashboard access, POST logout,
+  logged-out session replay denial, and JavaScript-disabled successful login/logout at wide width.
+  Chrome DevTools MCP was unavailable, so the repository's pinned real Playwright browser was used.
+- **Security/privacy review:** Server policy remains the enforcement boundary; logout is
+  authenticated, POST-only, and CSRF-protected; successful login uses Django session cycling and
+  logout uses session flushing. Auth responses are `no-store`; submitted credentials and usernames
+  are not re-rendered, logged, or persisted; only synthetic identities were used. No remember-me,
+  registration, password delivery, MFA/SSO, audit infrastructure, business model, public storage,
+  `csrf_exempt`, state-changing GET, debug artifact, test suppression, or unrelated edit was added.
+- **Commit:** `a3aefb7` (`feat(identity): deliver secure administrator login`).
+- **Deviations or blockers:** The environment has no global `python`, so all required Django
+  commands used the equivalent locked `.venv/bin/python`. No implementation blocker remains.
+
+## CP-IAM-A — Checkpoint closure
+
+- **Completion date:** 2026-09-01
+- **Status:** Local implementation and verification are complete; human approval is pending at the
+  mandatory checkpoint pause.
+- **Completed tasks:** `IAM-001`, `IAM-002`.
+- **Checkpoint evidence:** Focused identity suites passed on SQLite and isolated PostgreSQL 18.6;
+  Ruff lint/format, mypy, Django system/drift checks, Tailwind, i18n extraction/compilation, 99.42%
+  branch coverage, 16 browser tests, the live identity workflow, migration graph inspection, and
+  security/privacy/diff scans all passed. `accounts.0001` depends only on `auth.0012` and
+  `contenttypes.0002`; no migration drift or future domain dependency exists.
+- **Commits:** `203d25b`, `945bb85`, and `8c5a6d3` for IAM-001; `c9b9f6c` for IAM-001 evidence;
+  `a3aefb7` for IAM-002.
+- **Deviations or blockers:** Audit-event assertions remain intentionally deferred to `AUD-002` as
+  locked. The next task is `IAM-003`, but it is not eligible until human approval of CP-IAM-A.

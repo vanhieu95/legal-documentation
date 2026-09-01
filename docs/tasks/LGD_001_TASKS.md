@@ -143,7 +143,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Every later app can require named permissions through one tested policy interface; no normal Administrator can administer users/groups.
 - **Size:** M. **Blockers/skills:** **Security skill**; `security-and-hardening`, `test-driven-development`, `code-review-and-quality`.
 
-### [ ] IAM-002 — Deliver secure Vietnamese login and POST logout
+### [x] IAM-002 — Deliver secure Vietnamese login and POST logout
 
 - **Outcome:** Active Administrators authenticate with generic errors, safe local redirects, rotated sessions, CSRF-protected logout, and clear login/error/loading states.
 - **SPEC:** §§4.3, 5.1, 6.1, 14, 16, 17.1; **FR:** `FR-AUTH-01`, `FR-AUTH-02`; **AC:** `AC-01`, `AC-02`, `AC-03`.
