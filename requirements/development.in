@@ -1,0 +1,10 @@
+# Development-only dependencies. Regenerate development.txt with pip-compile.
+-r base.in
+
+django-stubs==6.1.0
+mypy==2.3.1
+pip-tools==7.6.1
+pytest==9.1.1
+pytest-cov==7.1.0
+pytest-django==4.14.0
+ruff==0.16.5

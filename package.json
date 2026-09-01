@@ -1,0 +1,19 @@
+{
+  "name": "vietnamese-civil-matter-document-administration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local frontend asset toolchain for the VDS administration application.",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "css:build": "tailwindcss -i static_src/css/app.css -o static/css/app.css --minify",
+    "css:watch": "tailwindcss -i static_src/css/app.css -o static/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "alpinejs": "3.16.3",
+    "htmx.org": "2.0.10",
+    "tailwindcss": "4.3.3"
+  }
+}

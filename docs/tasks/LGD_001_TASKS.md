@@ -46,7 +46,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 
 ## Milestone 1 — Repository and tooling foundation
 
-### [ ] FND-001 — Scaffold the reproducible Django and dependency baseline
+### [x] FND-001 — Scaffold the reproducible Django and dependency baseline
 
 - **Outcome:** A Django 5.2 LTS monolith targeting Python 3.13 and PostgreSQL 14+ installs reproducibly, starts, and exposes every required command without Vite.
 - **SPEC:** §§7.2, 8, 8.1, 9, 20.1, 20.3, 25; **FR:** `FR-I18N-01`; **AC:** `AC-23`, `AC-25`.
