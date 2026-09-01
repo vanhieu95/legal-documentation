@@ -12,8 +12,9 @@ For every behavior-bearing task, “Steps” incorporates this mandatory sequenc
 1. Add or update a failing test.
 2. Implement the smallest coherent behavior.
 3. Refactor without changing behavior or app boundaries.
-4. Run the task's focused tests.
-5. Run the applicable broader checks below.
+4. For a slice adding user-facing copy, add matching English fallback and Vietnamese entries to the localization catalogs; wrap each string in the translation hook and verify no Vietnamese UI string is hardcoded in application source.
+5. Run the task's focused tests.
+6. Run the applicable broader checks below.
 
 Command aliases used by tasks are exact command groups, not substitutes for the repository command contract:
 
@@ -28,7 +29,7 @@ All tests use synthetic data. “Audit” always means bounded field names/statu
 
 ### Mandatory micro-checkpoints
 
-Implementation pauses after each 2–3 task batch below. At every pause: (1) focused tests for the batch pass, (2) `Q-PY` and applicable `Q-DJ`/`Q-CSS`/`Q-I18N` pass, (3) the app starts and the delivered path works, (4) migrations and dependency direction are reviewed, (5) secrets/personal data/debug output/test suppressions are absent, and (6) the human reviews the demonstrated vertical result before the next batch.
+Implementation pauses after each 2–3 task batch below. At every pause: (1) focused tests for the batch pass, (2) `Q-PY` and applicable `Q-DJ`/`Q-CSS`/`Q-I18N` pass, (3) the app starts and the delivered path works, (4) migrations and dependency direction are reviewed, (5) secrets/personal data/debug output/test suppressions are absent, (6) modified application source contains no hardcoded Vietnamese UI string, all new user-facing strings are translation-wrapped, and English/Vietnamese catalog keys match, and (7) the human reviews the demonstrated vertical result before the next batch.
 
 | Checkpoint | Complete after |
 | --- | --- |
@@ -79,6 +80,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Dependencies:** `FND-001`.
 - **Expected files/modules:** `config/settings/{base,development,test,production}.py`, `config/urls.py`, `apps/core/storage.py`, `apps/core/checks.py`, `locale/`, settings tests.
 - **Steps:** Write failing setting-order/time-zone/storage checks; configure `SessionMiddleware` → `LocaleMiddleware` → `CommonMiddleware`, Vietnamese-only language, UTC storage and Ho Chi Minh presentation; create private storage alias outside web roots; add liveness/readiness contracts and fail-closed production environment validation.
+- **i18n enforcement:** Establish English gettext source/fallback and Vietnamese catalogs with exact key parity. Keep Vietnamese as the only enabled MVP locale while ensuring no Vietnamese UI copy is embedded in Python, JavaScript, or templates.
 - **Migration:** None beyond built-in Django state.
 - **Authorization/audit:** Health endpoints reveal no versions, paths, counts, or secrets; private storage has no direct route.
 - **Security/privacy:** Narrow host/origin placeholders, separate secret inputs, safe file permissions documented; production startup fails if required values are absent.
@@ -1374,20 +1376,20 @@ For every type, the automated suite must inspect the OPC ZIP and XML parts direc
 - **Done:** Recorded rehearsal meets RPO/RTO/retention and restores a consistent, authorized, checksum-valid system.
 - **Size:** L. **Blockers/skills:** Backup platform/location/operator/key process; use `shipping-and-launch`, **Security skill**, `code-review-and-quality`.
 
-### [ ] I18N-001 — Complete Vietnamese UI localization and locale invariance
+### [ ] I18N-001 — Complete catalog-based Vietnamese UI localization and locale invariance
 
-- **Outcome:** All administrator-facing Python/template strings are marked as complete translatable Vietnamese messages; full/HTMX responses use consistent locale formats, catalogs build, and changing test locale never changes stored/legal output.
+- **Outcome:** All administrator-facing Python/template strings use complete English gettext source messages or English semantic keys, with matching Vietnamese catalog entries. Full/HTMX responses use consistent Vietnamese locale formats, catalogs build, and changing test locale never changes stored/legal output.
 - **SPEC:** §§6.7, 7.5, 11.4, 19; **FR:** `FR-I18N-01`–`FR-I18N-04`, `FR-L10N-01`, `FR-L10N-02`; **AC:** `AC-27`.
 - **Dependencies:** `DASH-001`, `VDS12-005`.
-- **Expected files/modules:** app templates/Python messages, `locale/`, locale contract tests, copy inventory.
-- **Steps:** Add untranslated/concatenated/full-fragment/date-number tests; inventory UI states and mark complete named-interpolation strings; generate/compile catalogs; explicitly activate Vietnamese in tests; compare stored snapshots and rendered legal outputs under Vietnamese versus controlled test locale.
+- **Expected files/modules:** app templates/Python messages, English and Vietnamese `locale/` catalogs, locale contract tests, copy inventory.
+- **Steps:** Add untranslated/concatenated/full-fragment/date-number/catalog-parity tests; inventory UI states and mark complete English named-interpolation source messages; generate/compile catalogs; assert that modified application source has no hardcoded Vietnamese UI text; explicitly activate Vietnamese in tests; compare stored snapshots and rendered legal outputs under Vietnamese versus controlled test locale.
 - **Migration:** None; locale must not alter stored data/keys.
 - **Authorization/audit:** Translations do not change permission names/keys or audit action identities.
 - **Security/privacy:** No runtime/external translation; user/case/legal text remains data.
-- **Tests:** Message extraction/compilation, locale middleware, dates/times/numbers/plurals/interpolation/text expansion, full/fragment parity, legal output invariance.
+- **Tests:** Message extraction/compilation, English/Vietnamese catalog-key parity, locale middleware, dates/times/numbers/plurals/interpolation/text expansion, full/fragment parity, no-hardcoded-Vietnamese-UI source scan, legal output invariance.
 - **Manual/visual:** Vietnamese copy/diacritics at three viewports and error/state pages.
 - **Commands:** `Q-I18N`, focused locale/browser tests, all 12 legal-render locale invariance tests, `Q-PY`.
-- **Done:** `AC-27` passes and no untranslated administrator copy or locale-dependent legal artifact remains.
+- **Done:** `AC-27` passes; no untranslated administrator copy, hardcoded Vietnamese UI source string, catalog-key mismatch, or locale-dependent legal artifact remains.
 - **Size:** L. **Blockers/skills:** Final Vietnamese terminology/branding owner; `frontend-ui-engineering`, `code-review-and-quality`.
 
 ### [ ] I18N-002 — Guard English legal-reference structure and provenance

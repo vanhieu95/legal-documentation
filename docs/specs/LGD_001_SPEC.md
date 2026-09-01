@@ -2,8 +2,8 @@
 
 Status: **Draft for approval**  
 Specification date: 2026-08-31  
-Last updated: 2026-09-01  
-Default product language: Vietnamese  
+Last updated: 2026-09-02  
+Default product language: Vietnamese (rendered from the Vietnamese localization catalog; English is the source and fallback catalog)  
 Approved scope map: `identity-access` → `audit-trail` → (`case-management`, `document-catalog`) → `document-generation`
 
 This specification is the Phase 1 artifact required by the project's spec-driven workflow. It defines the product and technical contract only. It is not an implementation plan and contains no application implementation.
@@ -213,11 +213,11 @@ The official wording and template-specific required/optional status are controll
 ### 6.7 Internationalization and localization
 
 - `FR-I18N-01`: Enable Django internationalization with `USE_I18N=True`, `LANGUAGE_CODE="vi"`, `LANGUAGES` restricted to Vietnamese in the MVP, and `LocaleMiddleware` after `SessionMiddleware` and before `CommonMiddleware`. The application has no URL language prefix or language switcher in the MVP.
-- `FR-I18N-02`: Mark all administrator-facing Python and Django-template strings for translation using Django gettext hooks. Use complete translatable sentences and named interpolation; do not build messages by concatenating translated fragments.
-- `FR-I18N-03`: Vietnamese is the source/default product language. User-entered names, addresses, legal text, case identifiers, and approved template wording are data and must never be machine-translated.
+- `FR-I18N-02`: All application source code, developer documentation, code comments, identifiers, translation keys, and gettext source messages are English. Mark every administrator-facing Python and Django-template string with Django gettext hooks. Use complete translatable English sentences and named interpolation; do not build messages by concatenating translated fragments.
+- `FR-I18N-03`: Vietnamese is the default rendered product language, supplied only by the Vietnamese catalog. Maintain matching English fallback and Vietnamese translation entries for every UI key as part of the same vertical slice. Do not hardcode Vietnamese or another non-English UI string in Python, JavaScript, CSS, or Django templates. Translation keys are English semantic identifiers, never translated literal text. User-entered names, addresses, legal text, case identifiers, approved template wording, and approved Vietnamese DOCX content are domain data, not UI localization; they must never be machine-translated or routed through generic gettext.
 - `FR-L10N-01`: Use Django's locale-aware formatting for ordinary UI dates, times, numbers, and form input/output, with UTC storage, `USE_TZ=True`, and `Asia/Ho_Chi_Minh` presentation time.
 - `FR-L10N-02`: Legal-document values do not use generic UI localization. Versioned domain formatters deterministically produce the exact approved Vietnamese date, time, currency-in-words, name, address, and legal-text forms required by each DOCX contract.
-- `FR-I18N-04`: Maintain translation catalogs through Django's `makemessages`/`compilemessages` workflow. An English UI catalog may be added later without changing stored data, URLs, registry keys, or document snapshots.
+- `FR-I18N-04`: Maintain English and Vietnamese translation catalogs through Django's `makemessages`/`compilemessages` workflow. Catalog parity is required: the same UI keys must exist in both catalogs. A user-selectable English UI may be added later without changing stored data, URLs, registry keys, or document snapshots.
 - `FR-I18N-05`: Keep product UI localization separate from legal-document translation. Optional English document-type names and English reference documentation use the project's approved legal terminology catalog; they do not imply English DOCX generation.
 
 ## 7. Non-functional requirements
@@ -252,6 +252,7 @@ The official wording and template-specific required/optional status are controll
 ### 7.5 Language and locale quality
 
 - Vietnamese UI copy must render with correct diacritics, pluralization, interpolation, date/time/number formats, and text expansion at all supported breakpoints.
+- Application code and metadata contain no hardcoded Vietnamese UI strings; new user-facing strings are wrapped in the applicable translation hook and have matching English and Vietnamese catalog entries.
 - User-facing text must not assume English word order. Translation extraction and compilation failures are release-blocking once a non-default catalog exists.
 - Locale selection must not alter stored values, legal snapshots, registry identifiers, authorization, sorting keys, or generated-document meaning.
 - Tests activate the Vietnamese locale explicitly rather than depending on the operating system locale.
@@ -804,7 +805,7 @@ Dependency files and commands do not exist in the current repository; their crea
 ### 23.2 Working assumptions
 
 - Single organization and organization-wide Administrator access; no tenant or court assignment boundary.
-- Vietnamese product copy, `LANGUAGE_CODE="vi"`, Django i18n/l10n enabled, and `Asia/Ho_Chi_Minh` display time; English code identifiers/developer documentation.
+- Vietnamese product copy rendered from a Vietnamese catalog, English gettext source/fallback entries, `LANGUAGE_CODE="vi"`, Django i18n/l10n enabled, and `Asia/Ho_Chi_Minh` display time; English code identifiers/developer documentation.
 - The application may hold up to the scale assumptions in Section 7; actual volume is not yet known.
 - An Administrator may activate a template they uploaded; no two-person approval in the MVP.
 - The source Markdown and `docs/vn/legal-documents.docx` are references, not approved render-ready templates.
@@ -828,7 +829,7 @@ The MVP includes:
 
 - Purpose-built Administrator login/logout and session controls.
 - Responsive accessible shell, dashboard, and Vietnamese UI states.
-- Django i18n/l10n foundation with Vietnamese as the only enabled MVP language and deterministic legal-document formatters outside generic UI localization.
+- Django i18n/l10n foundation with English source/fallback and Vietnamese catalogs, Vietnamese as the only enabled MVP language, and deterministic legal-document formatters outside generic UI localization.
 - Relational court/entity/participant/official/hearing and civil-case CRUD with archive/restore.
 - Searchable, filterable, sortable, paginated case list with URL state and HTMX fragments.
 - Registry and versioned Django forms/mappers for all 12 confirmed document types.
@@ -873,6 +874,7 @@ These are outcome gates, not an implementation plan or task breakdown. A technic
 - Follow `AGENT.md`, matching Cursor rules, `DESIGN.md`, this approved specification, and approved template/legal wording.
 - Use the `vietnamese-legal-translator` skill and its complete reference when authoring or revising English VDS form documentation; preserve source structure/identifiers and obtain human legal approval.
 - Keep identifiers and interfaces explicit and stable; use English `snake_case` Python names, `kebab-case` URL path segments/type keys, named URLs, timezone-aware datetimes, typed service boundaries, and small focused modules.
+- Keep code, code comments, developer documentation, commit messages, translation keys, and gettext source messages in English. Route Vietnamese UI copy through matching English and Vietnamese localization catalog entries in the same implementation slice; never hardcode it in application code.
 - Validate, authorize, audit, and test sensitive workflows server-side.
 - Run all configured checks and inspect representative DOCX output before merging/releasing.
 

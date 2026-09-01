@@ -28,7 +28,7 @@ test("the generic not-found page reveals no requested identifier", async ({ page
   const response = await page.goto("/synthetic-sensitive-identifier/");
 
   expect(response.status()).toBe(404);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Không tìm thấy");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Not found");
   await expect(page.locator("body")).not.toContainText("synthetic-sensitive-identifier");
   await expectNoPageOverflow(page);
   expect(failedSubresources).toEqual([]);
@@ -44,7 +44,7 @@ for (const viewport of [
     await page.goto(galleryPath);
 
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
-      "Thư viện thành phần giao diện",
+      "Interface component gallery",
     );
     await expect(page.getByRole("table")).toBeVisible();
     await expect(page.getByRole("alert")).toBeVisible();
@@ -56,16 +56,16 @@ test("keyboard focus is visible and the native dialog restores focus", async ({ 
   await page.goto(galleryPath);
 
   await page.keyboard.press("Tab");
-  const skipLink = page.getByRole("link", { name: "Chuyển đến nội dung chính" });
+  const skipLink = page.getByRole("link", { name: "Skip to main content" });
   await expect(skipLink).toBeFocused();
   await expect(skipLink).toHaveCSS("outline-style", "solid");
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
 
-  const dialogTrigger = page.getByRole("button", { name: "Mở hộp thoại mẫu" });
+  const dialogTrigger = page.getByRole("button", { name: "Open sample dialog" });
   await dialogTrigger.focus();
   await page.keyboard.press("Enter");
-  const dialog = page.getByRole("dialog", { name: "Xác nhận thao tác mẫu" });
+  const dialog = page.getByRole("dialog", { name: "Confirm sample action" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator(":focus")).toHaveCount(1);
   for (let step = 0; step < 4; step += 1) {
@@ -85,11 +85,11 @@ test("explicit themes persist while system remains the storage-free default", as
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
 
-  await page.getByRole("button", { name: "Sáng" }).click();
+  await page.getByRole("button", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "light");
 
-  await page.getByRole("button", { name: "Tối" }).click();
+  await page.getByRole("button", { name: "Dark" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator("html")).toHaveCSS("color-scheme", "dark");
 
@@ -101,7 +101,7 @@ test("explicit themes persist while system remains the storage-free default", as
   }));
   expect(storageKeys).toEqual({ local: ["vds-theme"], session: [] });
 
-  await page.getByRole("button", { name: "Hệ thống" }).click();
+  await page.getByRole("button", { name: "System" }).click();
   await page.reload();
   await expect(page.locator("html")).not.toHaveAttribute("data-theme");
   expect(await page.evaluate(() => Object.keys(window.localStorage))).toEqual([]);
@@ -115,7 +115,7 @@ test("reduced motion and forced colors preserve understandable states", async ({
     .locator(".loading-indicator")
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).animationDuration));
   expect(animationDuration).toBeLessThan(0.001);
-  await expect(page.getByRole("button", { name: "Lưu thay đổi" })).toHaveCSS(
+  await expect(page.getByRole("button", { name: "Save changes" })).toHaveCSS(
     "border-top-color",
     "rgb(0, 0, 0)",
   );
@@ -188,10 +188,10 @@ test("the gallery stays usable when JavaScript is disabled", async ({ browser })
   await page.goto(galleryPath);
 
   await expect(page.locator("html")).toHaveClass("no-js");
-  await expect(page.getByLabel("Tên hiển thị")).toBeVisible();
+  await expect(page.getByLabel("Display name")).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
-  await expect(page.getByRole("dialog", { name: "Xác nhận thao tác mẫu" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Mở hộp thoại mẫu" })).not.toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Confirm sample action" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open sample dialog" })).not.toBeVisible();
   await expectNoPageOverflow(page);
 
   await context.close();
@@ -205,7 +205,7 @@ test("200 percent zoom retains page-level reflow", async ({ page }) => {
   });
 
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByLabel("Tên hiển thị")).toBeVisible();
+  await expect(page.getByLabel("Display name")).toBeVisible();
   await expectNoPageOverflow(page);
 });
 
@@ -217,27 +217,27 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.goto("/login/");
 
-    await expect(page.getByRole("heading", { name: "Đăng nhập quản trị" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Administrator sign in" })).toBeVisible();
     await page.keyboard.press("Tab");
-    await expect(page.getByRole("link", { name: "Chuyển đến nội dung chính" })).toBeFocused();
+    await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
     await page.keyboard.press("Tab");
-    await expect(page.getByLabel("Tên đăng nhập")).toBeFocused();
-    await expect(page.getByLabel("Tên đăng nhập")).toHaveCSS("outline-style", "solid");
+    await expect(page.getByLabel("Username")).toBeFocused();
+    await expect(page.getByLabel("Username")).toHaveCSS("outline-style", "solid");
     await expectNoPageOverflow(page);
   });
 }
 
 test("failed login is generic, clears credentials, focuses the summary, and stores nothing", async ({ page }) => {
   await page.goto("/login/");
-  await page.getByLabel("Tên đăng nhập").fill("synthetic-unknown-browser-user");
-  await page.getByLabel("Mật khẩu").fill("synthetic-browser-password");
-  await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await page.getByLabel("Username").fill("synthetic-unknown-browser-user");
+  await page.getByLabel("Password").fill("synthetic-browser-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
 
   const summary = page.locator("[data-error-summary]");
   await expect(summary).toBeFocused();
-  await expect(summary).toContainText("Không thể đăng nhập bằng thông tin đã cung cấp.");
-  await expect(page.getByLabel("Tên đăng nhập")).toHaveValue("");
-  await expect(page.getByLabel("Mật khẩu")).toHaveValue("");
+  await expect(summary).toContainText("Unable to sign in with the credentials provided.");
+  await expect(page.getByLabel("Username")).toHaveValue("");
+  await expect(page.getByLabel("Password")).toHaveValue("");
   expect(
     await page.evaluate(() => ({
       local: Object.keys(window.localStorage),
@@ -250,15 +250,15 @@ test("login remains functional without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
   await page.goto("/login/");
-  await page.getByLabel("Tên đăng nhập").fill("synthetic-no-script-user");
-  await page.getByLabel("Mật khẩu").fill("synthetic-no-script-password");
-  await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await page.getByLabel("Username").fill("synthetic-no-script-user");
+  await page.getByLabel("Password").fill("synthetic-no-script-password");
+  await page.getByRole("button", { name: "Sign in" }).click();
 
   await expect(page.locator("html")).toHaveClass("no-js");
   await expect(page.getByRole("alert")).toContainText(
-    "Không thể đăng nhập bằng thông tin đã cung cấp.",
+    "Unable to sign in with the credentials provided.",
   );
-  await expect(page.getByLabel("Tên đăng nhập")).toHaveValue("");
+  await expect(page.getByLabel("Username")).toHaveValue("");
   await expectNoPageOverflow(page);
   await context.close();
 });

@@ -1,22 +1,22 @@
 {% load i18n %}
 <section class="surface" aria-labelledby="fields-title">
-  <h2 id="fields-title" class="surface-title">{% translate "Trường biểu mẫu" %}</h2>
+  <h2 id="fields-title" class="surface-title">{% translate "Form fields" %}</h2>
   <form class="stack-vertical" method="get" action="">
     <div class="field">
-      <label class="field-label" for="sample-name">{% translate "Tên hiển thị" %}</label>
+      <label class="field-label" for="sample-name">{% translate "Display name" %}</label>
       <input
         id="sample-name"
         class="field-control"
         name="sample_name"
         type="text"
         autocomplete="off"
-        placeholder="{% translate 'Nhập tên mẫu' %}"
+        placeholder="{% translate 'Enter sample name' %}"
         aria-describedby="sample-name-help"
       >
-      <p id="sample-name-help" class="field-help">{% translate "Dùng nội dung tổng hợp, không nhập dữ liệu cá nhân." %}</p>
+      <p id="sample-name-help" class="field-help">{% translate "Use synthetic content; do not enter personal data." %}</p>
     </div>
     <div class="field">
-      <label class="field-label" for="sample-reference">{% translate "Mã tham chiếu mẫu" %}</label>
+      <label class="field-label" for="sample-reference">{% translate "Sample reference code" %}</label>
       <input
         id="sample-reference"
         class="field-control"
@@ -26,11 +26,11 @@
         aria-invalid="true"
         aria-describedby="sample-reference-help sample-reference-error"
       >
-      <p id="sample-reference-help" class="field-help">{% translate "Mã phải có ít nhất bốn ký tự." %}</p>
-      <p id="sample-reference-error" class="field-error">{% translate "Hãy nhập thêm ít nhất một ký tự." %}</p>
+      <p id="sample-reference-help" class="field-help">{% translate "Code must be at least four characters." %}</p>
+      <p id="sample-reference-error" class="field-error">{% translate "Enter at least one more character." %}</p>
     </div>
     <div>
-      <button class="button button-primary" type="submit">{% translate "Kiểm tra biểu mẫu" %}</button>
+      <button class="button button-primary" type="submit">{% translate "Validate form" %}</button>
     </div>
   </form>
 </section>

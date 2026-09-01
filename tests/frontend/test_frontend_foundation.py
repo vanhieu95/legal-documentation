@@ -128,7 +128,7 @@ def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> 
     html = response.content.decode()
 
     assert response.status_code == 200
-    assert '<html lang="vi" class="no-js"' in html
+    assert '<html lang="en" class="no-js"' in html
     assert '<main id="main-content"' in html
     assert 'class="skip-link"' in html
     assert 'role="alert"' in html
@@ -139,11 +139,11 @@ def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> 
     assert "<table" in html
     assert "<caption" in html
     assert "<dialog" in html
-    assert "Trạng thái tải" in html
-    assert "Chưa có dữ liệu" in html
-    assert "Thành công" in html
-    assert "Cảnh báo" in html
-    assert "Có lỗi xảy ra" in html
+    assert "Loading state" in html
+    assert "No data" in html
+    assert "Success" in html
+    assert "Warning" in html
+    assert "An error occurred" in html
     assert 'hx-history="false"' in html
     assert "https://" not in html
     assert "http://" not in html

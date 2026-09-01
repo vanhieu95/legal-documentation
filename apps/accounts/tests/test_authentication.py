@@ -13,8 +13,8 @@ from django.urls import reverse
 from apps.accounts.permissions import ADMINISTRATOR_GROUP_NAME
 
 PASSWORD = "synthetic-test-password"
-GENERIC_FAILURE = "Không thể đăng nhập bằng thông tin đã cung cấp."
-PROTECTED_CONTENT = "Khu vực quản trị"
+GENERIC_FAILURE = "Unable to sign in with the credentials provided."
+PROTECTED_CONTENT = "Administration area"
 
 
 @pytest.fixture
@@ -238,14 +238,14 @@ def test_authentication_pages_and_actions_are_not_cacheable(
 
 
 @pytest.mark.django_db
-def test_login_page_is_vietnamese_and_does_not_offer_credential_persistence(client: Client) -> None:
+def test_login_page_is_english_and_does_not_offer_credential_persistence(client: Client) -> None:
     response = client.get(reverse("accounts:login"))
     body = response.content.decode()
 
     assert response.headers["Content-Language"] == "vi"
-    assert '<html lang="vi"' in body
-    assert "Tên đăng nhập" in body
-    assert "Mật khẩu" in body
+    assert '<html lang="en"' in body
+    assert "Username" in body
+    assert "Password" in body
     assert 'autocomplete="username"' in body
     assert 'autocomplete="current-password"' in body
     assert "remember" not in body.lower()

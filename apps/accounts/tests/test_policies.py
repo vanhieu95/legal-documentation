@@ -124,7 +124,7 @@ def test_protected_view_uses_policy_and_hidden_ui_is_not_enforcement(
     assert rendered == ""
     assert response.status_code == 403
     assert b"protected case content" not in response.content
-    assert "Bạn không có quyền truy cập nội dung này." in response.content.decode()
+    assert "You do not have permission to access this content." in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -149,7 +149,7 @@ def test_generic_not_found_page_does_not_repeat_the_requested_identifier(
     response = client.get("/protected/uuid-bi-mat-khong-ton-tai/")
 
     assert response.status_code == 404
-    assert "Không tìm thấy nội dung yêu cầu." in response.content.decode()
+    assert "Requested content was not found." in response.content.decode()
     assert "uuid-bi-mat-khong-ton-tai" not in response.content.decode()
 
 
@@ -194,7 +194,7 @@ def test_inaccessible_and_nonexistent_objects_have_identical_behavior(
                 object_policy=object_policy,
                 pk=identifier,
             )
-        assert str(error.value) == "Không tìm thấy nội dung yêu cầu."
+        assert str(error.value) == "Requested content was not found."
 
 
 @pytest.mark.django_db

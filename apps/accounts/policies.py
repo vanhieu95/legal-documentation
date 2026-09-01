@@ -135,8 +135,8 @@ def get_object_or_not_found[TModel: Model](
 ) -> TModel:
     """Return only policy-scoped objects and disclose no inaccessible existence."""
     if not application_access_policy.has_permission(actor, permission):
-        raise Http404("Không tìm thấy nội dung yêu cầu.")
+        raise Http404("Requested content was not found.")
     try:
         return object_policy.scope_queryset(actor, queryset).get(**lookup)
     except ObjectDoesNotExist as error:
-        raise Http404("Không tìm thấy nội dung yêu cầu.") from error
+        raise Http404("Requested content was not found.") from error

@@ -7,14 +7,14 @@ from django.core.exceptions import ValidationError
 
 from apps.accounts.policies import application_access_policy
 
-GENERIC_AUTHENTICATION_FAILURE = "Không thể đăng nhập bằng thông tin đã cung cấp."
+GENERIC_AUTHENTICATION_FAILURE = "Unable to sign in with the credentials provided."
 
 
 class AdministratorAuthenticationForm(AuthenticationForm):
     """Authenticate only principals admitted by the central application policy."""
 
     username = forms.CharField(
-        label="Tên đăng nhập",
+        label="Username",
         max_length=150,
         widget=forms.TextInput(
             attrs={
@@ -24,7 +24,7 @@ class AdministratorAuthenticationForm(AuthenticationForm):
         ),
     )
     password = forms.CharField(
-        label="Mật khẩu",
+        label="Password",
         strip=False,
         widget=forms.PasswordInput(
             attrs={
