@@ -7,6 +7,9 @@ requires-python = "==3.13.*"
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--strict-config --strict-markers"
 testpaths = ["apps", "tests"]
+markers = [
+    "postgresql: requires the PostgreSQL integration-test profile",
+]
 
 [tool.coverage.run]
 branch = true
@@ -14,6 +17,7 @@ source = ["apps"]
 
 [tool.coverage.report]
 fail_under = 85
+precision = 2
 show_missing = true
 skip_covered = true
 

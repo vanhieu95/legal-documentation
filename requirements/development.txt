@@ -7,9 +7,7 @@
 asgiref==3.12.1 \
     --hash=sha256:59dcb51c272ad209d59bed5708a64a333083e86017d7fcdd67498eeab7784340 \
     --hash=sha256:fe386d1c2bff7259ea95929266d12a8cf9a8b5a1c2598402967d8792e7a7c094
-    # via
-    #   -r requirements/base.txt
-    #   django
+    # via django
 ast-serialize==0.8.0 \
     --hash=sha256:0485a25ef519c62e749ee3c1ad8070e591b380d67226349eb5a70b228dc1ac4a \
     --hash=sha256:057769b5921336eb2d9124f2a731b42ed05ffdac559b840dbdf6f3937cf153dc \
@@ -204,7 +202,7 @@ django==5.2.17 \
     --hash=sha256:9d4d93be539a18ab80d058eb515900e10951e04c537c5a6b394fc49528d3251f \
     --hash=sha256:f04fb3b36ee119e1af4fa1d397d5fd6cf12700f49321e84d4f4c642c5b1973db
     # via
-    #   -r requirements/base.txt
+    #   -r requirements/base.in
     #   django-stubs
     #   django-stubs-ext
 django-stubs==6.1.0 \
@@ -218,7 +216,15 @@ django-stubs-ext==6.1.0 \
 docxtpl==0.20.2 \
     --hash=sha256:626d5c570a46a62b2ca73b4d08f1c240fa031a5bc45371e1466a4fe184923d10 \
     --hash=sha256:eddf3350d70b4d123208e801d585bcb313d21044a377a14f75a66d0965841de1
-    # via -r requirements/base.txt
+    # via -r requirements/base.in
+factory-boy==3.3.3 \
+    --hash=sha256:1c39e3289f7e667c4285433f305f8d506efc2fe9c73aaea4151ebd5cdea394fc \
+    --hash=sha256:866862d226128dfac7f2b4160287e899daf54f2612778327dd03d0e2cb1e3d03
+    # via -r requirements/development.in
+faker==40.37.0 \
+    --hash=sha256:a92dff7f310e61fb544c61720e15edb2e7448bc33d15a321a99e9ab7b94abf54 \
+    --hash=sha256:ddbafa55c94d5b69c08ced3a7f202614204a02e07ba6548c729b8d18acc0b490
+    # via factory-boy
 iniconfig==2.3.0 \
     --hash=sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730 \
     --hash=sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12
@@ -226,9 +232,7 @@ iniconfig==2.3.0 \
 jinja2==3.1.6 \
     --hash=sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d \
     --hash=sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67
-    # via
-    #   -r requirements/base.txt
-    #   docxtpl
+    # via docxtpl
 librt==0.15.0 \
     --hash=sha256:04d5387b908676c0b8d5d2f5fb58373b4ea382d81f7a6f0fab8ea2a462bb4738 \
     --hash=sha256:077471b3182db4e17c36ae91555f36a4d2c00080b267f749bcad34a478a9a302 \
@@ -546,7 +550,6 @@ lxml==6.1.2 \
     --hash=sha256:fa813b0247d0543a563b993ac3dba6168eef59e3a61448432cf5453300c2412b \
     --hash=sha256:feda2ef68c339987dfb370af3a4b785dbc40f925723fe2365e68e43c2640f85a
     # via
-    #   -r requirements/base.txt
     #   docxtpl
     #   python-docx
 markupsafe==3.0.3 \
@@ -639,9 +642,7 @@ markupsafe==3.0.3 \
     --hash=sha256:f71a396b3bf33ecaa1626c255855702aca4d3d9fea5e051b41ac59a9c1c41edc \
     --hash=sha256:f9e130248f4462aaa8e2552d547f36ddadbeaa573879158d721bbd33dfe4743a \
     --hash=sha256:fed51ac40f757d41b7c48425901843666a6677e3e8eb0abcff09e4ba6e664f50
-    # via
-    #   -r requirements/base.txt
-    #   jinja2
+    # via jinja2
 mypy==2.3.1 \
     --hash=sha256:114dff494000f18bd10d5d95d84b8567b26da60279ecbe838131841df20e635d \
     --hash=sha256:18162b128c3f9c703cd35f5537446900b0d21a2549aa7a95d21380d2ef643fb0 \
@@ -724,7 +725,7 @@ pluggy==1.6.0 \
 psycopg==3.3.4 \
     --hash=sha256:b6bbc25ccf05c8fad3b061d9db2ef0909a555171b84b07f29458a447253d679a \
     --hash=sha256:e21207764952cff81b6b8bdacad9a3939f2793367fdac2987b3aac36a651b5bc
-    # via -r requirements/base.txt
+    # via -r requirements/base.in
 psycopg-binary==3.3.4 \
     --hash=sha256:018fbed325936da502feb546642c982dcc4b9ffdea32dfef78dbf3b7f7ad4070 \
     --hash=sha256:0579252a1202cd73e4da137a1426e2dae993ae44e757605344282af3a082848c \
@@ -781,7 +782,7 @@ psycopg-binary==3.3.4 \
     --hash=sha256:f9b1c2533af01cd7648378599f82b0b8ae32f293296e6eec5753a625bc97ef28 \
     --hash=sha256:fa1cbc10768a796c96d3243656016bf4e337c81c71097270bb7b0ad6210d9765 \
     --hash=sha256:fbd1d4ed566895ad2d3bf4ddfd8bae90026930ddf29df3b9d91d32c8c47866a7
-    # via -r requirements/base.txt
+    # via psycopg
 pygments==2.21.0 \
     --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9 \
     --hash=sha256:610ca751c9bc2492b38eb9a38a7fbc93edbbb2d7182edaf34e66ae493dee5c8c
@@ -811,7 +812,7 @@ python-docx==1.2.0 \
     --hash=sha256:3fd478f3250fbbbfd3b94fe1e985955737c145627498896a8a6bf81f4baf66c7 \
     --hash=sha256:7bc9d7b7d8a69c9c02ca09216118c86552704edc23bac179283f2e38f86220ce
     # via
-    #   -r requirements/base.txt
+    #   -r requirements/base.in
     #   docxtpl
 ruff==0.16.5 \
     --hash=sha256:0eeab41fbea2c42f98dfb9822cdccda9d24ba38d49f6dc945b5c236d48f0ef29 \
@@ -836,9 +837,7 @@ ruff==0.16.5 \
 sqlparse==0.6.0 \
     --hash=sha256:113c35c75365ab9cc9c7231d68c6428fb11c085fc8e9eb1ad659b7ddbf6cd2b9 \
     --hash=sha256:b861c0288ce2fa56209a9a6412d2e066ac664b3873b89c26c9d8415e8e32996f
-    # via
-    #   -r requirements/base.txt
-    #   django
+    # via django
 types-pyyaml==6.0.12.20260815 \
     --hash=sha256:28764110c9cf35846e733da32d8d734df7473c5dde9ef67c3b7332ec0e819858 \
     --hash=sha256:6f332212b7e191f3afd5016a713c510b6340593b7ebec573c7d5d20aa5386d3b
@@ -847,7 +846,6 @@ typing-extensions==4.16.0 \
     --hash=sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8 \
     --hash=sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5
     # via
-    #   -r requirements/base.txt
     #   django-stubs
     #   django-stubs-ext
     #   mypy

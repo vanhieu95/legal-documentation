@@ -7,6 +7,8 @@ __pycache__/
 .ruff_cache/
 .venv/
 htmlcov/
+test-results/
+playwright-report/
 
 # Django runtime
 db.sqlite3

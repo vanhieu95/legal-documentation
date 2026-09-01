@@ -89,6 +89,11 @@ python manage.py compilemessages
 
 # Tests and branch coverage
 pytest --cov=apps --cov-branch --cov-report=term-missing
+python scripts/check_sensitive_coverage.py
+
+# Browser smoke (install the pinned Chromium build once, then run)
+npm run browser:install
+npm run browser:test
 
 # Production checks (requires the documented production environment)
 python manage.py check --deploy --settings=config.settings.production
@@ -96,4 +101,14 @@ python manage.py collectstatic --noinput
 ```
 
 PostgreSQL-backed constraint, migration, integration, and concurrency checks must run against
-PostgreSQL rather than SQLite once those behaviors are introduced.
+PostgreSQL rather than SQLite. Set `TEST_DATABASE_URL` to a disposable PostgreSQL database before
+running pytest; the default in-memory SQLite profile remains available for lightweight unit tests.
+The integration profile applies migrations to a pytest-managed test database and marks its checks
+with `postgresql`. Shared fixtures include a CSRF-enforcing `csrf_client` and an explicit,
+non-privileged `user_factory` that creates only synthetic `example.invalid` identities.
+
+The blocking GitHub Actions quality gate uses Python 3.13, Node.js 22, and PostgreSQL 17. It installs
+only the committed dependency locks, applies migrations from zero, and propagates failures from
+tests, overall and sensitive-module branch coverage, linting, formatting, typing, Django checks,
+migration drift, CSS, localization, static collection, deployment checks, and the browser smoke.
+Remote CI does not retain test artifacts or application data.
