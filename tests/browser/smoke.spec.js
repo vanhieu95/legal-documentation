@@ -17,6 +17,23 @@ test("Django serves the content-free liveness contract", async ({ request }) => 
   expect(response.headers()["cache-control"]).toBe("no-store");
 });
 
+test("the generic not-found page reveals no requested identifier", async ({ page }) => {
+  const failedSubresources = [];
+  page.on("response", (response) => {
+    if (!response.request().isNavigationRequest() && response.status() >= 400) {
+      failedSubresources.push(response.url());
+    }
+  });
+  await page.setViewportSize({ width: 375, height: 812 });
+  const response = await page.goto("/synthetic-sensitive-identifier/");
+
+  expect(response.status()).toBe(404);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Không tìm thấy");
+  await expect(page.locator("body")).not.toContainText("synthetic-sensitive-identifier");
+  await expectNoPageOverflow(page);
+  expect(failedSubresources).toEqual([]);
+});
+
 for (const viewport of [
   { name: "compact", width: 375, height: 812 },
   { name: "tablet", width: 768, height: 1024 },
