@@ -5,7 +5,7 @@ Plan: [`docs/plans/LGD_001_IMPLEMENTATION_PLAN.md`](../plans/LGD_001_IMPLEMENTAT
 
 ## 1. Backlog conventions
 
-Tasks are dependency ordered and sized for one focused session: `S` is roughly two to four hours, `M` is roughly half to one day, and `L` is roughly one day. No `XL` tasks are permitted. Expected paths are targets, not application code created by this planning change.
+Tasks are ordered by importance while remaining dependency-safe. Release blockers, security/privacy controls, data and document integrity, and work that unlocks many later tasks come first; ties are resolved by dependency order, risk reduction, and then delivery priority. `S` is roughly two to four hours, `M` is roughly half to one day, and `L` is roughly one day. No `XL` tasks are permitted. Expected paths are targets, not application code created by this planning change.
 
 For every behavior-bearing task, “Steps” incorporates this mandatory sequence:
 
@@ -38,15 +38,25 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 | CP-CASE-A…F | `CASE-002`, `CASE-005`, `CASE-007`, `CASE-009`, `CASE-011`, `CASE-012` |
 | CP-DOC-A…J | `DOC-002`, `DOC-004`, `DOC-006`, `DOC-008`, `DOC-010`, `DOC-012`, `DOC-014`, `DOC-016`, `DOC-018`, `DASH-001` |
 | CP-VDSxx-A / CP-VDSxx-B | For each of the 12 groups: after `VDSxx-002` and after `VDSxx-005` |
-| CP-HARD-A…F | `SEC-002`, `I18N-002`, `PERF-001`, `OPS-001`, `OPS-003`, `REL-001` |
+| CP-HARD-A…F | `SEC-002`, `OPS-002`, `I18N-002`, `PERF-001`, `OPS-003`, `REL-001` |
+
+- [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
-## 2. Dependency-ordered task backlog
+## 2. Importance-ordered, dependency-safe task backlog
+
+The ranking used below is:
+
+1. Complete the shared foundation, deny-by-default access, audit, case, and document-generation platform because every supported VDS workflow depends on it.
+2. Onboard VDS types in the product-approved order: very high (`01`, `03`, `10`, `05`, `09`), high (`15`, `21`, `31`, `22`), then quite high (`11`, `04`, `12`).
+3. Execute integrated security, deployment, backup/restore, localization, accessibility, performance, observability, rollback, and release gates as soon as their prerequisites exist.
+
+Completed tasks remain in place as dependency history; when choosing the next task, start with the first unchecked task whose listed dependencies are complete. A later release gate may be more consequential than an earlier implementation task, but it is not actionable before the system it verifies exists.
 
 ## Milestone 1 — Repository and tooling foundation
 
-### [ ] FND-001 — Scaffold the reproducible Django and dependency baseline
+### [x] FND-001 — Scaffold the reproducible Django and dependency baseline
 
 - **Outcome:** A Django 5.2 LTS monolith targeting Python 3.13 and PostgreSQL 14+ installs reproducibly, starts, and exposes every required command without Vite.
 - **SPEC:** §§7.2, 8, 8.1, 9, 20.1, 20.3, 25; **FR:** `FR-I18N-01`; **AC:** `AC-23`, `AC-25`.
@@ -62,7 +72,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** A clean checkout can install, start, build CSS, and run smoke checks using documented commands; lock artifacts are committed and no redundant toolchain exists.
 - **Size:** M. **Blockers/skills:** Python/npm package resolution; use `source-driven-development`, then `code-review-and-quality`.
 
-### [ ] FND-002 — Establish settings, locale, storage, and HTTP baselines
+### [x] FND-002 — Establish settings, locale, storage, and HTTP baselines
 
 - **Outcome:** Development/test/production settings are split, environment validated, Vietnamese i18n/time-zone behavior is correct, and static/private storage boundaries exist.
 - **SPEC:** §§4.4, 6.7, 7.1, 8, 9, 18, 20.1; **FR:** `FR-I18N-01`, `FR-I18N-03`, `FR-L10N-01`; **AC:** `AC-23`, `AC-27`.
@@ -78,7 +88,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** Settings checks prove correct locale/time/storage boundaries and production failure behavior without weakening deploy checks.
 - **Size:** M. **Blockers/skills:** Final production values are deferred inputs; use `security-and-hardening`.
 
-### [ ] FND-003 — Build the test, coverage, and CI quality gate
+### [x] FND-003 — Build the test, coverage, and CI quality gate
 
 - **Outcome:** CI provisions PostgreSQL and Node/Python dependencies, then enforces all command contracts, coverage thresholds, migrations, CSS, i18n, and browser-smoke hooks.
 - **SPEC:** §§19, 20.1, 20.3; **FR:** all indirectly; **AC:** `AC-25`.
@@ -94,7 +104,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** CI fails on any required gate and passes locally on the baseline; no check is advisory or silently skipped.
 - **Size:** M. **Blockers/skills:** CI provider/repository metadata; use `ci-cd-and-automation`, `code-review-and-quality`.
 
-### [ ] FND-004 — Implement local frontend assets and design-system primitives
+### [x] FND-004 — Implement local frontend assets and design-system primitives
 
 - **Outcome:** Tailwind 4 CLI, pinned local HTMX 2.x/Alpine 3.x, semantic tokens, accessible base components, themes, and no-JS CSS baseline are available without Vite.
 - **SPEC:** §§7.4–7.5, 8.1, 13, 14.1–14.2; `DESIGN.md` §§1–9; **FR:** `FR-I18N-02`; **AC:** `AC-08`, `AC-09`, `AC-25`, `AC-27`.
@@ -112,8 +122,8 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 
 ### Checkpoint M1
 
-- [ ] Clean install, Django checks, CSS build, translation commands, migration drift, collectstatic, typing/lint/format, coverage smoke, and CI pass.
-- [ ] No application business model/code, legal wording, template, or deferred infrastructure has been introduced.
+- [ ] Clean install, Django checks, CSS build, translation commands, migration drift, collectstatic, typing/lint/format, and coverage smoke passed locally; remote GitHub Actions result is pending.
+- [x] No application business model/code, legal wording, template, or deferred infrastructure has been introduced.
 
 ## Milestone 2 — Identity, permissions, sessions, and application shell
 
@@ -1332,6 +1342,38 @@ For every type, the automated suite must inspect the OPC ZIP and XML parts direc
 - **Done:** Each identified threat has mitigation, owner and automated or documented verification; no high/critical finding remains.
 - **Size:** L. **Blockers/skills:** **Use `security-and-hardening`, `doubt-driven-development`, `code-review-and-quality`.**
 
+### [ ] OPS-001 — Create production deployment, health, and database least-privilege configuration
+
+- **Outcome:** Reproducible private Linux deployment config runs reverse proxy, WSGI, PostgreSQL/private volumes, controlled migrations/static/i18n/CSS steps and non-disclosing liveness/readiness with least-privilege identities.
+- **SPEC:** §§8, 16, 20.1; **FR:** none directly; **AC:** `AC-23`, `AC-25`.
+- **Dependencies:** `SEC-002`, `FND-003`.
+- **Expected files/modules:** deployment manifests/service units/container files as selected, reverse proxy, environment schema, deploy/smoke runbook, health tests.
+- **Steps:** Add config/startup/health failures; define immutable build and writable private volume separation, WSGI/process/timeouts, PostgreSQL network/role grants, controlled deploy sequence and smoke checks; validate gettext/static requirements; document session cleanup schedule.
+- **Migration:** Release command applies migrations once with dedicated authority; app account lacks schema-owner privileges where platform permits.
+- **Authorization/audit:** Health is minimal public/private as designed; deploy/maintenance identities separate from Administrator.
+- **Security/privacy:** Encrypted disk expectation, narrow permissions/network, secrets recovery outside repo, no public media/static confusion.
+- **Tests:** Configuration lint, startup with required/missing values, readiness DB/storage checks without disclosure, least-privilege CRUD/no-DDL test, deploy smoke.
+- **Manual/visual:** Production-like deployment and permission/network inspection.
+- **Commands:** `Q-DEPLOY`, deployment config validator, migration/collectstatic/CSS/i18n smoke, health probes.
+- **Done:** A new host can be deployed from runbook with no hidden manual step and fails safely on missing security inputs.
+- **Size:** L. **Blockers/skills:** Host/proxy/process manager/DNS/certs; use `ci-cd-and-automation`, `shipping-and-launch`, **Security skill**, `code-review-and-quality`.
+
+### [ ] OPS-002 — Implement coordinated encrypted backup and restore rehearsal
+
+- **Outcome:** Daily coordinated PostgreSQL/private-files backup with ≥35-day encrypted off-host retention and secret-recovery procedure is rehearsed to RPO ≤24h/RTO ≤8h, verifying migrations, authorization, representative checksums and downloads.
+- **SPEC:** §§7.3, 16, 18, 20.2; **FR:** none directly; **AC:** `AC-22`, `AC-24`.
+- **Dependencies:** `DOC-018`, `OPS-001`.
+- **Expected files/modules:** backup/restore scripts or platform jobs, manifests/checksum procedure, runbooks, rehearsal record/tests.
+- **Steps:** Define consistency window/quiesce or coordinated snapshot/WAL approach; back up DB/private files/config recovery metadata and key-recovery separately; restore into isolated environment; run migrations/reconciliation/auth/download checks; record timestamps/data point/duration/remediation and quarterly schedule.
+- **Migration:** Restore must handle current migration state and protected history; no destructive reverse migration.
+- **Authorization/audit:** Backup/restore identity is separate and least privileged; restored downloads still require application permission.
+- **Security/privacy:** Encrypt transit/at rest, restrict access, sanitize rehearsal evidence, destroy isolated protected copy according to policy.
+- **Tests:** Scheduled-job failure/expiry alerts, manifest completeness, sample checksum, missing half-set detection, actual restore and authorization test.
+- **Manual/visual:** Named operator signs RPO/RTO and secret-recovery rehearsal.
+- **Commands:** Platform backup/restore commands documented, `python manage.py reconcile_private_files --check`, `Q-DJ`, representative authorized download smoke.
+- **Done:** Recorded rehearsal meets RPO/RTO/retention and restores a consistent, authorized, checksum-valid system.
+- **Size:** L. **Blockers/skills:** Backup platform/location/operator/key process; use `shipping-and-launch`, **Security skill**, `code-review-and-quality`.
+
 ### [ ] I18N-001 — Complete Vietnamese UI localization and locale invariance
 
 - **Outcome:** All administrator-facing Python/template strings are marked as complete translatable Vietnamese messages; full/HTMX responses use consistent locale formats, catalogs build, and changing test locale never changes stored/legal output.
@@ -1411,38 +1453,6 @@ For every type, the automated suite must inspect the OPC ZIP and XML parts direc
 - **Commands:** Repository load-test command established by this task, focused query tests, reconciliation after run.
 - **Done:** Signed benchmark proves both p95 targets or release is explicitly blocked for specification change.
 - **Size:** L. **Blockers/skills:** Target hardware/concurrency inputs; use `performance-optimization`, `observability-and-instrumentation`, `code-review-and-quality`.
-
-### [ ] OPS-001 — Create production deployment, health, and database least-privilege configuration
-
-- **Outcome:** Reproducible private Linux deployment config runs reverse proxy, WSGI, PostgreSQL/private volumes, controlled migrations/static/i18n/CSS steps and non-disclosing liveness/readiness with least-privilege identities.
-- **SPEC:** §§8, 16, 20.1; **FR:** none directly; **AC:** `AC-23`, `AC-25`.
-- **Dependencies:** `SEC-002`, `FND-003`.
-- **Expected files/modules:** deployment manifests/service units/container files as selected, reverse proxy, environment schema, deploy/smoke runbook, health tests.
-- **Steps:** Add config/startup/health failures; define immutable build and writable private volume separation, WSGI/process/timeouts, PostgreSQL network/role grants, controlled deploy sequence and smoke checks; validate gettext/static requirements; document session cleanup schedule.
-- **Migration:** Release command applies migrations once with dedicated authority; app account lacks schema-owner privileges where platform permits.
-- **Authorization/audit:** Health is minimal public/private as designed; deploy/maintenance identities separate from Administrator.
-- **Security/privacy:** Encrypted disk expectation, narrow permissions/network, secrets recovery outside repo, no public media/static confusion.
-- **Tests:** Configuration lint, startup with required/missing values, readiness DB/storage checks without disclosure, least-privilege CRUD/no-DDL test, deploy smoke.
-- **Manual/visual:** Production-like deployment and permission/network inspection.
-- **Commands:** `Q-DEPLOY`, deployment config validator, migration/collectstatic/CSS/i18n smoke, health probes.
-- **Done:** A new host can be deployed from runbook with no hidden manual step and fails safely on missing security inputs.
-- **Size:** L. **Blockers/skills:** Host/proxy/process manager/DNS/certs; use `ci-cd-and-automation`, `shipping-and-launch`, **Security skill**, `code-review-and-quality`.
-
-### [ ] OPS-002 — Implement coordinated encrypted backup and restore rehearsal
-
-- **Outcome:** Daily coordinated PostgreSQL/private-files backup with ≥35-day encrypted off-host retention and secret-recovery procedure is rehearsed to RPO ≤24h/RTO ≤8h, verifying migrations, authorization, representative checksums and downloads.
-- **SPEC:** §§7.3, 16, 18, 20.2; **FR:** none directly; **AC:** `AC-22`, `AC-24`.
-- **Dependencies:** `DOC-018`, `OPS-001`.
-- **Expected files/modules:** backup/restore scripts or platform jobs, manifests/checksum procedure, runbooks, rehearsal record/tests.
-- **Steps:** Define consistency window/quiesce or coordinated snapshot/WAL approach; back up DB/private files/config recovery metadata and key-recovery separately; restore into isolated environment; run migrations/reconciliation/auth/download checks; record timestamps/data point/duration/remediation and quarterly schedule.
-- **Migration:** Restore must handle current migration state and protected history; no destructive reverse migration.
-- **Authorization/audit:** Backup/restore identity is separate and least privileged; restored downloads still require application permission.
-- **Security/privacy:** Encrypt transit/at rest, restrict access, sanitize rehearsal evidence, destroy isolated protected copy according to policy.
-- **Tests:** Scheduled-job failure/expiry alerts, manifest completeness, sample checksum, missing half-set detection, actual restore and authorization test.
-- **Manual/visual:** Named operator signs RPO/RTO and secret-recovery rehearsal.
-- **Commands:** Platform backup/restore commands documented, `python manage.py reconcile_private_files --check`, `Q-DJ`, representative authorized download smoke.
-- **Done:** Recorded rehearsal meets RPO/RTO/retention and restores a consistent, authorized, checksum-valid system.
-- **Size:** L. **Blockers/skills:** Backup platform/location/operator/key process; use `shipping-and-launch`, **Security skill**, `code-review-and-quality`.
 
 ### [ ] OPS-003 — Add privacy-safe observability, integrity scheduling, and capacity alerts
 

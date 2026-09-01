@@ -1,0 +1,21 @@
+{% load static i18n %}
+<!doctype html>
+<html lang="vi" class="no-js">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="htmx-config"
+      content='{"historyEnabled":false,"historyCacheSize":0,"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false,"selfRequestsOnly":true}'
+    >
+    <title>{% block title %}{% translate "Nền tảng giao diện" %}{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <script defer src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine/alpine.csp.min.js' %}"></script>
+    <script defer src="{% static 'js/app.js' %}"></script>
+  </head>
+  <body hx-history="false">
+    <a class="skip-link" href="#main-content">{% translate "Chuyển đến nội dung chính" %}</a>
+    {% block content %}{% endblock %}
+  </body>
+</html>

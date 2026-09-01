@@ -1,0 +1,2 @@
+# Production uses the same application runtime lock without development tools.
+-r base.in

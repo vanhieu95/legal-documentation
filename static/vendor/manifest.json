@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "generatedBy": "npm run assets:vendor",
+  "assets": [
+    {
+      "package": "htmx.org",
+      "license": "BSD-2-Clause",
+      "source": "node_modules/htmx.org/dist/htmx.min.js",
+      "destination": "static/vendor/htmx/htmx.min.js",
+      "version": "2.0.10",
+      "checksum": "sha256:71ea67185bfa8c98c39d31717c6fce5d852370fcdfd129db4543774d3145c0de"
+    },
+    {
+      "package": "@alpinejs/csp",
+      "license": "MIT",
+      "source": "node_modules/@alpinejs/csp/dist/cdn.min.js",
+      "destination": "static/vendor/alpine/alpine.csp.min.js",
+      "version": "3.17.1",
+      "checksum": "sha256:dd45019f9fba2b5edd4cfdc5870df1acb22d918a0ede0d0a0699ae0c866049bf"
+    }
+  ]
+}

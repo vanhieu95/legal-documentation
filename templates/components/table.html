@@ -1,0 +1,31 @@
+{% load i18n %}
+<section class="surface span-full" aria-labelledby="table-title">
+  <h2 id="table-title" class="surface-title">{% translate "Bảng đáp ứng" %}</h2>
+  <div class="table-region" role="region" aria-labelledby="table-title" tabindex="0">
+    <table class="data-table">
+      <caption>{% translate "Dữ liệu tổng hợp minh họa cách trình bày bảng" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Mục" %}</th>
+          <th scope="col">{% translate "Trạng thái" %}</th>
+          <th scope="col">{% translate "Cập nhật" %}</th>
+          <th scope="col">{% translate "Thao tác" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">{% translate "Bản ghi tổng hợp A" %}</th>
+          <td><span class="badge badge-success">{% translate "Hoàn tất" %}</span></td>
+          <td>{% translate "Hôm nay" %}</td>
+          <td><button class="button button-quiet" type="button">{% translate "Xem mục" %}</button></td>
+        </tr>
+        <tr>
+          <th scope="row">{% translate "Bản ghi tổng hợp B có nhãn dài để kiểm tra xuống dòng" %}</th>
+          <td><span class="badge badge-warning">{% translate "Đang chờ" %}</span></td>
+          <td>{% translate "Hôm qua" %}</td>
+          <td><button class="button button-quiet" type="button">{% translate "Xem mục" %}</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
