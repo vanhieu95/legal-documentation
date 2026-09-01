@@ -1,0 +1,19 @@
+---
+description: Project-wide architecture and delivery rules for the VDS document administration application
+alwaysApply: true
+---
+
+# Project Rules
+
+- Read `AGENT.md` before planning or editing. It is the project-wide source of truth.
+- Build a server-rendered Django administration application with progressive enhancement.
+- Use Django templates/forms, HTMX, Alpine.js, Tailwind CSS, `docxtpl`, and narrowly scoped `python-docx` work.
+- Preserve the core workflows: authenticated access, record list/search, validated data entry, and authorized `.docx` export for VDS document types.
+- Keep the dashboard responsive and framework-agnostic; do not couple product design to Filament.
+- Make the smallest coherent change and follow established repository patterns.
+- Never move validation, permissions, or workflow truth exclusively to the browser.
+- Do not introduce an SPA framework, API layer, task queue, cache, or new infrastructure without a measured requirement.
+- Treat legal-case data, draft payloads, and generated documents as sensitive.
+- Update tests with behavior changes and run the repository-configured checks before reporting completion.
+- Never claim a check passed unless it was actually run successfully.
+- Ask before changing legal wording, retention rules, authorization boundaries, stable payload/template keys, or destructive migrations.

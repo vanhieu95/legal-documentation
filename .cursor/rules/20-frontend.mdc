@@ -1,0 +1,27 @@
+---
+description: Django template, HTMX, Alpine.js, Tailwind CSS, responsive UI, and accessibility rules
+globs:
+  - "**/templates/**/*.html"
+  - "**/static/**/*.{js,css}"
+  - "**/tailwind.config.*"
+alwaysApply: false
+---
+
+# Frontend
+
+- Start with semantic server-rendered HTML; HTMX and Alpine.js are progressive enhancements.
+- Keep partial templates beside their feature and prefix names with `_`.
+- HTMX endpoints must return intentional fragments and useful HTTP error states. Support direct/full-page access where practical.
+- Set `hx-target`, `hx-swap`, loading indicators, focus behavior, and history behavior explicitly.
+- Preserve form values and render field errors plus an accessible error summary after validation failures.
+- Include CSRF protection on every unsafe request and guard against duplicate submissions.
+- Use Alpine.js only for local ephemeral state such as disclosures, tabs, focus, and previews. Never duplicate permissions, validation, or durable workflow state in Alpine.
+- Use Tailwind CSS and semantic tokens. Reuse components/utilities before adding arbitrary values or one-off colors.
+- Follow the 4px spacing grid, Inter/system font stack, and light/dark/system themes.
+- Meet WCAG 2.2 AA: labelled controls, semantic landmarks, visible focus, keyboard operation, adequate contrast, useful live/status messaging, and reduced-motion support.
+- Aim for 44×44px interactive targets.
+- Use a 56–64px top bar, approximately 240px wide-screen sidebar, compact-screen drawer, fluid gutters, and single-column compact forms.
+- Make data tables intentionally responsive through column prioritization, cards, or labelled horizontal scrolling.
+- Provide explicit loading, saving, empty, error, offline, conflict, and success states when relevant.
+- Default user-facing product copy to clear Vietnamese; keep developer-facing identifiers in English.
+- Do not add a frontend framework or client-side router.

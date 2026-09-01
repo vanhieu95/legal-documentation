@@ -1,0 +1,27 @@
+---
+description: Django and Python implementation rules
+globs:
+  - "**/*.py"
+  - "**/migrations/*.py"
+alwaysApply: false
+---
+
+# Django and Python
+
+- Keep views focused on HTTP orchestration, forms on input validation, services on workflows/multi-model writes, selectors on reused complex reads, and models on durable invariants.
+- Prefer Django and Python standard-library features over new dependencies.
+- Use typed, explicit interfaces at service boundaries; avoid untyped dictionaries for stable domain contracts when a dataclass, form, model, or `TypedDict` is clearer.
+- Use `request.POST` only as form input; never write model fields from it directly.
+- Enforce authentication and object-level authorization server-side for every view, mutation, export, and download.
+- Scope object lookups to the requesting principal to prevent IDOR.
+- Wrap multi-record writes and workflow transitions in `transaction.atomic()`.
+- Keep side effects after successful validation and coordinate them with transaction completion when needed.
+- Prefer explicit workflow services over signals for primary business behavior.
+- Add database constraints for durable invariants and `TextChoices`/`IntegerChoices` for persisted finite states.
+- Use timezone-aware datetimes.
+- Avoid N+1 queries with deliberate `select_related()`/`prefetch_related()` and paginate unbounded querysets.
+- Keep migrations deterministic, reviewed, and committed with model changes. Never edit an already-deployed migration casually.
+- Use stable URL names and `reverse()`; do not hard-code internal paths.
+- Never log secrets, personal/legal payloads, or generated document content.
+- Test success, validation failure, unauthenticated, unauthorized, and object-not-found paths.
+- Follow the repository formatter, linter, typing, and test configuration; do not invent competing tool configuration.

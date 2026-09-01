@@ -1,0 +1,27 @@
+---
+description: Test, security, privacy, and verification rules
+globs:
+  - "**/tests/**/*.py"
+  - "**/test_*.py"
+  - "**/*_test.py"
+  - "pyproject.toml"
+  - "manage.py"
+  - "**/settings/**/*.py"
+alwaysApply: false
+---
+
+# Testing, Security, and Verification
+
+- Write risk-based tests for validators, models/constraints, forms, permissions, views, services, HTMX fragments, query counts, and DOCX output.
+- Include Vietnamese Unicode, empty optional fields, boundary lengths, invalid identifiers/dates, and hostile filename/template-like input where relevant.
+- Test unauthenticated and unauthorized access separately, including direct object URLs and downloads.
+- Test both HTMX and normal requests for enhanced endpoints.
+- Keep fixtures minimal, deterministic, and free of real personal or legal-case data.
+- Do not disable CSRF, weaken permission checks, or expose verbose production errors to make tests pass.
+- Keep production security settings environment-driven and fail safely when required configuration is absent.
+- Use fake secrets and synthetic data in tests and documentation.
+- After Python/Django changes, run the configured focused tests plus formatter/linter/type checks.
+- When settings, models, or migrations change, run `python manage.py check` and `python manage.py makemigrations --check --dry-run` using the repository’s normal environment.
+- After query changes, verify pagination and query counts on representative data.
+- After UI changes, verify keyboard use, focus, narrow and wide layouts, loading, error, and empty states.
+- Report exact commands run and any checks that could not be run.

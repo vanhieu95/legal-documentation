@@ -1,0 +1,29 @@
+---
+description: Word template, VDS schema, document rendering, and download rules
+globs:
+  - "**/*.docx"
+  - "**/documents/**/*.py"
+  - "**/docx/**/*.py"
+  - "**/templates/docx/**"
+alwaysApply: false
+---
+
+# DOCX and VDS Documents
+
+- Treat approved Word templates and their variables as versioned contracts.
+- Resolve templates by an allowlisted stable document-type key; never accept a template path from the request.
+- Use normalized relational entities for reusable/searchable concepts such as `court`, `case`, `party`, `decision`, and `fee`.
+- Use versioned, validated payloads for form-specific values. Never render arbitrary JSON or raw request data.
+- Keep mappings from normalized fields to Word variables explicit, reviewable, and tested.
+- Use `docxtpl` as the primary renderer. Use `python-docx` only for a documented limitation or controlled post-processing step.
+- Normalize dates, currency, names, identifiers, optional values, and Vietnamese text before rendering.
+- Prevent user content from becoming template syntax; apply the renderer’s required escaping/safe-text mechanism deliberately.
+- Preserve headers, footers, tables, typography, page breaks, and Vietnamese diacritics.
+- Render to a unique temporary path or in-memory stream and guarantee cleanup.
+- Sanitize filenames, provide UTF-8-compatible `Content-Disposition`, and use the official DOCX MIME type.
+- Require object-level permission for generation and download.
+- Record template version, schema version, immutable input snapshot, actor, timestamps, status, checksum/storage reference as appropriate, and non-sensitive failure metadata.
+- Do not overwrite an existing finalized artifact silently. Regeneration creates an auditable new version.
+- Test every template with minimal and representative contexts. Validate output as an OPC/ZIP package and assert important text/XML/parts; do not compare full binaries byte-for-byte.
+- Inspect representative rendered documents after any template, mapping, formatting, or post-processing change.
+- Escalate unclear legal wording or ambiguity in official form content instead of “correcting” it.
