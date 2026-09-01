@@ -40,6 +40,8 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 | CP-VDSxx-A / CP-VDSxx-B | For each of the 12 groups: after `VDSxx-002` and after `VDSxx-005` |
 | CP-HARD-A…F | `SEC-002`, `I18N-002`, `PERF-001`, `OPS-001`, `OPS-003`, `REL-001` |
 
+- [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
+
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
 ## 2. Dependency-ordered task backlog
@@ -78,7 +80,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** Settings checks prove correct locale/time/storage boundaries and production failure behavior without weakening deploy checks.
 - **Size:** M. **Blockers/skills:** Final production values are deferred inputs; use `security-and-hardening`.
 
-### [ ] FND-003 — Build the test, coverage, and CI quality gate
+### [x] FND-003 — Build the test, coverage, and CI quality gate
 
 - **Outcome:** CI provisions PostgreSQL and Node/Python dependencies, then enforces all command contracts, coverage thresholds, migrations, CSS, i18n, and browser-smoke hooks.
 - **SPEC:** §§19, 20.1, 20.3; **FR:** all indirectly; **AC:** `AC-25`.
@@ -94,7 +96,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** CI fails on any required gate and passes locally on the baseline; no check is advisory or silently skipped.
 - **Size:** M. **Blockers/skills:** CI provider/repository metadata; use `ci-cd-and-automation`, `code-review-and-quality`.
 
-### [ ] FND-004 — Implement local frontend assets and design-system primitives
+### [x] FND-004 — Implement local frontend assets and design-system primitives
 
 - **Outcome:** Tailwind 4 CLI, pinned local HTMX 2.x/Alpine 3.x, semantic tokens, accessible base components, themes, and no-JS CSS baseline are available without Vite.
 - **SPEC:** §§7.4–7.5, 8.1, 13, 14.1–14.2; `DESIGN.md` §§1–9; **FR:** `FR-I18N-02`; **AC:** `AC-08`, `AC-09`, `AC-25`, `AC-27`.
@@ -112,8 +114,8 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 
 ### Checkpoint M1
 
-- [ ] Clean install, Django checks, CSS build, translation commands, migration drift, collectstatic, typing/lint/format, coverage smoke, and CI pass.
-- [ ] No application business model/code, legal wording, template, or deferred infrastructure has been introduced.
+- [ ] Clean install, Django checks, CSS build, translation commands, migration drift, collectstatic, typing/lint/format, and coverage smoke passed locally; remote GitHub Actions result is pending.
+- [x] No application business model/code, legal wording, template, or deferred infrastructure has been introduced.
 
 ## Milestone 2 — Identity, permissions, sessions, and application shell
 

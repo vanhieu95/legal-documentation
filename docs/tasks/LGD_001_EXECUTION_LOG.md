@@ -58,3 +58,76 @@ credentials, generated-document content, or other sensitive payloads.
 - **Approved deviations:** None.
 - **Remaining blockers:** None. Production HSTS rollout remains assigned to `SEC-002` after HTTPS
   validation, as required by the locked specification.
+
+## FND-003 — Build the test, coverage, and CI quality gate
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Added a blocking GitHub Actions quality job with restricted permissions, full-SHA
+  action pins, Python 3.13, Node.js 22, PostgreSQL 17, locked installs, migration-from-zero,
+  branch-coverage, Python/Django, CSS, i18n, static/deploy, and Playwright gates. Added PostgreSQL
+  test settings, synthetic non-privileged factories, a CSRF-enforcing client, and an automatically
+  armed 95% sensitive-module branch gate on top of the 85% overall threshold.
+- **Important files changed:** `.github/workflows/ci.yml`, `pyproject.toml`, `config/settings/test.py`,
+  `tests/conftest.py`, `tests/factories.py`, PostgreSQL/quality/coverage tests,
+  `scripts/check_sensitive_coverage.py`, `playwright.config.js`, browser smoke, locks, and `README.md`.
+- **Dependencies and locks changed:** Added exact `factory-boy==3.3.3` (and locked Faker 40.37.0)
+  and `@playwright/test` 1.62.1. Python hashes and npm integrity metadata are committed; npm audit
+  reported zero vulnerabilities.
+- **Tests and commands executed:** The task run passed 38 PostgreSQL-backed tests at 100% current
+  `apps` branch coverage, sensitive coverage activation, Ruff lint/format, mypy, Django checks,
+  migration drift, Tailwind, message extraction/compilation, deploy checks, static collection, CI
+  YAML parsing, and the Playwright health smoke. The final checkpoint run passed 44 tests.
+- **Migration verification:** A disposable PostgreSQL 18.6 database applied all 18 built-in Django
+  migrations from zero; the PostgreSQL integration test ran without a skip and drift remained empty.
+- **Security/privacy review:** CI has `contents: read`, checkout credentials are not persisted,
+  untrusted pull requests do not receive secrets, no allow-failure/advisory gate or retained artifact
+  exists, and only synthetic `example.invalid` identities and environment values are used.
+- **CI status:** Workflow syntax, ordering, service configuration, and every equivalent gate passed
+  locally. No remote GitHub Actions run was observable, so the remote result remains **pending**.
+- **Commit:** `150ecac` (`build(quality): establish blocking CI gate`).
+- **Remaining blockers:** Remote CI observation only; no implementation blocker.
+
+## FND-004 — Implement local frontend assets and design-system primitives
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Delivered the Tailwind 4 CLI foundation, 4px semantic tokens, light/dark/system themes,
+  accessible buttons/forms/alerts/badges/table/dialog/status states, a no-JavaScript baseline, and a
+  Vietnamese component gallery at `/foundation/components/` without Vite or an application shell.
+- **Important files changed:** `static_src/{css,js}/`, generated first-party `static/js/app.js`,
+  checksummed `static/vendor/`, deterministic vendor script, `templates/base.html`,
+  `templates/components/`, gallery template/view/URL, frontend/browser tests, CI, npm lock, and docs.
+- **Dependencies and locks changed:** Replaced standard Alpine 3.16.3 with exact CSP-friendly
+  `@alpinejs/csp` 3.17.1; retained exact HTMX 2.0.10 and Tailwind 4.3.3. The manifest records source,
+  SPDX license, version, destination, and SHA-256 for both vendored runtime files.
+- **Tests and commands executed:** Six frontend foundation tests, 11 Playwright tests, `npm ci`,
+  `npm run assets:verify`, `npm run css:build`, Tailwind watch startup, full Python coverage and
+  quality commands, Django/i18n/static/deploy commands, development server startup, and secret/CDN
+  scans passed.
+- **Browser and accessibility checks:** Pinned Chromium passed compact 375px, tablet 768px, and wide
+  1440px reflow; keyboard skip-link and dialog focus containment/Escape/restore; visible focus;
+  200% zoom; light/dark/system; reduced motion; forced colors; strict no-eval CSP; and JavaScript-off
+  rendering. Temporary compact-light, tablet-dark, and wide-light screenshots were manually
+  inspected and were not retained in the repository. Chrome DevTools MCP was unavailable, so the
+  configured real Playwright browser was used instead.
+- **Security/privacy review:** No CDN, Vite, SPA, client router, public media route, runtime eval,
+  sensitive persistence, or client authority was added. HTMX history is disabled and its path key
+  cleared; only the non-sensitive `vds-theme` preference may persist. No case/legal/personal data,
+  domain models, workflows, screenshots, or debug artifacts are present.
+- **Commit:** `2413bc5` (`feat(frontend): add accessible local design primitives`).
+- **Remaining blockers:** None.
+
+## CP-FND-B — Checkpoint closure
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Local CP-FND-B gates passed and `FND-003`/`FND-004` are complete. `FND-001` and
+  `FND-002` remained unchanged after regression verification.
+- **Checkpoint evidence:** A newly empty PostgreSQL database applied migrations from zero; locked
+  Python/npm installs, asset hashes, CSS, i18n, 44 tests with 100% branch coverage, sensitive gate,
+  Ruff, mypy, Django system/drift/deploy checks, static collection, runserver/watch startup, CI YAML,
+  11 browser tests, and security/privacy scans passed. Deploy check retained only the expected HSTS
+  warning assigned to `SEC-002`.
+- **CI status:** All local equivalents passed; remote GitHub Actions result is **pending** and the
+  corresponding Milestone 1 checkbox remains open rather than being reported as passed.
+- **Commits:** `150ecac` (FND-003) and `2413bc5` (FND-004).
+- **Unresolved blockers:** Remote CI observation only. The next eligible task is `IAM-001`; it was
+  not started.
