@@ -208,3 +208,57 @@ test("200 percent zoom retains page-level reflow", async ({ page }) => {
   await expect(page.getByLabel("Tên hiển thị")).toBeVisible();
   await expectNoPageOverflow(page);
 });
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`login is keyboard-usable at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/login/");
+
+    await expect(page.getByRole("heading", { name: "Đăng nhập quản trị" })).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("link", { name: "Chuyển đến nội dung chính" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(page.getByLabel("Tên đăng nhập")).toBeFocused();
+    await expect(page.getByLabel("Tên đăng nhập")).toHaveCSS("outline-style", "solid");
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("failed login is generic, clears credentials, focuses the summary, and stores nothing", async ({ page }) => {
+  await page.goto("/login/");
+  await page.getByLabel("Tên đăng nhập").fill("synthetic-unknown-browser-user");
+  await page.getByLabel("Mật khẩu").fill("synthetic-browser-password");
+  await page.getByRole("button", { name: "Đăng nhập" }).click();
+
+  const summary = page.locator("[data-error-summary]");
+  await expect(summary).toBeFocused();
+  await expect(summary).toContainText("Không thể đăng nhập bằng thông tin đã cung cấp.");
+  await expect(page.getByLabel("Tên đăng nhập")).toHaveValue("");
+  await expect(page.getByLabel("Mật khẩu")).toHaveValue("");
+  expect(
+    await page.evaluate(() => ({
+      local: Object.keys(window.localStorage),
+      session: Object.keys(window.sessionStorage),
+    })),
+  ).toEqual({ local: [], session: [] });
+});
+
+test("login remains functional without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("/login/");
+  await page.getByLabel("Tên đăng nhập").fill("synthetic-no-script-user");
+  await page.getByLabel("Mật khẩu").fill("synthetic-no-script-password");
+  await page.getByRole("button", { name: "Đăng nhập" }).click();
+
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expect(page.getByRole("alert")).toContainText(
+    "Không thể đăng nhập bằng thông tin đã cung cấp.",
+  );
+  await expect(page.getByLabel("Tên đăng nhập")).toHaveValue("");
+  await expectNoPageOverflow(page);
+  await context.close();
+});

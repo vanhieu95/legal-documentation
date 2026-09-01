@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Trang chính" %} · VDS{% endblock %}
+
+{% block content %}
+  <main id="main-content" class="gallery">
+    <section class="surface" aria-labelledby="dashboard-heading">
+      <h1 id="dashboard-heading" class="gallery-title">{% translate "Khu vực quản trị" %}</h1>
+      <p class="gallery-description">
+        {% translate "Bạn đã đăng nhập thành công. Nội dung nghiệp vụ sẽ được cung cấp ở các giai đoạn sau." %}
+      </p>
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button class="button button-secondary" type="submit">{% translate "Đăng xuất" %}</button>
+      </form>
+    </section>
+  </main>
+{% endblock %}

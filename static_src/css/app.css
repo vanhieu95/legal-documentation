@@ -485,6 +485,61 @@ a {
   gap: var(--space-2);
 }
 
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.auth-card {
+  width: min(100%, 440px);
+}
+
+.auth-header {
+  margin-block-end: var(--space-6);
+}
+
+.auth-product {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: 0.857rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-title {
+  margin: 0;
+  color: var(--color-text-strong);
+  font-size: 1.714rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.auth-instructions,
+.auth-noscript {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+}
+
+.auth-error-summary {
+  margin-block-end: var(--space-4);
+}
+
+.auth-submit {
+  width: 100%;
+}
+
+.submit-loading {
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.submit-loading:not([hidden]) {
+  display: inline-flex;
+}
+
 .no-js .js-only {
   display: none !important;
 }

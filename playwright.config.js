@@ -15,7 +15,9 @@ module.exports = defineConfig({
     video: "off",
   },
   webServer: {
-    command: ".venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload --insecure",
+    command:
+      ".venv/bin/python manage.py migrate --noinput --settings=config.settings.browser_test && " +
+      ".venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload --insecure --settings=config.settings.browser_test",
     url: "http://127.0.0.1:8000/health/live/",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

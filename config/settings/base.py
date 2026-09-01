@@ -65,6 +65,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGOUT_REDIRECT_URL = "/login/"
 
 LANGUAGE_CODE = "vi"
 LANGUAGES = [("vi", "Tiếng Việt")]

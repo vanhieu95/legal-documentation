@@ -39,6 +39,29 @@
     window.queueMicrotask(clearHtmxHistoryMetadata);
   });
 
+  const errorSummary = document.querySelector("[data-error-summary]");
+  if (errorSummary instanceof HTMLElement) {
+    errorSummary.focus();
+  }
+
+  for (const submitForm of document.querySelectorAll("[data-submit-form]")) {
+    submitForm.addEventListener("submit", () => {
+      const submitButton = submitForm.querySelector("[data-submit-button]");
+      const submitLabel = submitForm.querySelector("[data-submit-label]");
+      const submitLoading = submitForm.querySelector("[data-submit-loading]");
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+      }
+      if (submitLabel instanceof HTMLElement) {
+        submitLabel.hidden = true;
+      }
+      if (submitLoading instanceof HTMLElement) {
+        submitLoading.hidden = false;
+      }
+    });
+  }
+
   for (const themeButton of document.querySelectorAll("[data-theme-choice]")) {
     themeButton.addEventListener("click", () => {
       const themeChoice = themeButton.dataset.themeChoice;

@@ -149,3 +149,21 @@ def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> 
     assert "http://" not in html
     assert "localStorage" not in html
     assert "sessionStorage" not in html
+
+
+def test_login_frontend_has_responsive_focus_and_busy_state_contracts() -> None:
+    css = (PROJECT_ROOT / "static_src" / "css" / "app.css").read_text(encoding="utf-8")
+    javascript = (PROJECT_ROOT / "static_src" / "js" / "app.js").read_text(encoding="utf-8")
+
+    for selector in (
+        ".auth-page",
+        ".auth-card",
+        ".auth-error-summary",
+        ".auth-submit",
+        ".submit-loading",
+    ):
+        assert selector in css
+    assert "[data-error-summary]" in javascript
+    assert "errorSummary.focus()" in javascript
+    assert "[data-submit-form]" in javascript
+    assert "submitButton.disabled = true" in javascript

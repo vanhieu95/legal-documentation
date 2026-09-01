@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from django.urls import path
+from django.urls import include, path
 
 from apps.core.views import component_gallery, liveness, readiness
 
 urlpatterns = [
+    path("", include("apps.accounts.urls")),
     path("", liveness, name="placeholder"),
     path("foundation/components/", component_gallery, name="component-gallery"),
     path("health/live/", liveness, name="health-liveness"),
