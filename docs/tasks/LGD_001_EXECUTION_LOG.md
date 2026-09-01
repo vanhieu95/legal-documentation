@@ -131,3 +131,40 @@ credentials, generated-document content, or other sensitive payloads.
 - **Commits:** `150ecac` (FND-003) and `2413bc5` (FND-004).
 - **Unresolved blockers:** Remote CI observation only. The next eligible task is `IAM-001`; it was
   not started.
+
+## IAM-001 — Define Administrator permissions and deny-by-default policy
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Added a table-free permission anchor, the exact 21-permission application contract,
+  deterministic Administrator group seeding, an idempotent synchronization command, and one
+  deny-by-default policy shared by view decorators, direct service checks, object-scoped lookup,
+  presentation hints, and superuser-only account administration.
+- **Important files changed:** `apps/accounts/{models,permissions,policies}.py`, the account
+  management command, permission template tag, Vietnamese generic `403`/`404` handlers/templates,
+  focused account tests, and the Playwright non-disclosure smoke.
+- **Migrations created:** `apps/accounts/migrations/0001_seed_administrator_permissions.py` creates
+  only a proxy-model content type and permission/group data; it creates no business table. Forward,
+  repeat, absent-state, member-preservation, and practical reverse behavior are tested.
+- **Focused tests executed:** 14 SQLite permission/policy/migration tests passed; the same suite plus
+  the PostgreSQL migration-profile test passed against an isolated PostgreSQL 18.6 cluster (15
+  passed). The principal matrix covers anonymous, inactive, non-Administrator, Administrator,
+  missing permission, active/inactive superuser, inaccessible/nonexistent object, direct service,
+  UUID knowledge, hidden presentation, and account-administration denial paths.
+- **Broader checks executed:** Full suite: 57 passed and 1 PostgreSQL-profile skip in the ordinary
+  SQLite run, 99.78% overall branch coverage, and 100% sensitive permission/migration branch
+  coverage. Ruff lint/format, mypy, Django check, migration drift, Tailwind build, and diff checks
+  passed.
+- **Browser and accessibility verification:** The isolated Chromium suite passed 12 tests under
+  non-debug settings. The Vietnamese 404 redacts the requested identifier, loads all local assets,
+  has no failed subresources or compact-width page overflow, and retains the foundation keyboard,
+  focus, theme, reduced-motion, CSP, no-JavaScript, and 200% zoom checks. Chrome DevTools MCP was not
+  available, so the repository's pinned real Playwright browser was used.
+- **Security/privacy review:** Views and services use the same server policy; object lookup scopes
+  before retrieval and returns identical generic failures; presentation helpers fail closed and are
+  not enforcement; normal Administrators receive no user/group administration authority. No
+  future business model/table, audit infrastructure, secret, credential, personal data, debug
+  output, CSRF bypass, test suppression, or sensitive browser persistence was introduced.
+- **Commits:** `203d25b` (permission seed), `945bb85` (central enforcement), `8c5a6d3` (browser
+  verification).
+- **Deviations or blockers:** None. A temporary local PostgreSQL cluster was used because no system
+  server was listening; it was stopped after the tests.

@@ -127,7 +127,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 2 — Identity, permissions, sessions, and application shell
 
-### [ ] IAM-001 — Define Administrator permissions and deny-by-default policy
+### [x] IAM-001 — Define Administrator permissions and deny-by-default policy
 
 - **Outcome:** A deterministic Administrator group receives only the approved permission families; all protected access uses one explicit policy/object-check interface and accounts administration remains superuser-only.
 - **SPEC:** §§4.1–4.3, 9, 16; **FR:** `FR-AUTH-02`; **AC:** `AC-02`.
