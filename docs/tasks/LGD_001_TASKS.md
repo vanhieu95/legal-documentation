@@ -62,7 +62,7 @@ The per-milestone checkpoints below are additional outcome gates, not replacemen
 - **Done:** A clean checkout can install, start, build CSS, and run smoke checks using documented commands; lock artifacts are committed and no redundant toolchain exists.
 - **Size:** M. **Blockers/skills:** Python/npm package resolution; use `source-driven-development`, then `code-review-and-quality`.
 
-### [ ] FND-002 — Establish settings, locale, storage, and HTTP baselines
+### [x] FND-002 — Establish settings, locale, storage, and HTTP baselines
 
 - **Outcome:** Development/test/production settings are split, environment validated, Vietnamese i18n/time-zone behavior is correct, and static/private storage boundaries exist.
 - **SPEC:** §§4.4, 6.7, 7.1, 8, 9, 18, 20.1; **FR:** `FR-I18N-01`, `FR-I18N-03`, `FR-L10N-01`; **AC:** `AC-23`, `AC-27`.

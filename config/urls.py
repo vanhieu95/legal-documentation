@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from django.http import HttpRequest, HttpResponse
 from django.urls import path
 
+from apps.core.views import liveness, readiness
 
-def placeholder(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("OK", content_type="text/plain; charset=utf-8")
-
-
-urlpatterns = [path("", placeholder, name="placeholder")]
+urlpatterns = [
+    path("", liveness, name="placeholder"),
+    path("health/live/", liveness, name="health-liveness"),
+    path("health/ready/", readiness, name="health-readiness"),
+]

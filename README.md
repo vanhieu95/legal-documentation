@@ -32,6 +32,30 @@ Never use values from `.env.example` in production. It contains development-only
 is not loaded automatically. Runtime private files, generated static files, virtual environments,
 and local environment files are excluded from version control.
 
+## Settings and runtime boundaries
+
+`manage.py` defaults to `config.settings.development`, pytest uses `config.settings.test`, and the
+WSGI/ASGI entry points default to `config.settings.production`. Production refuses to start unless
+all of these values are present and valid:
+
+| Environment variable | Required shape |
+| --- | --- |
+| `DJANGO_SECRET_KEY` | Secret value supplied outside source control |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated explicit host names; no wildcard |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | Comma-separated explicit HTTPS origins |
+| `DATABASE_URL` | Complete `postgresql://` URL; optional `sslmode` query value |
+| `DJANGO_PRIVATE_STORAGE_ROOT` | Absolute private-volume path |
+| `DJANGO_STATIC_ROOT` | Absolute collected-static path, separate from private storage |
+
+The application creates private files with mode `0600` and private directories with mode `0700`.
+Provision the private volume for only the application and backup identities, keep it outside every
+static/web root, and do not add a media route. Both the default and `private` Django storage aliases
+deny direct URL generation.
+
+The content-free health contracts are `GET /health/live/` and `GET /health/ready/`. Readiness checks
+the configured database but returns only `OK` or `Unavailable`; neither endpoint returns paths,
+versions, counts, configuration, or credentials.
+
 ## Dependency maintenance
 
 Direct dependencies are exact pins in `requirements/*.in` and `package.json`. Regenerate and review
