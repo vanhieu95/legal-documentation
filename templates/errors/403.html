@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Không có quyền truy cập" %}{% endblock %}
+
+{% block content %}
+  <main id="main-content" class="gallery" tabindex="-1">
+    <section class="surface" aria-labelledby="error-title">
+      <h1 id="error-title" class="gallery-title">{% translate "Không có quyền truy cập" %}</h1>
+      <p>{% translate "Bạn không có quyền truy cập nội dung này." %}</p>
+    </section>
+  </main>
+{% endblock %}

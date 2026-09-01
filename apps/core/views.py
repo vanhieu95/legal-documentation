@@ -30,3 +30,11 @@ def readiness(request: HttpRequest) -> HttpResponse:
 def component_gallery(request: HttpRequest) -> HttpResponse:
     """Render only the shared presentation primitives used by later application pages."""
     return render(request, "foundation/component_gallery.html")
+
+
+def permission_denied(request: HttpRequest, exception: Exception) -> HttpResponse:
+    return render(request, "errors/403.html", status=403)
+
+
+def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
+    return render(request, "errors/404.html", status=404)

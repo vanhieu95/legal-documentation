@@ -64,6 +64,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+LOGIN_URL = "/login/"
+
 LANGUAGE_CODE = "vi"
 LANGUAGES = [("vi", "Tiếng Việt")]
 LOCALE_PATHS = [BASE_DIR / "locale"]

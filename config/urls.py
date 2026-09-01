@@ -10,3 +10,6 @@ urlpatterns = [
     path("health/live/", liveness, name="health-liveness"),
     path("health/ready/", readiness, name="health-readiness"),
 ]
+
+handler403 = "apps.core.views.permission_denied"
+handler404 = "apps.core.views.page_not_found"
