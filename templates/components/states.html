@@ -1,0 +1,22 @@
+{% load i18n %}
+<section class="surface span-full" aria-labelledby="states-title">
+  <h2 id="states-title" class="surface-title">{% translate "Trạng thái hệ thống" %}</h2>
+  <div class="gallery-grid">
+    <div class="state" role="status" aria-live="polite" aria-busy="true">
+      <p class="state-title"><span class="loading-indicator" aria-hidden="true"></span>{% translate "Trạng thái tải" %}</p>
+      <p class="state-message">{% translate "Đang tải dữ liệu tổng hợp…" %}</p>
+    </div>
+    <div class="state">
+      <p class="state-title">{% translate "Chưa có dữ liệu" %}</p>
+      <p class="state-message">{% translate "Chưa có mục nào để hiển thị; hãy dùng thao tác phù hợp để bắt đầu." %}</p>
+    </div>
+    <div class="state">
+      <p class="state-title">{% translate "Ngoại tuyến" %}</p>
+      <p class="state-message">{% translate "Không thể kết nối; dữ liệu chưa được gửi." %}</p>
+    </div>
+    <div class="state">
+      <p class="state-title">{% translate "Xung đột" %}</p>
+      <p class="state-message">{% translate "Thông tin đã thay đổi ở nơi khác; hãy tải lại và xem xét trước khi tiếp tục." %}</p>
+    </div>
+  </div>
+</section>

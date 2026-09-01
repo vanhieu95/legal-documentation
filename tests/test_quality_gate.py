@@ -21,6 +21,7 @@ def test_ci_quality_gate_is_complete_and_blocking() -> None:
         'node-version: "22"',
         "python -m pip install --require-hashes -r requirements/development.txt",
         "npm ci",
+        "npm run assets:verify",
         "python manage.py migrate --noinput",
         "pytest --cov=apps --cov-branch --cov-report=term-missing",
         "python scripts/check_sensitive_coverage.py",

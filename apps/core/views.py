@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.db import DatabaseError, connection
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 from django.views.decorators.http import require_GET
 
 
@@ -23,3 +24,9 @@ def readiness(request: HttpRequest) -> HttpResponse:
     except DatabaseError:
         return _health_response("Unavailable", status=503)
     return _health_response("OK")
+
+
+@require_GET
+def component_gallery(request: HttpRequest) -> HttpResponse:
+    """Render only the shared presentation primitives used by later application pages."""
+    return render(request, "foundation/component_gallery.html")

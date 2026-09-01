@@ -81,6 +81,7 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 
 # Frontend assets
+npm run assets:verify
 npm run css:build
 
 # Localization
@@ -112,3 +113,18 @@ only the committed dependency locks, applies migrations from zero, and propagate
 tests, overall and sensitive-module branch coverage, linting, formatting, typing, Django checks,
 migration drift, CSS, localization, static collection, deployment checks, and the browser smoke.
 Remote CI does not retain test artifacts or application data.
+
+## Frontend foundation
+
+The component gallery is served at `/foundation/components/`. It demonstrates semantic buttons,
+form help and validation, live alerts, text-labeled status badges, a contained responsive table,
+a native dialog, and loading/empty/offline/conflict states. It is a design-system fixture, not an
+application dashboard or workflow.
+
+Tailwind CSS 4 builds directly with its pinned CLI; no Vite or frontend application runtime is
+used. HTMX and the Alpine CSP build are served only from committed local static files. Their npm
+provenance and SHA-256 values are recorded in `static/vendor/manifest.json` and can be reproduced
+with `npm run assets:vendor`. `npm run assets:verify` fails if a committed asset, exact package pin,
+or checksum drifts. The application script disables HTMX history and runtime evaluation, clears
+HTMX path metadata, and persists only the non-sensitive `vds-theme` preference; it never persists
+application records or form values and treats client-side visibility only as presentation.
