@@ -321,3 +321,67 @@ credentials, generated-document content, or other sensitive payloads.
 - **Deviations or blockers:** No implementation blocker. Chrome DevTools MCP and a remote CI result
   were not available; local pinned Chromium and all repository-equivalent gates passed. The next
   eligible task is `AUD-001`, which was not started.
+
+## AUD-001 — Create the append-only audit model and recorder
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Added the append-only `AuditEvent` model, stable action/outcome contract, bounded
+  metadata recorder, request correlation middleware, read-only Django admin, and focused immutability
+  and migration-index tests without importing business-domain models.
+- **Important files changed:** `apps/audit/{actions,models,recorder,admin}.py`,
+  `apps/audit/migrations/0001_initial.py`, `apps/audit/tests/`, `apps/core/{correlation,middleware}.py`,
+  and `config/settings/base.py`.
+- **Migrations created:** `apps/audit/migrations/0001_initial.py` with actor-marker consistency
+  constraint and indexes for timestamp, action, outcome, actor, correlation ID, and target tuple.
+- **Focused tests executed:** 36 audit tests passed with one PostgreSQL index-profile skip when
+  `TEST_DATABASE_URL` is unset; immutability, metadata bounds, transaction commit/rollback, admin
+  read-only, correlation propagation, and business-domain import absence were verified.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks, and
+  audit-focused coverage passed before the standalone commit.
+- **Security/privacy review:** Recorder rejects prohibited metadata keys, arbitrary object
+  serialization, and oversized or over-nested metadata; update/delete paths raise
+  `ImmutableAuditEventError`; no credentials, request bodies, or business-model foreign keys were
+  introduced.
+- **Commit:** `434879f` (`feat(audit): add append-only audit model and recorder`).
+- **Deviations or blockers:** None.
+
+## AUD-002 — Integrate identity and denied-access audit events
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Integrated explicit identity and authorization audit recording for login success and
+  failure, inactive and non-Administrator denial, logout, session expiry, password change/reset,
+  account activation/deactivation, group and permission changes, and denied full-page, HTMX, and
+  service-boundary access attempts.
+- **Important files changed:** `apps/accounts/{audit,forms,views,sessions,services,policies}.py`,
+  `apps/accounts/tests/test_audit_integration.py`, and focused session-test updates.
+- **Migrations created:** None.
+- **Focused tests executed:** 20 identity audit integration tests plus updated session and
+  authentication suites passed; defensive assertions verified absence of submitted credentials and
+  protected content anywhere in serialized audit payloads.
+- **Broader checks executed:** Full repository coverage suite reported 171 passed, 2 skipped, and
+  96.92% branch coverage with Ruff, mypy, Django checks, CSS build, and i18n commands passing.
+- **Security/privacy review:** Failed-login audit metadata uses bounded reason codes only; user-facing
+  errors remain generic; session-expiry responses remain data-free; audit rows store correlation IDs
+  and route/permission metadata without usernames, passwords, tokens, or protected fragments.
+- **Commit:** `e0d1c96` (`feat(audit): integrate identity and denied-access audit events`).
+- **Deviations or blockers:** None.
+
+## CP-AUD-A — Checkpoint closure
+
+- **Completion date:** 2026-09-02
+- **Status:** Local implementation and verification are complete; human approval is pending at the
+  mandatory checkpoint pause. `AUD-003` has not started.
+- **Completed tasks:** `AUD-001`, `AUD-002`.
+- **Checkpoint evidence:** Focused audit and identity integration suites passed; Ruff lint/format,
+  mypy, Django system and migration-drift checks, Tailwind build, message extraction/compilation,
+  and the full coverage suite passed (`171 passed`, `96.92%` branch coverage). Manual synthetic
+  exercise recorded one event each for account activation, successful login, failed login, and
+  logout with correlation IDs and bounded metadata. Append-only deletion was rejected at the ORM
+  layer during manual inspection.
+- **Security/privacy review:** `audit` imports only Django, `core`, and `accounts`; audit browsing
+  remains deferred to `AUD-003`; identity audit integration preserves IAM behavior and does not add
+  signal-based duplicate events.
+- **Commits:** `434879f` for `AUD-001`; `e0d1c96` for `AUD-002`.
+- **Deviations or blockers:** PostgreSQL index-profile verification remains skipped unless
+  `TEST_DATABASE_URL` is set. The next eligible task after approval is `AUD-003`; `CASE-001` remains
+  out of scope until Milestone 3 closes.
