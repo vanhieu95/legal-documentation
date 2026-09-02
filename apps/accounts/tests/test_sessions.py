@@ -191,7 +191,12 @@ def test_password_change_and_reset_invalidate_all_sessions(
         _login_at(change_client, administrator, monkeypatch)
     change_session_keys = [client.session.session_key for client in change_clients]
 
-    change_password(actor=administrator, user=administrator, new_password="changed-password-123")
+    change_password(
+        actor=administrator,
+        user=administrator,
+        new_password="changed-password-123",
+        correlation_id="synthetic-session-correlation",
+    )
     assert not Session.objects.filter(session_key__in=change_session_keys)
 
     reset_clients = [Client(), Client()]
@@ -200,7 +205,11 @@ def test_password_change_and_reset_invalidate_all_sessions(
         response = login(reset_client, administrator.username, "changed-password-123")
         assert response.status_code == 302
     reset_session_keys = [client.session.session_key for client in reset_clients]
-    complete_password_reset(user=administrator, new_password="reset-password-456")
+    complete_password_reset(
+        user=administrator,
+        new_password="reset-password-456",
+        correlation_id="synthetic-session-correlation",
+    )
     assert not Session.objects.filter(session_key__in=reset_session_keys)
 
 
@@ -212,7 +221,12 @@ def test_user_cannot_change_another_users_password(
     other_user = user_factory(username="synthetic-password-target", password=PASSWORD)
 
     with pytest.raises(PermissionDenied):
-        change_password(actor=administrator, user=other_user, new_password="other-password-123")
+        change_password(
+            actor=administrator,
+            user=other_user,
+            new_password="other-password-123",
+            correlation_id="synthetic-session-correlation",
+        )
 
     assert other_user.check_password(PASSWORD)
 
@@ -350,9 +364,14 @@ def test_session_cleanup_runbook_documents_daily_clearsessions() -> None:
     assert "expired" in runbook.lower()
 
 
+@pytest.mark.django_db
 def test_expiry_reason_contract_is_ready_for_audit_integration() -> None:
     assert set(SessionExpiryReason) == {
         SessionExpiryReason.INACTIVITY,
         SessionExpiryReason.ABSOLUTE,
     }
-    notify_session_expired(user_id=1, reason=SessionExpiryReason.INACTIVITY)
+    notify_session_expired(
+        user_id=1,
+        reason=SessionExpiryReason.INACTIVITY,
+        correlation_id="synthetic-session-correlation",
+    )

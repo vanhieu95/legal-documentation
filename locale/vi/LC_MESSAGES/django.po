@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 17:31+0700\n"
+"POT-Creation-Date: 2026-09-02 19:05+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -37,11 +37,11 @@ msgstr "Nhật ký kiểm tra"
 msgid "Unable to sign in with the credentials provided."
 msgstr "Không thể đăng nhập bằng thông tin đã cung cấp."
 
-#: apps/accounts/forms.py:18
+#: apps/accounts/forms.py:23
 msgid "Username"
 msgstr "Tên đăng nhập"
 
-#: apps/accounts/forms.py:28
+#: apps/accounts/forms.py:33
 msgid "Password"
 msgstr "Mật khẩu"
 
