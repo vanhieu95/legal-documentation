@@ -221,16 +221,20 @@ def test_shell_scripts_are_local_and_csp_compatible(client: Client, administrato
 
 @pytest.mark.django_db
 def test_generic_error_pages_and_session_state_disclose_no_internal_details(
-    client: Client, administrator: User
+    client: Client, administrator: User, administrator_group: Group
 ) -> None:
+    cases_permission = Permission.objects.get(
+        content_type__app_label="accounts", codename="view_cases"
+    )
+    administrator_group.permissions.remove(cases_permission)
     client.force_login(administrator)
-    forbidden = client.get(reverse("audit:list"))
+    forbidden = client.get(reverse("cases:list"))
     not_found = client.get("/synthetic-internal-identifier/")
     expired = client.get(reverse("accounts:session-expired"))
     request = RequestFactory().get("/")
     server_failure = server_error(request)
 
-    assert forbidden.status_code in {200, 403}
+    assert forbidden.status_code == 403
     assert not_found.status_code == 404
     assert server_failure.status_code == 500
     for response in (forbidden, not_found, expired, server_failure):

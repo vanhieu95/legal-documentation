@@ -1,0 +1,160 @@
+{% load i18n %}
+{% if audit_page.total_count == 0 %}
+  <div class="state" role="status" aria-live="polite">
+    <p class="state-title">
+      {% if audit_page.filters.has_active_filters %}
+        {% translate "No matching audit events" %}
+      {% else %}
+        {% translate "No audit events yet" %}
+      {% endif %}
+    </p>
+    <p class="state-message">
+      {% if audit_page.filters.has_active_filters %}
+        {% translate "Try adjusting or clearing the filters to see more results." %}
+      {% else %}
+        {% translate "Identity and workflow events will appear here after they are recorded." %}
+      {% endif %}
+    </p>
+  </div>
+{% else %}
+  <p class="audit-results-summary" role="status" aria-live="polite">
+    {% blocktranslate with total=audit_page.total_count page=audit_page.page page_count=audit_page.page_count %}
+      Showing page {{ page }} of {{ page_count }} ({{ total }} events).
+    {% endblocktranslate %}
+  </p>
+
+  <div class="audit-table-view table-region" role="region" aria-labelledby="audit-results-table-title">
+    <table class="data-table audit-data-table">
+      <caption id="audit-results-table-title">{% translate "Audit events" %}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Time (UTC)" %}</th>
+          <th scope="col">{% translate "Action" %}</th>
+          <th scope="col">{% translate "Outcome" %}</th>
+          <th scope="col">{% translate "Actor" %}</th>
+          <th scope="col">{% translate "Target" %}</th>
+          <th scope="col">{% translate "Correlation ID" %}</th>
+          <th scope="col">{% translate "Metadata" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in audit_page.items %}
+          <tr>
+            <td><time datetime="{{ event.occurred_at|date:'c' }}">{{ event.occurred_at|date:'Y-m-d H:i:s' }} UTC</time></td>
+            <td>{{ event.action }}</td>
+            <td><span class="badge badge-neutral">{{ event.outcome }}</span></td>
+            <td>
+              {% if event.is_system_actor %}
+                {% translate "System" %}
+              {% elif event.actor %}
+                {{ event.actor.get_username }}
+              {% else %}
+                {% translate "Unknown" %}
+              {% endif %}
+            </td>
+            <td>
+              <span class="audit-target-type">{{ event.target_type }}</span>
+              {% if event.target_id %}
+                <span class="audit-target-id">{{ event.target_id }}</span>
+              {% endif %}
+            </td>
+            <td>{{ event.correlation_id }}</td>
+            <td>
+              {% if event.changed_fields or event.metadata %}
+                <dl class="audit-metadata-list">
+                  {% if event.changed_fields %}
+                    <div>
+                      <dt>{% translate "Changed fields" %}</dt>
+                      <dd>{{ event.changed_fields|join:", " }}</dd>
+                    </div>
+                  {% endif %}
+                  {% for key, value in event.metadata.items %}
+                    <div>
+                      <dt>{{ key }}</dt>
+                      <dd>{{ value }}</dd>
+                    </div>
+                  {% endfor %}
+                </dl>
+              {% else %}
+                <span class="audit-metadata-empty">{% translate "None" %}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="audit-card-view" aria-label="{% translate 'Audit events' %}">
+    {% for event in audit_page.items %}
+      <article class="audit-card">
+        <h2 class="audit-card-title">{{ event.action }}</h2>
+        <dl class="audit-card-details">
+          <div>
+            <dt>{% translate "Time (UTC)" %}</dt>
+            <dd><time datetime="{{ event.occurred_at|date:'c' }}">{{ event.occurred_at|date:'Y-m-d H:i:s' }} UTC</time></dd>
+          </div>
+          <div>
+            <dt>{% translate "Outcome" %}</dt>
+            <dd>{{ event.outcome }}</dd>
+          </div>
+          <div>
+            <dt>{% translate "Actor" %}</dt>
+            <dd>
+              {% if event.is_system_actor %}
+                {% translate "System" %}
+              {% elif event.actor %}
+                {{ event.actor.get_username }}
+              {% else %}
+                {% translate "Unknown" %}
+              {% endif %}
+            </dd>
+          </div>
+          <div>
+            <dt>{% translate "Target" %}</dt>
+            <dd>{{ event.target_type }}{% if event.target_id %} · {{ event.target_id }}{% endif %}</dd>
+          </div>
+          <div>
+            <dt>{% translate "Correlation ID" %}</dt>
+            <dd>{{ event.correlation_id }}</dd>
+          </div>
+          {% if event.changed_fields or event.metadata %}
+            <div>
+              <dt>{% translate "Metadata" %}</dt>
+              <dd>
+                {% if event.changed_fields %}
+                  <p>{% translate "Changed fields" %}: {{ event.changed_fields|join:", " }}</p>
+                {% endif %}
+                {% for key, value in event.metadata.items %}
+                  <p>{{ key }}: {{ value }}</p>
+                {% endfor %}
+              </dd>
+            </div>
+          {% endif %}
+        </dl>
+      </article>
+    {% endfor %}
+  </div>
+
+  {% if audit_page.page_count > 1 %}
+    <nav class="audit-pagination" aria-label="{% translate 'Audit pagination' %}">
+      <ul class="audit-pagination-list">
+        {% if previous_page_url %}
+          <li>
+            <a class="button button-quiet" href="{{ previous_page_url }}">{% translate "Previous" %}</a>
+          </li>
+        {% endif %}
+        <li class="audit-pagination-status" aria-current="page">
+          {% blocktranslate with page=audit_page.page page_count=audit_page.page_count %}
+            Page {{ page }} of {{ page_count }}
+          {% endblocktranslate %}
+        </li>
+        {% if next_page_url %}
+          <li>
+            <a class="button button-quiet" href="{{ next_page_url }}">{% translate "Next" %}</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+{% endif %}

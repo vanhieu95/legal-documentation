@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 19:05+0700\n"
+"POT-Creation-Date: 2026-09-02 19:32+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -29,7 +29,9 @@ msgstr "Hồ sơ việc dân sự"
 msgid "Templates"
 msgstr "Biểu mẫu"
 
-#: apps/accounts/context_processors.py:28 apps/audit/views.py:16
+#: apps/accounts/context_processors.py:28 apps/audit/views.py:69
+#: templates/audit/list.html:4 templates/audit/list.html:6
+#: templates/audit/list.html:11
 msgid "Audit log"
 msgstr "Nhật ký kiểm tra"
 
@@ -45,9 +47,100 @@ msgstr "Tên đăng nhập"
 msgid "Password"
 msgstr "Mật khẩu"
 
-#: apps/audit/views.py:17
-msgid "Audit browsing is not available yet."
-msgstr "Chức năng xem nhật ký kiểm tra chưa khả dụng."
+#: apps/audit/forms.py:28 templates/audit/_audit_results.html:32
+msgid "Action"
+msgstr "Hành động"
+
+#: apps/audit/forms.py:30
+msgid "All actions"
+msgstr "Tất cả hành động"
+
+#: apps/audit/forms.py:33 templates/audit/_audit_results.html:33
+#: templates/audit/_audit_results.html:98
+msgid "Outcome"
+msgstr "Kết quả"
+
+#: apps/audit/forms.py:35
+msgid "All outcomes"
+msgstr "Tất cả kết quả"
+
+#: apps/audit/forms.py:38 templates/audit/_audit_results.html:34
+#: templates/audit/_audit_results.html:102
+msgid "Actor"
+msgstr "Người thực hiện"
+
+#: apps/audit/forms.py:43
+msgid "Target type"
+msgstr "Loại đối tượng"
+
+#: apps/audit/forms.py:45
+msgid "All target types"
+msgstr "Tất cả loại đối tượng"
+
+#: apps/audit/forms.py:48
+msgid "Target identifier"
+msgstr "Mã định danh đối tượng"
+
+#: apps/audit/forms.py:53 templates/audit/_audit_results.html:36
+#: templates/audit/_audit_results.html:118
+msgid "Correlation ID"
+msgstr "Mã tương quan"
+
+#: apps/audit/forms.py:58
+msgid "From"
+msgstr "Từ"
+
+#: apps/audit/forms.py:69
+msgid "To"
+msgstr "Đến"
+
+#: apps/audit/forms.py:80
+msgid "Sort"
+msgstr "Sắp xếp"
+
+#: apps/audit/forms.py:83
+msgid "Newest first"
+msgstr "Mới nhất trước"
+
+#: apps/audit/forms.py:84
+msgid "Oldest first"
+msgstr "Cũ nhất trước"
+
+#: apps/audit/forms.py:85
+msgid "Action (A–Z)"
+msgstr "Hành động (A–Z)"
+
+#: apps/audit/forms.py:86
+msgid "Action (Z–A)"
+msgstr "Hành động (Z–A)"
+
+#: apps/audit/forms.py:87
+msgid "Outcome (A–Z)"
+msgstr "Kết quả (A–Z)"
+
+#: apps/audit/forms.py:88
+msgid "Outcome (Z–A)"
+msgstr "Kết quả (Z–A)"
+
+#: apps/audit/forms.py:89
+msgid "Target type (A–Z)"
+msgstr "Loại đối tượng (A–Z)"
+
+#: apps/audit/forms.py:90
+msgid "Target type (Z–A)"
+msgstr "Loại đối tượng (Z–A)"
+
+#: apps/audit/forms.py:91
+msgid "Correlation ID (A–Z)"
+msgstr "Mã tương quan (A–Z)"
+
+#: apps/audit/forms.py:92
+msgid "Correlation ID (Z–A)"
+msgstr "Mã tương quan (Z–A)"
+
+#: apps/audit/forms.py:97
+msgid "Page size"
+msgstr "Kích thước trang"
 
 #: apps/cases/views.py:17
 msgid "Case management is not available yet."
@@ -101,6 +194,122 @@ msgstr "Đăng nhập lại để tiếp tục. Thông tin chưa lưu không đ�
 #: templates/accounts/session_expired.html:12
 msgid "Sign in again"
 msgstr "Đăng nhập lại"
+
+#: templates/audit/_audit_filters.html:15
+msgid "Filter error"
+msgstr "Lỗi bộ lọc"
+
+#: templates/audit/_audit_filters.html:36
+msgid "Enter an actor user identifier."
+msgstr "Nhập mã định danh người dùng thực hiện."
+
+#: templates/audit/_audit_filters.html:71
+msgid "Apply filters"
+msgstr "Áp dụng bộ lọc"
+
+#: templates/audit/_audit_filters.html:72
+msgid "Clear filters"
+msgstr "Xóa bộ lọc"
+
+#: templates/audit/_audit_results.html:6
+msgid "No matching audit events"
+msgstr "Không có sự kiện kiểm tra phù hợp"
+
+#: templates/audit/_audit_results.html:8
+msgid "No audit events yet"
+msgstr "Chưa có sự kiện kiểm tra"
+
+#: templates/audit/_audit_results.html:13
+msgid "Try adjusting or clearing the filters to see more results."
+msgstr "Thử điều chỉnh hoặc xóa bộ lọc để xem thêm kết quả."
+
+#: templates/audit/_audit_results.html:15
+msgid "Identity and workflow events will appear here after they are recorded."
+msgstr "Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
+
+#: templates/audit/_audit_results.html:21
+#, python-format
+msgid ""
+"\n"
+"      Showing page %(page)s of %(page_count)s (%(total)s events).\n"
+"    "
+msgstr ""
+"\n"
+"      Trang %(page)s / %(page_count)s (%(total)s sự kiện).\n"
+"    "
+
+#: templates/audit/_audit_results.html:28
+#: templates/audit/_audit_results.html:88
+msgid "Audit events"
+msgstr "Sự kiện kiểm tra"
+
+#: templates/audit/_audit_results.html:31
+#: templates/audit/_audit_results.html:94
+msgid "Time (UTC)"
+msgstr "Thời gian (UTC)"
+
+#: templates/audit/_audit_results.html:35
+#: templates/audit/_audit_results.html:114
+msgid "Target"
+msgstr "Đối tượng"
+
+#: templates/audit/_audit_results.html:37
+#: templates/audit/_audit_results.html:123
+msgid "Metadata"
+msgstr "Siêu dữ liệu"
+
+#: templates/audit/_audit_results.html:48
+#: templates/audit/_audit_results.html:105
+#: templates/components/theme_controls.html:12
+msgid "System"
+msgstr "Hệ thống"
+
+#: templates/audit/_audit_results.html:52
+#: templates/audit/_audit_results.html:109
+msgid "Unknown"
+msgstr "Không xác định"
+
+#: templates/audit/_audit_results.html:67
+#: templates/audit/_audit_results.html:126
+msgid "Changed fields"
+msgstr "Trường đã thay đổi"
+
+#: templates/audit/_audit_results.html:79
+msgid "None"
+msgstr "Không có"
+
+#: templates/audit/_audit_results.html:140
+msgid "Audit pagination"
+msgstr "Phân trang nhật ký kiểm tra"
+
+#: templates/audit/_audit_results.html:144
+msgid "Previous"
+msgstr "Trước"
+
+#: templates/audit/_audit_results.html:148
+#, python-format
+msgid ""
+"\n"
+"            Page %(page)s of %(page_count)s\n"
+"          "
+msgstr ""
+"\n"
+"            Trang %(page)s / %(page_count)s\n"
+"          "
+
+#: templates/audit/_audit_results.html:154
+msgid "Next"
+msgstr "Sau"
+
+#: templates/audit/list.html:13
+msgid "Browse bounded audit metadata. Sensitive payloads are never shown here."
+msgstr ""
+"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ "
+"hiển thị tại đây."
+
+#: templates/audit/list.html:28
+msgid "Loading audit results…"
+msgstr "Đang tải kết quả kiểm tra…"
 
 #: templates/base.html:12
 msgid "Interface platform"
@@ -355,10 +564,6 @@ msgstr "Hôm qua"
 #: templates/components/theme_controls.html:5
 msgid "Choose color theme"
 msgstr "Chọn giao diện màu"
-
-#: templates/components/theme_controls.html:12
-msgid "System"
-msgstr "Hệ thống"
 
 #: templates/components/theme_controls.html:18
 msgid "Light"

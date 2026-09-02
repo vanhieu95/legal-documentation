@@ -1,0 +1,74 @@
+{% load i18n %}
+<form
+  id="audit-filter-form"
+  class="audit-filter-form stack-vertical"
+  method="get"
+  action="{% url 'audit:list' %}"
+  hx-get="{% url 'audit:list' %}"
+  hx-target="#audit-results"
+  hx-swap="innerHTML"
+  hx-push-url="true"
+  hx-indicator="#audit-loading"
+>
+  {% if validation_errors %}
+    <div class="alert alert-danger" role="alert">
+      <p class="alert-title">{% translate "Filter error" %}</p>
+      <ul class="alert-list">
+        {% for error in validation_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="audit-filter-grid">
+    <div class="field">
+      <label class="field-label" for="{{ form.action.id_for_label }}">{{ form.action.label }}</label>
+      {{ form.action }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.outcome.id_for_label }}">{{ form.outcome.label }}</label>
+      {{ form.outcome }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.actor.id_for_label }}">{{ form.actor.label }}</label>
+      {{ form.actor }}
+      <p class="field-help">{% translate "Enter an actor user identifier." %}</p>
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.target_type.id_for_label }}">{{ form.target_type.label }}</label>
+      {{ form.target_type }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.target_id.id_for_label }}">{{ form.target_id.label }}</label>
+      {{ form.target_id }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.correlation_id.id_for_label }}">{{ form.correlation_id.label }}</label>
+      {{ form.correlation_id }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.occurred_from.id_for_label }}">{{ form.occurred_from.label }}</label>
+      {{ form.occurred_from }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.occurred_to.id_for_label }}">{{ form.occurred_to.label }}</label>
+      {{ form.occurred_to }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.sort.id_for_label }}">{{ form.sort.label }}</label>
+      {{ form.sort }}
+    </div>
+    <div class="field">
+      <label class="field-label" for="{{ form.page_size.id_for_label }}">{{ form.page_size.label }}</label>
+      {{ form.page_size }}
+    </div>
+  </div>
+
+  {{ form.page }}
+
+  <div class="audit-filter-actions">
+    <button class="button button-primary" type="submit">{% translate "Apply filters" %}</button>
+    <a class="button button-quiet" href="{% url 'audit:list' %}">{% translate "Clear filters" %}</a>
+  </div>
+</form>

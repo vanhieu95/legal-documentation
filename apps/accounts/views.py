@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from urllib.parse import urlencode
-
 from typing import cast
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME

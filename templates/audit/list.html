@@ -1,0 +1,36 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Audit log" %} · VDS{% endblock %}
+
+{% block page_context %}{% translate "Audit log" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface audit-list-page" aria-labelledby="audit-list-heading">
+    <div class="audit-list-header">
+      <h1 id="audit-list-heading" class="gallery-title">{% translate "Audit log" %}</h1>
+      <p class="gallery-description">
+        {% translate "Browse bounded audit metadata. Sensitive payloads are never shown here." %}
+      </p>
+    </div>
+
+    {% include "audit/_audit_filters.html" %}
+
+    <div
+      id="audit-loading"
+      class="state htmx-indicator"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <p class="state-title">
+        <span class="loading-indicator" aria-hidden="true"></span>
+        {% translate "Loading audit results…" %}
+      </p>
+    </div>
+
+    <div id="audit-results" hx-history="false">
+      {% include "audit/_audit_results.html" %}
+    </div>
+  </section>
+{% endblock %}
