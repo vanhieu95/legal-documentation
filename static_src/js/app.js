@@ -39,6 +39,19 @@
     window.queueMicrotask(clearHtmxHistoryMetadata);
   });
 
+  document.addEventListener("htmx:beforeSwap", (event) => {
+    const redirect = event.detail.xhr.getResponseHeader("HX-Redirect");
+    if (!redirect) {
+      return;
+    }
+    const destination = new URL(redirect, window.location.origin);
+    if (destination.origin !== window.location.origin || !destination.pathname.startsWith("/")) {
+      return;
+    }
+    event.detail.shouldSwap = false;
+    window.location.assign(`${destination.pathname}${destination.search}${destination.hash}`);
+  });
+
   const errorSummary = document.querySelector("[data-error-summary]");
   if (errorSummary instanceof HTMLElement) {
     errorSummary.focus();

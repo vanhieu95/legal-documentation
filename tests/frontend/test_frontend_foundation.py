@@ -121,6 +121,10 @@ def test_application_javascript_disables_sensitive_browser_state() -> None:
     assert 'sessionStorage.removeItem("htmx-current-path-for-history")' in javascript
     assert "eval(" not in javascript
     assert "new Function" not in javascript
+    assert 'getResponseHeader("HX-Redirect")' in javascript
+    assert "destination.origin !== window.location.origin" in javascript
+    assert "event.detail.shouldSwap = false" in javascript
+    assert "window.location.assign" in javascript
 
 
 def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> None:

@@ -262,3 +262,38 @@ test("login remains functional without JavaScript", async ({ browser }) => {
   await expectNoPageOverflow(page);
   await context.close();
 });
+
+test("the session-expired page is data-free, keyboard-usable, and storage-free", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/session-expired/?next=%2Fdashboard%2F");
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Phiên làm việc đã hết hạn");
+  const reauthenticationLink = page.getByRole("link", { name: "Đăng nhập lại" });
+  await expect(reauthenticationLink).toHaveAttribute("href", "/login/?next=%2Fdashboard%2F");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to main content" })).toBeFocused();
+  await expectNoPageOverflow(page);
+  expect(
+    await page.evaluate(() => ({
+      local: Object.keys(window.localStorage),
+      session: Object.keys(window.sessionStorage),
+    })),
+  ).toEqual({ local: [], session: [] });
+});
+
+test("the local HTMX expiry handler performs a same-origin full-page redirect", async ({ page }) => {
+  await page.goto(galleryPath);
+
+  await page.evaluate(() => {
+    const event = new CustomEvent("htmx:beforeSwap", {
+      detail: {
+        shouldSwap: true,
+        xhr: { getResponseHeader: () => "/session-expired/?next=%2Fdashboard%2F" },
+      },
+    });
+    document.dispatchEvent(event);
+  });
+
+  await page.waitForURL("**/session-expired/?next=%2Fdashboard%2F");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Phiên làm việc đã hết hạn");
+});

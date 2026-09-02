@@ -1,0 +1,334 @@
+# Vietnamese translations for the VDS administration application.
+# Copyright (C) 2026
+# This file is distributed under the same license as the application.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: VDS Administration 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-02 10:01+0700\n"
+"PO-Revision-Date: 2026-09-02 10:01+0700\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: templates/accounts/dashboard_placeholder.html:4
+msgid "Home"
+msgstr ""
+
+#: templates/accounts/dashboard_placeholder.html:9
+msgid "Administration area"
+msgstr ""
+
+#: templates/accounts/dashboard_placeholder.html:11
+msgid ""
+"You have signed in successfully. Business content will be provided in later "
+"phases."
+msgstr ""
+
+#: templates/accounts/dashboard_placeholder.html:15
+msgid "Sign out"
+msgstr ""
+
+#: templates/accounts/login.html:4 templates/accounts/login.html:48
+msgid "Sign in"
+msgstr ""
+
+#: templates/accounts/login.html:11
+msgid "Administrator sign in"
+msgstr ""
+
+#: templates/accounts/login.html:13
+msgid "Use your issued administrator account to continue."
+msgstr ""
+
+#: templates/accounts/login.html:24
+msgid "Unable to sign in"
+msgstr ""
+
+#: templates/accounts/login.html:50
+msgid "Signing in…"
+msgstr ""
+
+#: templates/accounts/login.html:57
+msgid "You can still sign in when JavaScript is disabled."
+msgstr ""
+
+#: templates/accounts/session_expired.html:4
+#: templates/accounts/session_expired.html:9
+msgid "Session expired"
+msgstr "Phiên làm việc đã hết hạn"
+
+#: templates/accounts/session_expired.html:10
+msgid "Sign in again to continue. Unsaved information was not retained."
+msgstr "Đăng nhập lại để tiếp tục. Thông tin chưa lưu không được giữ lại."
+
+#: templates/accounts/session_expired.html:12
+msgid "Sign in again"
+msgstr "Đăng nhập lại"
+
+#: templates/base.html:11
+msgid "Interface platform"
+msgstr ""
+
+#: templates/base.html:18
+msgid "Skip to main content"
+msgstr ""
+
+#: templates/components/alerts.html:3
+msgid "Alerts and status regions"
+msgstr ""
+
+#: templates/components/alerts.html:6
+msgid "Success"
+msgstr ""
+
+#: templates/components/alerts.html:7
+msgid "Sample action completed."
+msgstr ""
+
+#: templates/components/alerts.html:10
+msgid "Warning"
+msgstr ""
+
+#: templates/components/alerts.html:11
+msgid "Review the information before continuing."
+msgstr ""
+
+#: templates/components/alerts.html:14
+msgid "An error occurred"
+msgstr ""
+
+#: templates/components/alerts.html:15
+msgid "Information was not saved; correct the indicated errors."
+msgstr ""
+
+#: templates/components/badges.html:3
+msgid "Status badges"
+msgstr ""
+
+#: templates/components/badges.html:5 templates/components/table.html:18
+msgid "Complete"
+msgstr ""
+
+#: templates/components/badges.html:6 templates/components/table.html:24
+msgid "Pending"
+msgstr ""
+
+#: templates/components/badges.html:7
+msgid "Info"
+msgstr ""
+
+#: templates/components/badges.html:8
+msgid "Failed"
+msgstr ""
+
+#: templates/components/badges.html:9
+msgid "Undetermined"
+msgstr ""
+
+#: templates/components/buttons.html:3
+msgid "Action buttons"
+msgstr ""
+
+#: templates/components/buttons.html:5
+msgid "Save changes"
+msgstr ""
+
+#: templates/components/buttons.html:6
+msgid "Preview"
+msgstr ""
+
+#: templates/components/buttons.html:7
+msgid "Cancel"
+msgstr ""
+
+#: templates/components/buttons.html:8
+msgid "Delete sample item"
+msgstr ""
+
+#: templates/components/buttons.html:9
+msgid "Not available"
+msgstr ""
+
+#: templates/components/dialog.html:3
+msgid "Dialog"
+msgstr ""
+
+#: templates/components/dialog.html:5
+msgid "Open sample dialog"
+msgstr ""
+
+#: templates/components/dialog.html:9
+msgid "Confirm sample action"
+msgstr ""
+
+#: templates/components/dialog.html:10
+msgid "This is synthetic content to test focus, Escape key, and line wrapping."
+msgstr ""
+
+#: templates/components/dialog.html:12
+msgid "Close"
+msgstr ""
+
+#: templates/components/dialog.html:13
+msgid "Confirm"
+msgstr ""
+
+#: templates/components/form_fields.html:3
+msgid "Form fields"
+msgstr ""
+
+#: templates/components/form_fields.html:6
+msgid "Display name"
+msgstr ""
+
+#: templates/components/form_fields.html:13
+msgid "Enter sample name"
+msgstr ""
+
+#: templates/components/form_fields.html:16
+msgid "Use synthetic content; do not enter personal data."
+msgstr ""
+
+#: templates/components/form_fields.html:19
+msgid "Sample reference code"
+msgstr ""
+
+#: templates/components/form_fields.html:29
+msgid "Code must be at least four characters."
+msgstr ""
+
+#: templates/components/form_fields.html:30
+msgid "Enter at least one more character."
+msgstr ""
+
+#: templates/components/form_fields.html:33
+msgid "Validate form"
+msgstr ""
+
+#: templates/components/states.html:3
+msgid "System states"
+msgstr ""
+
+#: templates/components/states.html:6
+msgid "Loading state"
+msgstr ""
+
+#: templates/components/states.html:7
+msgid "Loading synthetic data…"
+msgstr ""
+
+#: templates/components/states.html:10
+msgid "No data"
+msgstr ""
+
+#: templates/components/states.html:11
+msgid "No items to display; use an appropriate action to get started."
+msgstr ""
+
+#: templates/components/states.html:14
+msgid "Offline"
+msgstr ""
+
+#: templates/components/states.html:15
+msgid "Unable to connect; data was not sent."
+msgstr ""
+
+#: templates/components/states.html:18
+msgid "Conflict"
+msgstr ""
+
+#: templates/components/states.html:19
+msgid "Information changed elsewhere; reload and review before continuing."
+msgstr ""
+
+#: templates/components/table.html:3
+msgid "Responsive table"
+msgstr ""
+
+#: templates/components/table.html:6
+msgid "Synthetic data illustrating table presentation"
+msgstr ""
+
+#: templates/components/table.html:9
+msgid "Item"
+msgstr ""
+
+#: templates/components/table.html:10
+msgid "Status"
+msgstr ""
+
+#: templates/components/table.html:11
+msgid "Updated"
+msgstr ""
+
+#: templates/components/table.html:12
+msgid "Actions"
+msgstr ""
+
+#: templates/components/table.html:17
+msgid "Synthetic record A"
+msgstr ""
+
+#: templates/components/table.html:19
+msgid "Today"
+msgstr ""
+
+#: templates/components/table.html:20 templates/components/table.html:26
+msgid "View item"
+msgstr ""
+
+#: templates/components/table.html:23
+msgid "Synthetic record B with a long label to test line wrapping"
+msgstr ""
+
+#: templates/components/table.html:25
+msgid "Yesterday"
+msgstr ""
+
+#: templates/errors/403.html:4 templates/errors/403.html:9
+msgid "Access denied"
+msgstr ""
+
+#: templates/errors/403.html:10
+msgid "You do not have permission to access this content."
+msgstr ""
+
+#: templates/errors/404.html:4 templates/errors/404.html:9
+msgid "Not found"
+msgstr ""
+
+#: templates/errors/404.html:10
+msgid "Requested content was not found."
+msgstr ""
+
+#: templates/foundation/component_gallery.html:4
+#: templates/foundation/component_gallery.html:10
+msgid "Interface component gallery"
+msgstr ""
+
+#: templates/foundation/component_gallery.html:12
+msgid ""
+"Foundation components using semantic HTML, local assets, and visible when "
+"JavaScript is disabled."
+msgstr ""
+
+#: templates/foundation/component_gallery.html:15
+msgid "Choose color theme"
+msgstr ""
+
+#: templates/foundation/component_gallery.html:17
+msgid "System"
+msgstr ""
+
+#: templates/foundation/component_gallery.html:20
+msgid "Light"
+msgstr ""
+
+#: templates/foundation/component_gallery.html:23
+msgid "Dark"
+msgstr ""
