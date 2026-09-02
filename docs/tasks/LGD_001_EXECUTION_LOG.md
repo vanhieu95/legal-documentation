@@ -407,7 +407,7 @@ credentials, generated-document content, or other sensitive payloads.
   receive generic denial without event disclosure; metadata is escaped in templates; filter inputs
   are bounded; datetime-local filters are interpreted as UTC wall-clock instants; ordinary audit-list
   GET requests do not record audit events.
-- **Commit:** pending (`feat(audit): deliver authorized audit browsing`).
+- **Commit:** `d81089f` (`feat(audit): deliver authorized audit browsing`).
 - **Deviations or blockers:** None.
 
 ## CP-AUD-B — Checkpoint closure
@@ -421,7 +421,7 @@ credentials, generated-document content, or other sensitive payloads.
 - **Security/privacy review:** `audit` app imports only Django, `core`, and `accounts`; sensitive
   payloads never appear in browse UI; shell error-page probe updated to use a still-forbidden
   destination after audit browsing became authorized for administrators.
-- **Commits:** `434879f` (`AUD-001`); `e0d1c96` (`AUD-002`); `4f765c6` (CP-AUD-A evidence); AUD-003
-  commit pending in this batch.
+- **Commits:** `434879f` (`AUD-001`); `e0d1c96` (`AUD-002`); `4f765c6` (CP-AUD-A evidence);
+  `d81089f` (`AUD-003`); `eb7c78b` (CP-AUD-B evidence).
 - **Deviations or blockers:** PostgreSQL index-profile verification remains skipped unless
   `TEST_DATABASE_URL` is set. `CASE-001` is eligible next.
