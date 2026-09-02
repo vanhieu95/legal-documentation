@@ -228,3 +228,96 @@ credentials, generated-document content, or other sensitive payloads.
   `a3aefb7` for IAM-002.
 - **Deviations or blockers:** Audit-event assertions remain intentionally deferred to `AUD-002` as
   locked. The next task is `IAM-003`, but it is not eligible until human approval of CP-IAM-A.
+
+## IAM-003 — Enforce inactivity and absolute session expiry
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Added authoritative database-backed session lifetime enforcement with an exact
+  30-minute inactivity limit and exact 8-hour absolute limit. Protected view callbacks cannot run
+  after either deadline; activity refresh is capped by the absolute deadline. Normal expiry uses a
+  data-free redirect to a safe reauthentication destination, while HTMX receives an empty `401`
+  with a same-origin full-page redirect header and `no-store` caching.
+- **Important files changed:** `apps/accounts/{sessions,services,views}.py`, session middleware and
+  account-service tests, settings, the Vietnamese session-expired template/catalog, local HTMX
+  response handling, Playwright expiry tests, and `docs/operations/session-management.md`.
+- **Migrations created:** None. Django's database session backend and built-in `django_session`
+  migration remain authoritative.
+- **Focused tests executed:** 22 frozen-time session tests passed. They cover requests immediately
+  before and exactly at both deadlines, activity refresh and absolute capping, concurrent sessions,
+  login rotation, logout invalidation, password-change/reset invalidation across all sessions,
+  isolation from another user's sessions, pre-view denial, CSRF ordering, normal/HTMX data-free
+  expiry, hostile reauthentication destinations, cookie attributes, and cleanup operations. Two
+  focused Chromium expiry tests also passed.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  deployment settings, and the full branch-coverage suite passed before the standalone commit.
+- **Browser and accessibility verification:** The Vietnamese expiry page is keyboard reachable,
+  reflows without horizontal scrolling, retains no browser data, and uses a validated local
+  reauthentication link. The CSP-compatible local HTMX handler performs a full navigation without
+  rendering protected response data.
+- **Security/privacy review:** Session timestamps and authentication state remain only in the
+  server-side database session. Production cookies are Secure, HttpOnly, SameSite=Lax,
+  host-scoped, and HTTPS-only. Password services invalidate only the target user's sessions; no
+  credentials, unsaved form data, account data, or case data are persisted client-side. A no-op
+  session-expiry notification boundary is present for `AUD-002`; no audit persistence was added.
+- **Commit:** `e797412` (`feat(identity): enforce server-side session expiry`).
+- **Deviations or blockers:** None. Password-reset delivery and session-expiry audit records remain
+  deferred exactly as specified. Expired database sessions are documented for daily
+  `clearsessions` execution.
+
+## IAM-004 — Build the responsive application shell and global error states
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Delivered a Vietnamese authenticated shell with semantic header/navigation/main and
+  status landmarks, skip link, product/page/account context, CSRF-protected POST logout, named-URL
+  active states, permission-aware navigation, a 240px desktop sidebar, compact/tablet drawer,
+  light/dark/system themes, HTMX busy presentation, persistent live regions, and purpose-built
+  generic `403`, `404`, `500`, and session-expired states. Safe permission-protected placeholder
+  destinations provide navigation without implementing future workflows.
+- **Important files changed:** `templates/base_authenticated.html`, theme/error/placeholder
+  templates, `apps/accounts/context_processors.py`, protected placeholder URLs/views in
+  `apps/{cases,documents,audit}`, local CSS/JavaScript, Vietnamese messages, browser-test fixtures,
+  and focused shell/frontend/Playwright tests.
+- **Migrations created:** None. No case, document, template, or audit domain model was added.
+- **Focused tests executed:** 16 shell tests and 80 combined accounts/frontend tests passed. The
+  final pinned-Chromium suite passed all 33 tests under non-debug settings.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  Tailwind build, message extraction/compilation, and the full coverage suite passed. The final
+  ordinary suite reported 117 passed, one PostgreSQL-profile skip, and 99.44% overall branch
+  coverage; that profile was then exercised separately without a skip at checkpoint closure.
+- **Browser and accessibility verification:** Chromium verified Administrator and active-superuser
+  login, generic non-Administrator denial, compact 375px/tablet 768px/wide 1440px reflow,
+  touch-sized controls, keyboard skip navigation, drawer focus trapping/Escape/restoration,
+  off-canvas inert state, visible focus, 200% zoom, no page-level horizontal scrolling,
+  light/dark/system themes, reduced motion, forced colors, live busy state, local no-eval CSP,
+  JavaScript-disabled navigation/login/logout, logout-session replay denial, and live generic
+  `403`/`404`/`500` pages.
+- **Security/privacy review:** Navigation visibility calls the central policy but every destination
+  independently rechecks server permission. HTMX history and cache snapshots remain disabled.
+  Browser storage remained empty except for the explicit non-sensitive `vds-theme` presentation
+  preference; no account, case, protected, or form data was persisted. Scripts are local and
+  CSP-compatible, logout remains POST-only and CSRF-protected, and errors disclose no internal
+  identifier or exception detail.
+- **Commit:** `5b8cc3a` (`feat(identity): add responsive authenticated shell`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable, so the repository's pinned real
+  Playwright Chromium suite supplied runtime DOM, keyboard, viewport, storage, CSP, and error-state
+  verification. No implementation blocker remains.
+
+## CP-IAM-B — Checkpoint closure
+
+- **Completion date:** 2026-09-02
+- **Status:** Complete. Milestone 2 and `IAM-003`/`IAM-004` are complete; approved `IAM-001` and
+  `IAM-002` behavior remained intact.
+- **Checkpoint evidence:** All exact local gates passed: Ruff lint/format, mypy, Django system and
+  migration-drift checks, Tailwind build, message extraction/compilation, 117 passing ordinary
+  tests with 99.44% branch coverage, static collection, and 33 pinned-Chromium tests. A disposable
+  PostgreSQL 18.6 cluster additionally ran all 74 focused accounts and migration-profile tests with
+  no skip, then was stopped and removed.
+- **Security/deployment evidence:** Synthetic production values passed `check --deploy`; the only
+  retained warning is the already-approved `security.W004`, because HSTS rollout remains assigned
+  to `SEC-002` after HTTPS validation. Session/cookie/CSRF/redirect/HTMX/storage/CSP/authorization,
+  dependency direction, secrets/personal data, debug output, suppressions, migrations, and the
+  final diff were reviewed without a blocking finding.
+- **Commits:** `e797412` for `IAM-003`; `5b8cc3a` for `IAM-004`.
+- **Deviations or blockers:** No implementation blocker. Chrome DevTools MCP and a remote CI result
+  were not available; local pinned Chromium and all repository-equivalent gates passed. The next
+  eligible task is `AUD-001`, which was not started.

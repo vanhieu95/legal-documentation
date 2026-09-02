@@ -129,6 +129,8 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 2 — Identity, permissions, sessions, and application shell
 
+**Status:** Complete through `CP-IAM-B`.
+
 ### [x] IAM-001 — Define Administrator permissions and deny-by-default policy
 
 - **Outcome:** A deterministic Administrator group receives only the approved permission families; all protected access uses one explicit policy/object-check interface and accounts administration remains superuser-only.
@@ -161,7 +163,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `AC-01` auth flow passes except audit evidence deferred to `AUD-002`; no protected content appears on failure.
 - **Size:** M. **Blockers/skills:** **Security skill**; final Vietnamese terminology non-blocking.
 
-### [ ] IAM-003 — Enforce inactivity and absolute session expiry
+### [x] IAM-003 — Enforce inactivity and absolute session expiry
 
 - **Outcome:** Database sessions expire server-side after 30 minutes idle or 8 hours absolute; password changes invalidate all user sessions; normal and HTMX expiry disclose no protected data.
 - **SPEC:** §§4.4, 13.1, 15.3, 16, 17.1; **FR:** `FR-AUTH-02`; **AC:** `AC-02`, `AC-04`.
@@ -177,7 +179,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Server timestamps alone control lifetime and expired requests cannot receive protected fragments.
 - **Size:** M. **Blockers/skills:** **Security skill**; password-reset UI is deferred, but admin/reset hooks are covered.
 
-### [ ] IAM-004 — Build the responsive application shell and global error states
+### [x] IAM-004 — Build the responsive application shell and global error states
 
 - **Outcome:** Authenticated users receive a Vietnamese shell with top bar, responsive sidebar/drawer, theme control, semantic landmarks, skip link, account/logout, and generic 403/404/500/session states.
 - **SPEC:** §§6.1, 7.4–7.5, 13, 14.1–14.2; `DESIGN.md` §§2, 3, 5, 7; **FR:** `FR-I18N-02`; **AC:** `AC-08`, `AC-09`, `AC-27`.
@@ -193,10 +195,10 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Shell and global states meet WCAG/progressive-enhancement contracts and reveal no sensitive error details.
 - **Size:** M. **Blockers/skills:** `frontend-ui-engineering`, `browser-testing-with-devtools`, `code-review-and-quality`.
 
-### Checkpoint M2
+### [x] CP-IAM-B — Checkpoint M2
 
-- [ ] `AC-01`–`AC-04` behavior passes for normal and HTMX requests, except audit-event assertions completed in M3.
-- [ ] Login, expiry, shell and error pages pass compact/tablet/wide keyboard and no-JS smoke.
+- [x] `AC-01`–`AC-04` behavior passes for normal and HTMX requests, except audit-event assertions completed in M3.
+- [x] Login, expiry, shell and error pages pass compact/tablet/wide keyboard and no-JS smoke.
 
 ## Milestone 3 — Append-only audit foundation
 
