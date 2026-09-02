@@ -1,22 +1,22 @@
 {% load i18n %}
 <section class="surface span-full" aria-labelledby="states-title">
-  <h2 id="states-title" class="surface-title">{% translate "Trạng thái hệ thống" %}</h2>
+  <h2 id="states-title" class="surface-title">{% translate "System states" %}</h2>
   <div class="gallery-grid">
     <div class="state" role="status" aria-live="polite" aria-busy="true">
-      <p class="state-title"><span class="loading-indicator" aria-hidden="true"></span>{% translate "Trạng thái tải" %}</p>
-      <p class="state-message">{% translate "Đang tải dữ liệu tổng hợp…" %}</p>
+      <p class="state-title"><span class="loading-indicator" aria-hidden="true"></span>{% translate "Loading state" %}</p>
+      <p class="state-message">{% translate "Loading synthetic data…" %}</p>
     </div>
     <div class="state">
-      <p class="state-title">{% translate "Chưa có dữ liệu" %}</p>
-      <p class="state-message">{% translate "Chưa có mục nào để hiển thị; hãy dùng thao tác phù hợp để bắt đầu." %}</p>
+      <p class="state-title">{% translate "No data" %}</p>
+      <p class="state-message">{% translate "No items to display; use an appropriate action to get started." %}</p>
     </div>
     <div class="state">
-      <p class="state-title">{% translate "Ngoại tuyến" %}</p>
-      <p class="state-message">{% translate "Không thể kết nối; dữ liệu chưa được gửi." %}</p>
+      <p class="state-title">{% translate "Offline" %}</p>
+      <p class="state-message">{% translate "Unable to connect; data was not sent." %}</p>
     </div>
     <div class="state">
-      <p class="state-title">{% translate "Xung đột" %}</p>
-      <p class="state-message">{% translate "Thông tin đã thay đổi ở nơi khác; hãy tải lại và xem xét trước khi tiếp tục." %}</p>
+      <p class="state-title">{% translate "Conflict" %}</p>
+      <p class="state-message">{% translate "Information changed elsewhere; reload and review before continuing." %}</p>
     </div>
   </div>
 </section>

@@ -1,0 +1,28 @@
+---
+description: Enforces English-only application source and strictly routes Vietnamese UI strings through i18n/l10n during incremental implementation.
+globs: *
+---
+# Incremental i18n Enforcement
+
+## Scope and intent
+
+Use English for application source and development metadata while rendering the Vietnamese MVP interface through Django localization catalogs. This rule does not change the authority or handling of approved Vietnamese legal templates, legal reference material, or user-entered legal data: they are domain content, not UI strings, and must not be sent through generic UI translation.
+
+## Required practice
+
+1. Write variables, functions, classes, filenames, database schemas, comments, docstrings, developer documentation, translation keys, gettext source messages, and commit messages in English.
+2. Do not hardcode Vietnamese or another non-English UI string in application code, including Python, JavaScript, CSS, or Django templates.
+3. Wrap every user-facing UI string in the project's Django translation function. Use complete English source messages and English semantic translation keys; never use Vietnamese literal text as a key.
+4. When a UI string is added or changed, update matching English fallback and Vietnamese localization catalog entries in the same vertical slice.
+5. Keep localization separate from deterministic legal-document formatting. Do not translate user-entered names, addresses, legal text, case identifiers, approved DOCX wording, generated documents, snapshots, registry keys, or template variables.
+
+## Verification before completing a slice
+
+- Inspect changed application source for hardcoded Vietnamese UI strings.
+- Confirm new user-facing strings use the translation function.
+- Confirm English and Vietnamese localization catalogs contain the same new keys.
+- Confirm new identifiers, comments, documentation, and commit message are English.
+
+## Anti-rationalization
+
+Do not defer catalog updates, use Vietnamese literals as translation keys, or write Vietnamese comments because the product audience is Vietnamese. Complete each localization change in its own implementation slice.

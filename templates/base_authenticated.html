@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div
+    class="app-shell"
+    x-data="applicationShell"
+    x-on:keydown.escape.window="closeDrawer"
+    data-active-view="{{ active_view_name }}"
+  >
+    <header class="app-header">
+      <button
+        class="button button-quiet drawer-toggle js-only"
+        type="button"
+        aria-controls="primary-navigation"
+        x-ref="drawerToggle"
+        x-bind:aria-expanded="drawerOpen"
+        x-on:click="openDrawer"
+      >
+        <span aria-hidden="true">☰</span>
+        <span class="visually-hidden">{% translate "Open navigation" %}</span>
+      </button>
+
+      <a class="product-identity" href="{% url 'accounts:dashboard' %}">
+        <span class="product-mark" aria-hidden="true">VDS</span>
+        <span>{% translate "Civil-matter document administration" %}</span>
+      </a>
+
+      <p class="page-context">{% block page_context %}{% translate "Administration" %}{% endblock %}</p>
+
+      {% include "components/theme_controls.html" with compact=True %}
+
+      <div class="account-context">
+        <span class="account-name">{{ user.get_username }}</span>
+        <form method="post" action="{% url 'accounts:logout' %}" class="logout-form">
+          {% csrf_token %}
+          <button class="button button-quiet" type="submit">{% translate "Sign out" %}</button>
+        </form>
+      </div>
+    </header>
+
+    <button
+      class="drawer-backdrop js-only"
+      type="button"
+      aria-label="{% translate 'Close navigation' %}"
+      tabindex="-1"
+      x-bind:class="drawerOpen ? 'is-visible' : ''"
+      x-bind:hidden="!drawerOpen"
+      x-on:click="closeDrawer"
+      hidden
+    ></button>
+
+    <aside
+      id="primary-navigation"
+      class="app-sidebar"
+      x-ref="drawer"
+      x-bind:class="drawerOpen ? 'is-open' : ''"
+      x-bind:inert="!drawerOpen && !desktopNavigation"
+      x-bind:aria-hidden="drawerOpen || desktopNavigation ? 'false' : 'true'"
+      x-on:keydown.tab="trapDrawerFocus"
+    >
+      <nav class="primary-navigation" aria-label="{% translate 'Primary navigation' %}">
+        <ul class="navigation-list">
+          {% for item in application_navigation %}
+            <li>
+              <a
+                class="navigation-link"
+                href="{{ item.url }}"
+                data-view-name="{{ item.view_name }}"
+                {% if active_view_name == item.view_name %}aria-current="page"{% endif %}
+              >{{ item.label }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </aside>
+
+    <main id="main-content" class="app-main" tabindex="-1" hx-history="false" aria-busy="false">
+      {% block main_content %}{% endblock %}
+    </main>
+
+    <div class="global-status-regions" aria-atomic="true">
+      <div id="global-loading" class="global-status htmx-indicator" role="status" aria-live="polite" aria-busy="false">
+        {% translate "Loading…" %}
+      </div>
+      <div id="global-success" class="global-status" role="status" aria-live="polite"></div>
+      <div id="global-warning" class="global-status" role="status" aria-live="polite"></div>
+      <div id="global-error" class="global-status" role="alert" aria-live="assertive"></div>
+    </div>
+  </div>
+{% endblock %}

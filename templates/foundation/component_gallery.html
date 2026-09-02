@@ -1,28 +1,18 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% translate "Thư viện thành phần giao diện" %}{% endblock %}
+{% block title %}{% translate "Interface component gallery" %}{% endblock %}
 
 {% block content %}
   <main id="main-content" class="gallery" tabindex="-1">
     <header class="gallery-header">
       <div>
-        <h1 class="gallery-title">{% translate "Thư viện thành phần giao diện" %}</h1>
+        <h1 class="gallery-title">{% translate "Interface component gallery" %}</h1>
         <p class="gallery-description">
-          {% translate "Các thành phần nền tảng dùng HTML ngữ nghĩa, tài nguyên cục bộ và vẫn hiển thị khi JavaScript bị tắt." %}
+          {% translate "Foundation components using semantic HTML, local assets, and visible when JavaScript is disabled." %}
         </p>
       </div>
-      <div class="theme-controls js-only" aria-label="{% translate 'Chọn giao diện màu' %}">
-        <button class="button button-secondary" type="button" data-theme-choice="system">
-          {% translate "Hệ thống" %}
-        </button>
-        <button class="button button-secondary" type="button" data-theme-choice="light">
-          {% translate "Sáng" %}
-        </button>
-        <button class="button button-secondary" type="button" data-theme-choice="dark">
-          {% translate "Tối" %}
-        </button>
-      </div>
+      {% include "components/theme_controls.html" %}
     </header>
 
     <div class="gallery-grid">

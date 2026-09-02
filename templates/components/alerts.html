@@ -1,18 +1,18 @@
 {% load i18n %}
 <section class="surface" aria-labelledby="alerts-title">
-  <h2 id="alerts-title" class="surface-title">{% translate "Cảnh báo và vùng trạng thái" %}</h2>
+  <h2 id="alerts-title" class="surface-title">{% translate "Alerts and status regions" %}</h2>
   <div class="stack-vertical">
     <div class="alert alert-success" role="status" aria-live="polite">
-      <p class="alert-title">{% translate "Thành công" %}</p>
-      <p class="alert-message">{% translate "Thao tác mẫu đã hoàn tất." %}</p>
+      <p class="alert-title">{% translate "Success" %}</p>
+      <p class="alert-message">{% translate "Sample action completed." %}</p>
     </div>
     <div class="alert alert-warning">
-      <p class="alert-title">{% translate "Cảnh báo" %}</p>
-      <p class="alert-message">{% translate "Hãy xem lại thông tin trước khi tiếp tục." %}</p>
+      <p class="alert-title">{% translate "Warning" %}</p>
+      <p class="alert-message">{% translate "Review the information before continuing." %}</p>
     </div>
     <div class="alert alert-error" role="alert">
-      <p class="alert-title">{% translate "Có lỗi xảy ra" %}</p>
-      <p class="alert-message">{% translate "Thông tin chưa được lưu; hãy sửa lỗi được chỉ ra." %}</p>
+      <p class="alert-title">{% translate "An error occurred" %}</p>
+      <p class="alert-message">{% translate "Information was not saved; correct the indicated errors." %}</p>
     </div>
   </div>
 </section>

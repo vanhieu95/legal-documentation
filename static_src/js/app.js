@@ -15,6 +15,90 @@
     // A theme preference is optional when storage is unavailable.
   }
 
+  const registerAlpineComponents = () => {
+    window.Alpine.data("themeControls", () => ({
+      currentTheme: documentRoot.dataset.theme || "system",
+      chooseTheme(themeChoice) {
+        if (themeChoice === "system") {
+          delete documentRoot.dataset.theme;
+          this.currentTheme = "system";
+          try {
+            window.localStorage.removeItem(themeStorageKey);
+          } catch {
+            // System preference still applies when storage is unavailable.
+          }
+        } else if (themeChoice === "light" || themeChoice === "dark") {
+          documentRoot.dataset.theme = themeChoice;
+          this.currentTheme = themeChoice;
+          try {
+            window.localStorage.setItem(themeStorageKey, themeChoice);
+          } catch {
+            // The selected theme remains active for the current page.
+          }
+        }
+      },
+    }));
+
+    window.Alpine.data("applicationShell", () => ({
+      drawerOpen: false,
+      desktopNavigation: false,
+      returnFocus: null,
+      init() {
+        const desktopQuery = window.matchMedia("(min-width: 1024px)");
+        const updateNavigationMode = () => {
+          this.desktopNavigation = desktopQuery.matches;
+          if (this.desktopNavigation) {
+            this.drawerOpen = false;
+            document.body.classList.remove("drawer-open");
+          }
+        };
+        updateNavigationMode();
+        desktopQuery.addEventListener("change", updateNavigationMode);
+      },
+      drawerFocusableElements() {
+        return Array.from(
+          this.$refs.drawer.querySelectorAll(
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+      },
+      openDrawer() {
+        this.returnFocus = document.activeElement;
+        this.drawerOpen = true;
+        document.body.classList.add("drawer-open");
+        this.$nextTick(() => this.drawerFocusableElements()[0]?.focus());
+      },
+      closeDrawer() {
+        if (!this.drawerOpen) {
+          return;
+        }
+        this.drawerOpen = false;
+        document.body.classList.remove("drawer-open");
+        this.$nextTick(() => this.returnFocus?.focus());
+      },
+      trapDrawerFocus(event) {
+        if (!this.drawerOpen) {
+          return;
+        }
+        const focusableElements = this.drawerFocusableElements();
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
+      },
+    }));
+  };
+  if (window.Alpine) {
+    registerAlpineComponents();
+  } else {
+    document.addEventListener("alpine:init", registerAlpineComponents, { once: true });
+  }
+
   const htmxSecurityDefaults = {
     historyEnabled: false,
     historyCacheSize: 0,
@@ -39,23 +123,60 @@
     window.queueMicrotask(clearHtmxHistoryMetadata);
   });
 
-  for (const themeButton of document.querySelectorAll("[data-theme-choice]")) {
-    themeButton.addEventListener("click", () => {
-      const themeChoice = themeButton.dataset.themeChoice;
-      if (themeChoice === "system") {
-        delete documentRoot.dataset.theme;
-        try {
-          window.localStorage.removeItem(themeStorageKey);
-        } catch {
-          // System preference still applies when storage is unavailable.
-        }
-      } else if (themeChoice === "light" || themeChoice === "dark") {
-        documentRoot.dataset.theme = themeChoice;
-        try {
-          window.localStorage.setItem(themeStorageKey, themeChoice);
-        } catch {
-          // The selected theme remains active for the current page.
-        }
+  document.addEventListener("htmx:beforeSwap", (event) => {
+    const redirect = event.detail.xhr.getResponseHeader("HX-Redirect");
+    if (!redirect) {
+      return;
+    }
+    const destination = new URL(redirect, window.location.origin);
+    if (destination.origin !== window.location.origin || !destination.pathname.startsWith("/")) {
+      return;
+    }
+    event.detail.shouldSwap = false;
+    window.location.assign(`${destination.pathname}${destination.search}${destination.hash}`);
+  });
+
+  let activeHtmxRequests = 0;
+  const updateBusyPresentation = () => {
+    const isBusy = activeHtmxRequests > 0;
+    const loadingStatus = document.getElementById("global-loading");
+    const mainContent = document.getElementById("main-content");
+    if (loadingStatus) {
+      loadingStatus.setAttribute("aria-busy", String(isBusy));
+      loadingStatus.classList.toggle("is-busy", isBusy);
+    }
+    if (mainContent) {
+      mainContent.setAttribute("aria-busy", String(isBusy));
+    }
+  };
+  document.addEventListener("htmx:beforeRequest", () => {
+    activeHtmxRequests += 1;
+    updateBusyPresentation();
+  });
+  document.addEventListener("htmx:afterRequest", () => {
+    activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
+    updateBusyPresentation();
+  });
+
+  const errorSummary = document.querySelector("[data-error-summary]");
+  if (errorSummary instanceof HTMLElement) {
+    errorSummary.focus();
+  }
+
+  for (const submitForm of document.querySelectorAll("[data-submit-form]")) {
+    submitForm.addEventListener("submit", () => {
+      const submitButton = submitForm.querySelector("[data-submit-button]");
+      const submitLabel = submitForm.querySelector("[data-submit-label]");
+      const submitLoading = submitForm.querySelector("[data-submit-loading]");
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+      }
+      if (submitLabel instanceof HTMLElement) {
+        submitLabel.hidden = true;
+      }
+      if (submitLoading instanceof HTMLElement) {
+        submitLoading.hidden = false;
       }
     });
   }

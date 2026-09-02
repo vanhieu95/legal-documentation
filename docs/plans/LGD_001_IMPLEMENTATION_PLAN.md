@@ -1,7 +1,7 @@
 # Implementation Plan: Vietnamese Civil-Matter Document Administration MVP
 
 Status: **Proposed for approval**  
-Planning baseline: `docs/specs/LGD_001_SPEC.md` dated 2026-09-01, treated as approved and locked by the planning request  
+Planning baseline: `docs/specs/LGD_001_SPEC.md` dated 2026-09-02, treated as approved and locked by the planning request  
 Task backlog: [`docs/tasks/LGD_001_TASKS.md`](../tasks/LGD_001_TASKS.md)
 
 ## 1. Repository assessment
@@ -40,6 +40,7 @@ No pre-existing `docs/plans/LGD_001_IMPLEMENTATION_PLAN.md`, `docs/tasks/LGD_001
 - Synchronous generation remains the MVP design unless measured p95 exceeds 10 seconds or the reverse-proxy timeout. A queue requires a later specification change.
 - Private filesystem storage is mounted outside static/public roots and is coordinated with PostgreSQL backups.
 - Existing English references are derived material. They are not an English UI or DOCX feature. `AC-28` applies whenever those references or English legal metadata change.
+- The Vietnamese-only MVP UI is implemented with English gettext source/fallback entries and matching Vietnamese catalog entries. No Vietnamese UI copy is hardcoded in application code, templates, comments, or developer documentation; approved legal-document wording and user-entered Vietnamese remain protected domain data outside generic UI localization.
 - Branding, final Vietnamese product terminology, host sizing, DNS, certificates, monitoring destination, and backup operator/location are implementation or release inputs; none changes the dependency order.
 
 ## 3. Architecture and dependency constraints
@@ -170,8 +171,9 @@ Every behavior task follows the same test-first loop:
 1. Add or update a failing test that expresses the locked behavior.
 2. Implement the smallest coherent vertical behavior.
 3. Refactor without behavior change and retain explicit app boundaries.
-4. Run focused unit/model/form/view/service tests.
-5. Run the applicable broader quality set: Ruff, format check, mypy, Django checks, migration drift, CSS build, browser smoke, coverage, or deployment check.
+4. For every new UI string, add matching English and Vietnamese catalog entries in the same slice; verify source code has no hardcoded Vietnamese UI copy and all code/comments remain English.
+5. Run focused unit/model/form/view/service tests.
+6. Run the applicable broader quality set: Ruff, format check, mypy, Django checks, migration drift, CSS build, message extraction/compilation, browser smoke, coverage, or deployment check.
 
 Test layers and required evidence:
 
@@ -186,7 +188,7 @@ Test layers and required evidence:
 | Template validation | ZIP signature/limits/ratio/count, traversal/duplicates, encryption, macro/ActiveX/OLE/executables, external relationships, bounded safe XML, syntax, required/optional/unknown variables, disallowed filters/globals, split runs and structural tags |
 | Generation | Typed prefill/context mapping, strict undefined, escaping, legal formatters, reservation/finalization transactions, idempotency, temporary cleanup, failure recovery, immutable snapshot/artifact, safe filename and authorized stored download |
 | DOCX | Direct ZIP/OPC inspection of content types, relationships, document, tables, paragraphs/runs, headers, footers, footnotes/endnotes when supported, styles, sections, page breaks, Unicode, loops, optional blocks, and unresolved `{{`/`{%` tokens; `python-docx` may supplement but never replace XML inspection |
-| Browser/accessibility | Login, dashboard, cases, long forms, selector, history, template management, audit and confirmations at compact/tablet/wide; keyboard, focus, error summary, live announcement, contrast, reduced motion, 200% zoom and reflow; JavaScript-disabled core flow |
+| Browser/accessibility | Login, dashboard, cases, long forms, selector, history, template management, audit and confirmations at compact/tablet/wide; keyboard, focus, error summary, live announcement, contrast, reduced motion, 200% zoom and reflow; JavaScript-disabled core flow; English/Vietnamese catalog parity and Vietnamese UI rendering without hardcoded non-English source strings |
 | Operations | Production settings, collectstatic, migrations, coordinated backup/restore, checksums, download authorization, health/readiness, logging redaction, integrity reconciliation, capacity thresholds |
 
 Coverage gates are at least 85% branch overall and 95% branch for registry/context/rendering, permissions, and snapshot-integrity modules. Test assertions may not be removed or weakened to meet a gate.
@@ -254,7 +256,7 @@ Rollback principles:
 
 | Milestone | Required exit criteria |
 | --- | --- |
-| M1 | All command entry points exist; clean install/bootstrap is documented; Django checks, lint, format, mypy, unit smoke, CSS build, message extraction/compilation, migration drift, collectstatic, and CI execute; no secrets or public private-media route |
+| M1 | All command entry points exist; clean install/bootstrap is documented; Django checks, lint, format, mypy, unit smoke, CSS build, English/Vietnamese catalog parity plus message extraction/compilation, migration drift, collectstatic, and CI execute; no secrets or public private-media route |
 | M2 | `AC-01`–`AC-04` pass for normal/HTMX requests; Administrator permissions seeded; shell/login/session-expired states work with and without JS at three viewport classes |
 | M3 | Required identity events are recorded through the generic API; normal application users cannot update/delete audit rows; authorized list filters and bounded metadata are verified |
 | M4 | `AC-05`–`AC-07` pass; relational cases and related data are usable; list state survives canonical navigation; case permissions/audit/CSRF/accessibility/query budgets pass |
@@ -273,6 +275,7 @@ Release is approved only when all statements below are evidenced:
 - Every one of the 40 functional requirements and `AC-01` through `AC-28` maps to completed tasks and passing verification.
 - Exactly the 12 MVP registry types are enabled; each has an approved immutable template, contract, schema/formsets, mapper, filename builder, fixtures, package/structure tests, successful automated validation, and recorded Microsoft Word review.
 - Production settings, dependency locks, CSS, translations, static collection, migrations, tests, branch coverage, lint, format, typing, Django checks, and browser smoke are green in CI and the release environment.
+- Every user-facing application string is translation-wrapped; English fallback and Vietnamese catalogs have exact key parity; application code, comments, developer documentation, and commit messages remain English-only.
 - No known authentication, authorization, CSRF, IDOR, unsafe-upload, template-execution, private-storage, immutable-history, or sensitive-logging defect remains.
 - Compact, tablet, and wide core flows meet WCAG 2.2 AA verification, keyboard operation, focus/error/status behavior, 200% zoom, reflow, contrast, and reduced motion.
 - At the representative scale and 50-user assumption, list p95 is at most 2 seconds and generation p95 at most 10 seconds, with explicit query budgets and no N+1 regression.

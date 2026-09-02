@@ -1,0 +1,25 @@
+{% load i18n %}
+<div
+  class="theme-controls js-only{% if compact %} theme-controls-compact{% endif %}"
+  x-data="themeControls"
+  aria-label="{% translate 'Choose color theme' %}"
+>
+  <button
+    class="button button-secondary"
+    type="button"
+    x-on:click="chooseTheme('system')"
+    x-bind:aria-pressed="currentTheme === 'system'"
+  >{% translate "System" %}</button>
+  <button
+    class="button button-secondary"
+    type="button"
+    x-on:click="chooseTheme('light')"
+    x-bind:aria-pressed="currentTheme === 'light'"
+  >{% translate "Light" %}</button>
+  <button
+    class="button button-secondary"
+    type="button"
+    x-on:click="chooseTheme('dark')"
+    x-bind:aria-pressed="currentTheme === 'dark'"
+  >{% translate "Dark" %}</button>
+</div>

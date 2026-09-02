@@ -1,16 +1,16 @@
 {% load i18n %}
 <section class="surface" aria-labelledby="dialog-example-title">
-  <h2 id="dialog-example-title" class="surface-title">{% translate "Hộp thoại" %}</h2>
+  <h2 id="dialog-example-title" class="surface-title">{% translate "Dialog" %}</h2>
   <button class="button button-secondary js-only" type="button" data-dialog-open="sample-dialog">
-    {% translate "Mở hộp thoại mẫu" %}
+    {% translate "Open sample dialog" %}
   </button>
   <dialog id="sample-dialog" class="dialog" aria-labelledby="sample-dialog-title">
     <div class="dialog-content">
-      <h3 id="sample-dialog-title" class="dialog-title">{% translate "Xác nhận thao tác mẫu" %}</h3>
-      <p>{% translate "Đây là nội dung tổng hợp để kiểm tra tiêu điểm, phím Escape và khả năng xuống dòng." %}</p>
+      <h3 id="sample-dialog-title" class="dialog-title">{% translate "Confirm sample action" %}</h3>
+      <p>{% translate "This is synthetic content to test focus, Escape key, and line wrapping." %}</p>
       <div class="dialog-actions">
-        <button class="button button-secondary" type="button" data-dialog-close>{% translate "Đóng" %}</button>
-        <button class="button button-primary" type="button" data-dialog-close>{% translate "Xác nhận" %}</button>
+        <button class="button button-secondary" type="button" data-dialog-close>{% translate "Close" %}</button>
+        <button class="button button-primary" type="button" data-dialog-close>{% translate "Confirm" %}</button>
       </div>
     </div>
   </dialog>

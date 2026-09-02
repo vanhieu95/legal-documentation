@@ -121,6 +121,10 @@ def test_application_javascript_disables_sensitive_browser_state() -> None:
     assert 'sessionStorage.removeItem("htmx-current-path-for-history")' in javascript
     assert "eval(" not in javascript
     assert "new Function" not in javascript
+    assert 'getResponseHeader("HX-Redirect")' in javascript
+    assert "destination.origin !== window.location.origin" in javascript
+    assert "event.detail.shouldSwap = false" in javascript
+    assert "window.location.assign" in javascript
 
 
 def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> None:
@@ -139,13 +143,31 @@ def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> 
     assert "<table" in html
     assert "<caption" in html
     assert "<dialog" in html
-    assert "Trạng thái tải" in html
-    assert "Chưa có dữ liệu" in html
+    assert "Trạng thái đang tải" in html
+    assert "Không có dữ liệu" in html
     assert "Thành công" in html
     assert "Cảnh báo" in html
-    assert "Có lỗi xảy ra" in html
+    assert "Đã xảy ra lỗi" in html
     assert 'hx-history="false"' in html
     assert "https://" not in html
     assert "http://" not in html
     assert "localStorage" not in html
     assert "sessionStorage" not in html
+
+
+def test_login_frontend_has_responsive_focus_and_busy_state_contracts() -> None:
+    css = (PROJECT_ROOT / "static_src" / "css" / "app.css").read_text(encoding="utf-8")
+    javascript = (PROJECT_ROOT / "static_src" / "js" / "app.js").read_text(encoding="utf-8")
+
+    for selector in (
+        ".auth-page",
+        ".auth-card",
+        ".auth-error-summary",
+        ".auth-submit",
+        ".submit-loading",
+    ):
+        assert selector in css
+    assert "[data-error-summary]" in javascript
+    assert "errorSummary.focus()" in javascript
+    assert "[data-submit-form]" in javascript
+    assert "submitButton.disabled = true" in javascript

@@ -1,0 +1,15 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} · VDS{% endblock %}
+{% block page_context %}{{ page_title }}{% endblock %}
+
+{% block main_content %}
+  <section class="surface" aria-labelledby="placeholder-title">
+    <h1 id="placeholder-title" class="gallery-title">{{ page_title }}</h1>
+    <div class="state" role="status">
+      <p class="state-title">{% translate "Not available" %}</p>
+      <p class="state-message">{{ state_message }}</p>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Home" %} · VDS{% endblock %}
+
+{% block page_context %}{% translate "Dashboard" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface" aria-labelledby="dashboard-heading">
+    <h1 id="dashboard-heading" class="gallery-title">{% translate "Dashboard" %}</h1>
+    <p class="gallery-description">
+      {% translate "Business information will be provided in later phases." %}
+    </p>
+  </section>
+{% endblock %}

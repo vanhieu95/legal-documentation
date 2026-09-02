@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Session expired" %}{% endblock %}
+
+{% block content %}
+  <main id="main-content" class="gallery" tabindex="-1">
+    <section class="surface" aria-labelledby="session-expired-title">
+      <h1 id="session-expired-title" class="gallery-title">{% translate "Session expired" %}</h1>
+      <p>{% translate "Sign in again to continue. Unsaved information was not retained." %}</p>
+      <a class="button button-primary" href="{{ reauthentication_url }}">
+        {% translate "Sign in again" %}
+      </a>
+    </section>
+  </main>
+{% endblock %}

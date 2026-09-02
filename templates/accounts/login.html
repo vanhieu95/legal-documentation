@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Sign in" %} · VDS{% endblock %}
+
+{% block content %}
+  <main id="main-content" class="auth-page">
+    <section class="surface auth-card" aria-labelledby="login-heading">
+      <header class="auth-header">
+        <p class="auth-product">VDS</p>
+        <h1 id="login-heading" class="auth-title">{% translate "Administrator sign in" %}</h1>
+        <p class="auth-instructions">
+          {% translate "Use your issued administrator account to continue." %}
+        </p>
+      </header>
+
+      {% if authentication_error %}
+        <div
+          class="alert alert-error auth-error-summary"
+          role="alert"
+          tabindex="-1"
+          data-error-summary
+        >
+          <p class="alert-title">{% translate "Unable to sign in" %}</p>
+          <p class="alert-message">{{ authentication_error }}</p>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'accounts:login' %}" class="stack-vertical" data-submit-form>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <div class="field">
+          <label class="field-label" for="{{ form.username.id_for_label }}">
+            {{ form.username.label }}
+          </label>
+          {{ form.username }}
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="{{ form.password.id_for_label }}">
+            {{ form.password.label }}
+          </label>
+          {{ form.password }}
+        </div>
+
+        <button class="button button-primary auth-submit" type="submit" data-submit-button>
+          <span data-submit-label>{% translate "Sign in" %}</span>
+          <span class="submit-loading" data-submit-loading hidden aria-live="polite">
+            {% translate "Signing in…" %}
+          </span>
+        </button>
+      </form>
+
+      <noscript>
+        <p class="auth-noscript">
+          {% translate "You can still sign in when JavaScript is disabled." %}
+        </p>
+      </noscript>
+    </section>
+  </main>
+{% endblock %}

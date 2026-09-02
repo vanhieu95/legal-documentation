@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.mo
 .coverage
 .mypy_cache/
 .pytest_cache/

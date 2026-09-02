@@ -131,3 +131,193 @@ credentials, generated-document content, or other sensitive payloads.
 - **Commits:** `150ecac` (FND-003) and `2413bc5` (FND-004).
 - **Unresolved blockers:** Remote CI observation only. The next eligible task is `IAM-001`; it was
   not started.
+
+## IAM-001 — Define Administrator permissions and deny-by-default policy
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Added a table-free permission anchor, the exact 21-permission application contract,
+  deterministic Administrator group seeding, an idempotent synchronization command, and one
+  deny-by-default policy shared by view decorators, direct service checks, object-scoped lookup,
+  presentation hints, and superuser-only account administration.
+- **Important files changed:** `apps/accounts/{models,permissions,policies}.py`, the account
+  management command, permission template tag, Vietnamese generic `403`/`404` handlers/templates,
+  focused account tests, and the Playwright non-disclosure smoke.
+- **Migrations created:** `apps/accounts/migrations/0001_seed_administrator_permissions.py` creates
+  only a proxy-model content type and permission/group data; it creates no business table. Forward,
+  repeat, absent-state, member-preservation, and practical reverse behavior are tested.
+- **Focused tests executed:** 14 SQLite permission/policy/migration tests passed; the same suite plus
+  the PostgreSQL migration-profile test passed against an isolated PostgreSQL 18.6 cluster (15
+  passed). The principal matrix covers anonymous, inactive, non-Administrator, Administrator,
+  missing permission, active/inactive superuser, inaccessible/nonexistent object, direct service,
+  UUID knowledge, hidden presentation, and account-administration denial paths.
+- **Broader checks executed:** Full suite: 57 passed and 1 PostgreSQL-profile skip in the ordinary
+  SQLite run, 99.78% overall branch coverage, and 100% sensitive permission/migration branch
+  coverage. Ruff lint/format, mypy, Django check, migration drift, Tailwind build, and diff checks
+  passed.
+- **Browser and accessibility verification:** The isolated Chromium suite passed 12 tests under
+  non-debug settings. The Vietnamese 404 redacts the requested identifier, loads all local assets,
+  has no failed subresources or compact-width page overflow, and retains the foundation keyboard,
+  focus, theme, reduced-motion, CSP, no-JavaScript, and 200% zoom checks. Chrome DevTools MCP was not
+  available, so the repository's pinned real Playwright browser was used.
+- **Security/privacy review:** Views and services use the same server policy; object lookup scopes
+  before retrieval and returns identical generic failures; presentation helpers fail closed and are
+  not enforcement; normal Administrators receive no user/group administration authority. No
+  future business model/table, audit infrastructure, secret, credential, personal data, debug
+  output, CSRF bypass, test suppression, or sensitive browser persistence was introduced.
+- **Commits:** `203d25b` (permission seed), `945bb85` (central enforcement), `8c5a6d3` (browser
+  verification).
+- **Deviations or blockers:** None. A temporary local PostgreSQL cluster was used because no system
+  server was listening; it was stopped after the tests.
+
+## IAM-002 — Deliver secure Vietnamese login and POST logout
+
+- **Completion date:** 2026-09-01
+- **Outcome:** Delivered purpose-built Vietnamese Administrator login, a protected dashboard
+  placeholder, and authenticated POST-only logout using Django authentication and database-backed
+  sessions. Active Administrator-group users and active superusers can sign in; unknown, inactive,
+  and non-Administrator principals receive the same generic response with cleared fields. Login
+  rotates the session identifier, logout flushes the session, and validated local `next` targets
+  fail closed for external, protocol-relative, control-character, backslash, and malformed values.
+- **Important files changed:** `apps/accounts/{forms,views,urls}.py`, focused authentication tests,
+  Vietnamese login/dashboard-placeholder templates, auth CSS and local CSP-compatible JavaScript,
+  root URLs/settings, and Playwright/frontend tests. A non-debug browser-test settings profile uses
+  a migrated disposable SQLite database so runtime auth tests do not depend on an in-memory
+  runserver database.
+- **Migrations created:** None.
+- **Focused tests executed:** 21 authentication tests passed, covering Administrator and superuser
+  success, unknown/wrong/inactive/non-Administrator generic failure, CSRF on login and normal/HTMX
+  logout, safe and hostile redirects, session rotation, logout invalidation/replay, `GET` logout
+  rejection, forced-session authorization denial, Vietnamese labels/locale, credential clearing,
+  and non-cacheable auth responses. The combined accounts/frontend suite passed 38 tests; the full
+  accounts suite passed 35 on SQLite and 36 tests including the migration-profile integration test
+  passed on isolated PostgreSQL 18.6.
+- **Broader checks executed:** Ruff lint and format, mypy, Django system check, migration drift,
+  Tailwind build, vendored-asset verification, message extraction/compilation, and the full
+  coverage suite passed. The final ordinary suite reported 79 passed, one intentionally skipped
+  PostgreSQL-profile test, and 99.42% overall branch coverage; the PostgreSQL profile was exercised
+  separately without a skip.
+- **Browser and accessibility verification:** All 16 pinned-Chromium tests passed. Login was checked
+  at 375px and 1440px with keyboard navigation, visible focus, no page overflow, generic error
+  summary focus, cleared fields, empty local/session storage, local assets, strict no-eval CSP, and
+  JavaScript-disabled failure. A live-server workflow additionally passed Administrator login,
+  non-Administrator denial, local/external redirect behavior, dashboard access, POST logout,
+  logged-out session replay denial, and JavaScript-disabled successful login/logout at wide width.
+  Chrome DevTools MCP was unavailable, so the repository's pinned real Playwright browser was used.
+- **Security/privacy review:** Server policy remains the enforcement boundary; logout is
+  authenticated, POST-only, and CSRF-protected; successful login uses Django session cycling and
+  logout uses session flushing. Auth responses are `no-store`; submitted credentials and usernames
+  are not re-rendered, logged, or persisted; only synthetic identities were used. No remember-me,
+  registration, password delivery, MFA/SSO, audit infrastructure, business model, public storage,
+  `csrf_exempt`, state-changing GET, debug artifact, test suppression, or unrelated edit was added.
+- **Commit:** `a3aefb7` (`feat(identity): deliver secure administrator login`).
+- **Deviations or blockers:** The environment has no global `python`, so all required Django
+  commands used the equivalent locked `.venv/bin/python`. No implementation blocker remains.
+
+## CP-IAM-A — Checkpoint closure
+
+- **Completion date:** 2026-09-01
+- **Status:** Local implementation and verification are complete; human approval is pending at the
+  mandatory checkpoint pause.
+- **Completed tasks:** `IAM-001`, `IAM-002`.
+- **Checkpoint evidence:** Focused identity suites passed on SQLite and isolated PostgreSQL 18.6;
+  Ruff lint/format, mypy, Django system/drift checks, Tailwind, i18n extraction/compilation, 99.42%
+  branch coverage, 16 browser tests, the live identity workflow, migration graph inspection, and
+  security/privacy/diff scans all passed. `accounts.0001` depends only on `auth.0012` and
+  `contenttypes.0002`; no migration drift or future domain dependency exists.
+- **Commits:** `203d25b`, `945bb85`, and `8c5a6d3` for IAM-001; `c9b9f6c` for IAM-001 evidence;
+  `a3aefb7` for IAM-002.
+- **Deviations or blockers:** Audit-event assertions remain intentionally deferred to `AUD-002` as
+  locked. The next task is `IAM-003`, but it is not eligible until human approval of CP-IAM-A.
+
+## IAM-003 — Enforce inactivity and absolute session expiry
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Added authoritative database-backed session lifetime enforcement with an exact
+  30-minute inactivity limit and exact 8-hour absolute limit. Protected view callbacks cannot run
+  after either deadline; activity refresh is capped by the absolute deadline. Normal expiry uses a
+  data-free redirect to a safe reauthentication destination, while HTMX receives an empty `401`
+  with a same-origin full-page redirect header and `no-store` caching.
+- **Important files changed:** `apps/accounts/{sessions,services,views}.py`, session middleware and
+  account-service tests, settings, the Vietnamese session-expired template/catalog, local HTMX
+  response handling, Playwright expiry tests, and `docs/operations/session-management.md`.
+- **Migrations created:** None. Django's database session backend and built-in `django_session`
+  migration remain authoritative.
+- **Focused tests executed:** 22 frozen-time session tests passed. They cover requests immediately
+  before and exactly at both deadlines, activity refresh and absolute capping, concurrent sessions,
+  login rotation, logout invalidation, password-change/reset invalidation across all sessions,
+  isolation from another user's sessions, pre-view denial, CSRF ordering, normal/HTMX data-free
+  expiry, hostile reauthentication destinations, cookie attributes, and cleanup operations. Two
+  focused Chromium expiry tests also passed.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  deployment settings, and the full branch-coverage suite passed before the standalone commit.
+- **Browser and accessibility verification:** The Vietnamese expiry page is keyboard reachable,
+  reflows without horizontal scrolling, retains no browser data, and uses a validated local
+  reauthentication link. The CSP-compatible local HTMX handler performs a full navigation without
+  rendering protected response data.
+- **Security/privacy review:** Session timestamps and authentication state remain only in the
+  server-side database session. Production cookies are Secure, HttpOnly, SameSite=Lax,
+  host-scoped, and HTTPS-only. Password services invalidate only the target user's sessions; no
+  credentials, unsaved form data, account data, or case data are persisted client-side. A no-op
+  session-expiry notification boundary is present for `AUD-002`; no audit persistence was added.
+- **Commit:** `e797412` (`feat(identity): enforce server-side session expiry`).
+- **Deviations or blockers:** None. Password-reset delivery and session-expiry audit records remain
+  deferred exactly as specified. Expired database sessions are documented for daily
+  `clearsessions` execution.
+
+## IAM-004 — Build the responsive application shell and global error states
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Delivered a Vietnamese authenticated shell with semantic header/navigation/main and
+  status landmarks, skip link, product/page/account context, CSRF-protected POST logout, named-URL
+  active states, permission-aware navigation, a 240px desktop sidebar, compact/tablet drawer,
+  light/dark/system themes, HTMX busy presentation, persistent live regions, and purpose-built
+  generic `403`, `404`, `500`, and session-expired states. Safe permission-protected placeholder
+  destinations provide navigation without implementing future workflows.
+- **Important files changed:** `templates/base_authenticated.html`, theme/error/placeholder
+  templates, `apps/accounts/context_processors.py`, protected placeholder URLs/views in
+  `apps/{cases,documents,audit}`, local CSS/JavaScript, Vietnamese messages, browser-test fixtures,
+  and focused shell/frontend/Playwright tests.
+- **Migrations created:** None. No case, document, template, or audit domain model was added.
+- **Focused tests executed:** 16 shell tests and 80 combined accounts/frontend tests passed. The
+  final pinned-Chromium suite passed all 33 tests under non-debug settings.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  Tailwind build, message extraction/compilation, and the full coverage suite passed. The final
+  ordinary suite reported 117 passed, one PostgreSQL-profile skip, and 99.44% overall branch
+  coverage; that profile was then exercised separately without a skip at checkpoint closure.
+- **Browser and accessibility verification:** Chromium verified Administrator and active-superuser
+  login, generic non-Administrator denial, compact 375px/tablet 768px/wide 1440px reflow,
+  touch-sized controls, keyboard skip navigation, drawer focus trapping/Escape/restoration,
+  off-canvas inert state, visible focus, 200% zoom, no page-level horizontal scrolling,
+  light/dark/system themes, reduced motion, forced colors, live busy state, local no-eval CSP,
+  JavaScript-disabled navigation/login/logout, logout-session replay denial, and live generic
+  `403`/`404`/`500` pages.
+- **Security/privacy review:** Navigation visibility calls the central policy but every destination
+  independently rechecks server permission. HTMX history and cache snapshots remain disabled.
+  Browser storage remained empty except for the explicit non-sensitive `vds-theme` presentation
+  preference; no account, case, protected, or form data was persisted. Scripts are local and
+  CSP-compatible, logout remains POST-only and CSRF-protected, and errors disclose no internal
+  identifier or exception detail.
+- **Commit:** `5b8cc3a` (`feat(identity): add responsive authenticated shell`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable, so the repository's pinned real
+  Playwright Chromium suite supplied runtime DOM, keyboard, viewport, storage, CSP, and error-state
+  verification. No implementation blocker remains.
+
+## CP-IAM-B — Checkpoint closure
+
+- **Completion date:** 2026-09-02
+- **Status:** Complete. Milestone 2 and `IAM-003`/`IAM-004` are complete; approved `IAM-001` and
+  `IAM-002` behavior remained intact.
+- **Checkpoint evidence:** All exact local gates passed: Ruff lint/format, mypy, Django system and
+  migration-drift checks, Tailwind build, message extraction/compilation, 117 passing ordinary
+  tests with 99.44% branch coverage, static collection, and 33 pinned-Chromium tests. A disposable
+  PostgreSQL 18.6 cluster additionally ran all 74 focused accounts and migration-profile tests with
+  no skip, then was stopped and removed.
+- **Security/deployment evidence:** Synthetic production values passed `check --deploy`; the only
+  retained warning is the already-approved `security.W004`, because HSTS rollout remains assigned
+  to `SEC-002` after HTTPS validation. Session/cookie/CSRF/redirect/HTMX/storage/CSP/authorization,
+  dependency direction, secrets/personal data, debug output, suppressions, migrations, and the
+  final diff were reviewed without a blocking finding.
+- **Commits:** `e797412` for `IAM-003`; `5b8cc3a` for `IAM-004`.
+- **Deviations or blockers:** No implementation blocker. Chrome DevTools MCP and a remote CI result
+  were not available; local pinned Chromium and all repository-equivalent gates passed. The next
+  eligible task is `AUD-001`, which was not started.
