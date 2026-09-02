@@ -369,8 +369,8 @@ credentials, generated-document content, or other sensitive payloads.
 ## CP-AUD-A — Checkpoint closure
 
 - **Completion date:** 2026-09-02
-- **Status:** Local implementation and verification are complete; human approval is pending at the
-  mandatory checkpoint pause. `AUD-003` has not started.
+- **Status:** Approved and superseded by `CP-AUD-B` on 2026-09-02. `AUD-003` completed in the
+  follow-on batch.
 - **Completed tasks:** `AUD-001`, `AUD-002`.
 - **Checkpoint evidence:** Focused audit and identity integration suites passed; Ruff lint/format,
   mypy, Django system and migration-drift checks, Tailwind build, message extraction/compilation,
@@ -383,5 +383,45 @@ credentials, generated-document content, or other sensitive payloads.
   signal-based duplicate events.
 - **Commits:** `434879f` for `AUD-001`; `e0d1c96` for `AUD-002`.
 - **Deviations or blockers:** PostgreSQL index-profile verification remains skipped unless
-  `TEST_DATABASE_URL` is set. The next eligible task after approval is `AUD-003`; `CASE-001` remains
-  out of scope until Milestone 3 closes.
+  `TEST_DATABASE_URL` is set. Milestone 3 is closed locally; `CASE-001` is the next eligible task.
+
+## AUD-003 — Deliver authorized audit browsing
+
+- **Completion date:** 2026-09-02
+- **Outcome:** Authorized administrators can browse paginated, filterable audit metadata through a
+  read-only full-page and HTMX fragment UI. Filters cover action, outcome, actor, target,
+  correlation ID, UTC time range, sort, and page size with bounded validation. No mutation routes
+  exist.
+- **Important files changed:** `apps/audit/{forms,selectors,views,urls}.py`,
+  `apps/audit/tests/test_views.py`, `templates/audit/{list,_audit_filters,_audit_results}.html`,
+  `static_src/css/app.css`, `locale/vi/LC_MESSAGES/django.po`, and
+  `apps/accounts/tests/test_shell.py` (forbidden-probe update).
+- **Migrations created:** None.
+- **Focused tests executed:** 23 audit view/selector tests plus 59 total audit-app tests passed;
+  permission, pagination, filter/sort allowlists, HTMX `Vary`, empty/error states, query-count bound,
+  and mutation rejection verified.
+- **Broader checks executed:** Full repository suite reported `194 passed`, `2 skipped`, `95.34%`
+  coverage with Ruff, mypy, Django checks, CSS build, i18n extraction/compilation, and synthetic
+  production `check --deploy`/`collectstatic` passing (`security.W004` only).
+- **Security/privacy review:** Audit list requires `accounts.view_audit`; unauthorized principals
+  receive generic denial without event disclosure; metadata is escaped in templates; filter inputs
+  are bounded; datetime-local filters are interpreted as UTC wall-clock instants; ordinary audit-list
+  GET requests do not record audit events.
+- **Commit:** pending (`feat(audit): deliver authorized audit browsing`).
+- **Deviations or blockers:** None.
+
+## CP-AUD-B — Checkpoint closure
+
+- **Completion date:** 2026-09-02
+- **Status:** Local implementation and verification complete; Milestone 3 closed.
+- **Completed tasks:** `AUD-001`, `AUD-002`, `AUD-003`.
+- **Checkpoint evidence:** Append-only immutability preserved; authorized browsing is paginated and
+  filterable with no POST/PUT/PATCH/DELETE routes; full Q gates passed (`194 passed`, `95.34%`
+  coverage, Ruff, mypy, Django drift check, CSS, i18n, deploy check).
+- **Security/privacy review:** `audit` app imports only Django, `core`, and `accounts`; sensitive
+  payloads never appear in browse UI; shell error-page probe updated to use a still-forbidden
+  destination after audit browsing became authorized for administrators.
+- **Commits:** `434879f` (`AUD-001`); `e0d1c96` (`AUD-002`); `4f765c6` (CP-AUD-A evidence); AUD-003
+  commit pending in this batch.
+- **Deviations or blockers:** PostgreSQL index-profile verification remains skipped unless
+  `TEST_DATABASE_URL` is set. `CASE-001` is eligible next.

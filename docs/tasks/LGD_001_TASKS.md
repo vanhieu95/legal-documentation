@@ -234,7 +234,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Identity acceptance tests assert the exact required audit outcomes without content leakage.
 - **Size:** S. **Blockers/skills:** **Security skill**, `code-review-and-quality`.
 
-### [ ] AUD-003 — Deliver authorized audit browsing
+### [x] AUD-003 — Deliver authorized audit browsing
 
 - **Outcome:** Administrators can browse paginated, filterable audit metadata through a purpose-built page/full-fragment response; no mutation path exists.
 - **SPEC:** §§4.2, 14, 17.1; **FR:** `FR-AUTH-02`; **AC:** `AC-02`, `AC-06`, `AC-08`, `AC-09`.
@@ -253,7 +253,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 ### Checkpoint M3
 
 - [x] Identity events are recorded once with correlation IDs and safe metadata.
-- [ ] Audit rows are append-only and browseable only with permission; tests and migration drift pass.
+- [x] Audit rows are append-only and browseable only with permission; tests and migration drift pass.
 
 ## Milestone 4 — Case-management vertical slice
 
