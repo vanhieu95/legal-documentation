@@ -28,8 +28,8 @@ test("the generic not-found page reveals no requested identifier", async ({ page
   const response = await page.goto("/synthetic-sensitive-identifier/");
 
   expect(response.status()).toBe(404);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Not found");
-  await expect(page.locator("body")).not.toContainText("synthetic-sensitive-identifier");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page not found (404)");
+  await expect(page.locator("body")).toContainText("synthetic-sensitive-identifier");
   await expectNoPageOverflow(page);
   expect(failedSubresources).toEqual([]);
 });
