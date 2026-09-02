@@ -1,6 +1,7 @@
 {% load static i18n %}
+{% get_current_language as current_language %}
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="{{ current_language }}" class="no-js">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,8 +12,8 @@
     <title>{% block title %}{% translate "Interface platform" %}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <script defer src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
-    <script defer src="{% static 'vendor/alpine/alpine.csp.min.js' %}"></script>
     <script defer src="{% static 'js/app.js' %}"></script>
+    <script defer src="{% static 'vendor/alpine/alpine.csp.min.js' %}"></script>
   </head>
   <body hx-history="false">
     <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>

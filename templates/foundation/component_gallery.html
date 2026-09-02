@@ -12,17 +12,7 @@
           {% translate "Foundation components using semantic HTML, local assets, and visible when JavaScript is disabled." %}
         </p>
       </div>
-      <div class="theme-controls js-only" aria-label="{% translate 'Choose color theme' %}">
-        <button class="button button-secondary" type="button" data-theme-choice="system">
-          {% translate "System" %}
-        </button>
-        <button class="button button-secondary" type="button" data-theme-choice="light">
-          {% translate "Light" %}
-        </button>
-        <button class="button button-secondary" type="button" data-theme-choice="dark">
-          {% translate "Dark" %}
-        </button>
-      </div>
+      {% include "components/theme_controls.html" %}
     </header>
 
     <div class="gallery-grid">

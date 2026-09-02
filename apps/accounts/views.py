@@ -35,7 +35,7 @@ def login(request: HttpRequest) -> HttpResponse:
             establish_session_timestamps(request)
             return redirect(safe_destination or reverse("accounts:dashboard"))
         form = AdministratorAuthenticationForm(request=request)
-        authentication_error = GENERIC_AUTHENTICATION_FAILURE
+        authentication_error = str(GENERIC_AUTHENTICATION_FAILURE)
     else:
         form = AdministratorAuthenticationForm(request=request)
         authentication_error = ""

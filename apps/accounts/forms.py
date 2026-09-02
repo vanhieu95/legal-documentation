@@ -4,17 +4,18 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.policies import application_access_policy
 
-GENERIC_AUTHENTICATION_FAILURE = "Unable to sign in with the credentials provided."
+GENERIC_AUTHENTICATION_FAILURE = _("Unable to sign in with the credentials provided.")
 
 
 class AdministratorAuthenticationForm(AuthenticationForm):
     """Authenticate only principals admitted by the central application policy."""
 
     username = forms.CharField(
-        label="Username",
+        label=_("Username"),
         max_length=150,
         widget=forms.TextInput(
             attrs={
@@ -24,7 +25,7 @@ class AdministratorAuthenticationForm(AuthenticationForm):
         ),
     )
     password = forms.CharField(
-        label="Password",
+        label=_("Password"),
         strip=False,
         widget=forms.PasswordInput(
             attrs={

@@ -1,19 +1,15 @@
-{% extends "base.html" %}
+{% extends "base_authenticated.html" %}
 {% load i18n %}
 
 {% block title %}{% translate "Home" %} · VDS{% endblock %}
 
-{% block content %}
-  <main id="main-content" class="gallery">
-    <section class="surface" aria-labelledby="dashboard-heading">
-      <h1 id="dashboard-heading" class="gallery-title">{% translate "Administration area" %}</h1>
-      <p class="gallery-description">
-        {% translate "You have signed in successfully. Business content will be provided in later phases." %}
-      </p>
-      <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button class="button button-secondary" type="submit">{% translate "Sign out" %}</button>
-      </form>
-    </section>
-  </main>
+{% block page_context %}{% translate "Dashboard" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface" aria-labelledby="dashboard-heading">
+    <h1 id="dashboard-heading" class="gallery-title">{% translate "Dashboard" %}</h1>
+    <p class="gallery-description">
+      {% translate "Business information will be provided in later phases." %}
+    </p>
+  </section>
 {% endblock %}

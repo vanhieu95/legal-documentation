@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 10:01+0700\n"
+"POT-Creation-Date: 2026-09-02 17:31+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -15,47 +15,79 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+#: apps/accounts/context_processors.py:25
+#: templates/accounts/dashboard_placeholder.html:6
+#: templates/accounts/dashboard_placeholder.html:10
+msgid "Dashboard"
+msgstr "Bảng điều khiển"
+
+#: apps/accounts/context_processors.py:26 apps/cases/views.py:16
+msgid "Cases"
+msgstr "Hồ sơ việc dân sự"
+
+#: apps/accounts/context_processors.py:27 apps/documents/views.py:16
+msgid "Templates"
+msgstr "Biểu mẫu"
+
+#: apps/accounts/context_processors.py:28 apps/audit/views.py:16
+msgid "Audit log"
+msgstr "Nhật ký kiểm tra"
+
+#: apps/accounts/forms.py:11
+msgid "Unable to sign in with the credentials provided."
+msgstr "Không thể đăng nhập bằng thông tin đã cung cấp."
+
+#: apps/accounts/forms.py:18
+msgid "Username"
+msgstr "Tên đăng nhập"
+
+#: apps/accounts/forms.py:28
+msgid "Password"
+msgstr "Mật khẩu"
+
+#: apps/audit/views.py:17
+msgid "Audit browsing is not available yet."
+msgstr "Chức năng xem nhật ký kiểm tra chưa khả dụng."
+
+#: apps/cases/views.py:17
+msgid "Case management is not available yet."
+msgstr "Chức năng quản lý hồ sơ việc dân sự chưa khả dụng."
+
+#: apps/documents/views.py:17
+msgid "Template management is not available yet."
+msgstr "Chức năng quản lý biểu mẫu chưa khả dụng."
+
 #: templates/accounts/dashboard_placeholder.html:4
 msgid "Home"
-msgstr ""
+msgstr "Trang chủ"
 
-#: templates/accounts/dashboard_placeholder.html:9
-msgid "Administration area"
-msgstr ""
-
-#: templates/accounts/dashboard_placeholder.html:11
-msgid ""
-"You have signed in successfully. Business content will be provided in later "
-"phases."
-msgstr ""
-
-#: templates/accounts/dashboard_placeholder.html:15
-msgid "Sign out"
-msgstr ""
+#: templates/accounts/dashboard_placeholder.html:12
+msgid "Business information will be provided in later phases."
+msgstr "Thông tin nghiệp vụ sẽ được cung cấp trong các giai đoạn sau."
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:48
 msgid "Sign in"
-msgstr ""
+msgstr "Đăng nhập"
 
 #: templates/accounts/login.html:11
 msgid "Administrator sign in"
-msgstr ""
+msgstr "Đăng nhập dành cho Quản trị viên"
 
 #: templates/accounts/login.html:13
 msgid "Use your issued administrator account to continue."
-msgstr ""
+msgstr "Sử dụng tài khoản Quản trị viên đã được cấp để tiếp tục."
 
 #: templates/accounts/login.html:24
 msgid "Unable to sign in"
-msgstr ""
+msgstr "Không thể đăng nhập"
 
 #: templates/accounts/login.html:50
 msgid "Signing in…"
-msgstr ""
+msgstr "Đang đăng nhập…"
 
 #: templates/accounts/login.html:57
 msgid "You can still sign in when JavaScript is disabled."
-msgstr ""
+msgstr "Bạn vẫn có thể đăng nhập khi JavaScript bị tắt."
 
 #: templates/accounts/session_expired.html:4
 #: templates/accounts/session_expired.html:9
@@ -70,265 +102,305 @@ msgstr "Đăng nhập lại để tiếp tục. Thông tin chưa lưu không đ�
 msgid "Sign in again"
 msgstr "Đăng nhập lại"
 
-#: templates/base.html:11
+#: templates/base.html:12
 msgid "Interface platform"
-msgstr ""
+msgstr "Nền tảng quản trị"
 
-#: templates/base.html:18
+#: templates/base.html:19
 msgid "Skip to main content"
-msgstr ""
+msgstr "Chuyển đến nội dung chính"
+
+#: templates/base_authenticated.html:21
+msgid "Open navigation"
+msgstr "Mở điều hướng"
+
+#: templates/base_authenticated.html:26
+msgid "Civil-matter document administration"
+msgstr "Quản trị văn bản việc dân sự"
+
+#: templates/base_authenticated.html:29
+msgid "Administration"
+msgstr "Quản trị"
+
+#: templates/base_authenticated.html:37
+msgid "Sign out"
+msgstr "Đăng xuất"
+
+#: templates/base_authenticated.html:45
+msgid "Close navigation"
+msgstr "Đóng điều hướng"
+
+#: templates/base_authenticated.html:62
+msgid "Primary navigation"
+msgstr "Điều hướng chính"
+
+#: templates/base_authenticated.html:84
+msgid "Loading…"
+msgstr "Đang tải…"
 
 #: templates/components/alerts.html:3
 msgid "Alerts and status regions"
-msgstr ""
+msgstr "Cảnh báo và vùng trạng thái"
 
 #: templates/components/alerts.html:6
 msgid "Success"
-msgstr ""
+msgstr "Thành công"
 
 #: templates/components/alerts.html:7
 msgid "Sample action completed."
-msgstr ""
+msgstr "Thao tác mẫu đã hoàn tất."
 
 #: templates/components/alerts.html:10
 msgid "Warning"
-msgstr ""
+msgstr "Cảnh báo"
 
 #: templates/components/alerts.html:11
 msgid "Review the information before continuing."
-msgstr ""
+msgstr "Kiểm tra thông tin trước khi tiếp tục."
 
 #: templates/components/alerts.html:14
 msgid "An error occurred"
-msgstr ""
+msgstr "Đã xảy ra lỗi"
 
 #: templates/components/alerts.html:15
 msgid "Information was not saved; correct the indicated errors."
-msgstr ""
+msgstr "Thông tin chưa được lưu; hãy sửa các lỗi được chỉ ra."
 
 #: templates/components/badges.html:3
 msgid "Status badges"
-msgstr ""
+msgstr "Nhãn trạng thái"
 
 #: templates/components/badges.html:5 templates/components/table.html:18
 msgid "Complete"
-msgstr ""
+msgstr "Hoàn tất"
 
 #: templates/components/badges.html:6 templates/components/table.html:24
 msgid "Pending"
-msgstr ""
+msgstr "Đang chờ"
 
 #: templates/components/badges.html:7
 msgid "Info"
-msgstr ""
+msgstr "Thông tin"
 
 #: templates/components/badges.html:8
 msgid "Failed"
-msgstr ""
+msgstr "Thất bại"
 
 #: templates/components/badges.html:9
 msgid "Undetermined"
-msgstr ""
+msgstr "Chưa xác định"
 
 #: templates/components/buttons.html:3
 msgid "Action buttons"
-msgstr ""
+msgstr "Nút thao tác"
 
 #: templates/components/buttons.html:5
 msgid "Save changes"
-msgstr ""
+msgstr "Lưu thay đổi"
 
 #: templates/components/buttons.html:6
 msgid "Preview"
-msgstr ""
+msgstr "Xem trước"
 
 #: templates/components/buttons.html:7
 msgid "Cancel"
-msgstr ""
+msgstr "Hủy"
 
 #: templates/components/buttons.html:8
 msgid "Delete sample item"
-msgstr ""
+msgstr "Xóa mục mẫu"
 
-#: templates/components/buttons.html:9
+#: templates/components/buttons.html:9 templates/placeholders/domain.html:11
 msgid "Not available"
-msgstr ""
+msgstr "Chưa khả dụng"
 
 #: templates/components/dialog.html:3
 msgid "Dialog"
-msgstr ""
+msgstr "Hộp thoại"
 
 #: templates/components/dialog.html:5
 msgid "Open sample dialog"
-msgstr ""
+msgstr "Mở hộp thoại mẫu"
 
 #: templates/components/dialog.html:9
 msgid "Confirm sample action"
-msgstr ""
+msgstr "Xác nhận thao tác mẫu"
 
 #: templates/components/dialog.html:10
 msgid "This is synthetic content to test focus, Escape key, and line wrapping."
 msgstr ""
+"Đây là nội dung tổng hợp để kiểm tra tiêu điểm, phím Escape và ngắt dòng."
 
 #: templates/components/dialog.html:12
 msgid "Close"
-msgstr ""
+msgstr "Đóng"
 
 #: templates/components/dialog.html:13
 msgid "Confirm"
-msgstr ""
+msgstr "Xác nhận"
 
 #: templates/components/form_fields.html:3
 msgid "Form fields"
-msgstr ""
+msgstr "Trường biểu mẫu"
 
 #: templates/components/form_fields.html:6
 msgid "Display name"
-msgstr ""
+msgstr "Tên hiển thị"
 
 #: templates/components/form_fields.html:13
 msgid "Enter sample name"
-msgstr ""
+msgstr "Nhập tên mẫu"
 
 #: templates/components/form_fields.html:16
 msgid "Use synthetic content; do not enter personal data."
-msgstr ""
+msgstr "Sử dụng nội dung tổng hợp; không nhập dữ liệu cá nhân."
 
 #: templates/components/form_fields.html:19
 msgid "Sample reference code"
-msgstr ""
+msgstr "Mã tham chiếu mẫu"
 
 #: templates/components/form_fields.html:29
 msgid "Code must be at least four characters."
-msgstr ""
+msgstr "Mã phải có ít nhất bốn ký tự."
 
 #: templates/components/form_fields.html:30
 msgid "Enter at least one more character."
-msgstr ""
+msgstr "Nhập thêm ít nhất một ký tự."
 
 #: templates/components/form_fields.html:33
 msgid "Validate form"
-msgstr ""
+msgstr "Kiểm tra biểu mẫu"
 
 #: templates/components/states.html:3
 msgid "System states"
-msgstr ""
+msgstr "Trạng thái hệ thống"
 
 #: templates/components/states.html:6
 msgid "Loading state"
-msgstr ""
+msgstr "Trạng thái đang tải"
 
 #: templates/components/states.html:7
 msgid "Loading synthetic data…"
-msgstr ""
+msgstr "Đang tải dữ liệu tổng hợp…"
 
 #: templates/components/states.html:10
 msgid "No data"
-msgstr ""
+msgstr "Không có dữ liệu"
 
 #: templates/components/states.html:11
 msgid "No items to display; use an appropriate action to get started."
-msgstr ""
+msgstr "Không có mục nào để hiển thị; hãy sử dụng thao tác phù hợp để bắt đầu."
 
 #: templates/components/states.html:14
 msgid "Offline"
-msgstr ""
+msgstr "Ngoại tuyến"
 
 #: templates/components/states.html:15
 msgid "Unable to connect; data was not sent."
-msgstr ""
+msgstr "Không thể kết nối; dữ liệu chưa được gửi."
 
 #: templates/components/states.html:18
 msgid "Conflict"
-msgstr ""
+msgstr "Xung đột"
 
 #: templates/components/states.html:19
 msgid "Information changed elsewhere; reload and review before continuing."
 msgstr ""
+"Thông tin đã thay đổi ở nơi khác; hãy tải lại và kiểm tra trước khi tiếp tục."
 
 #: templates/components/table.html:3
 msgid "Responsive table"
-msgstr ""
+msgstr "Bảng thích ứng"
 
 #: templates/components/table.html:6
 msgid "Synthetic data illustrating table presentation"
-msgstr ""
+msgstr "Dữ liệu tổng hợp minh họa cách trình bày bảng"
 
 #: templates/components/table.html:9
 msgid "Item"
-msgstr ""
+msgstr "Mục"
 
 #: templates/components/table.html:10
 msgid "Status"
-msgstr ""
+msgstr "Trạng thái"
 
 #: templates/components/table.html:11
 msgid "Updated"
-msgstr ""
+msgstr "Cập nhật"
 
 #: templates/components/table.html:12
 msgid "Actions"
-msgstr ""
+msgstr "Thao tác"
 
 #: templates/components/table.html:17
 msgid "Synthetic record A"
-msgstr ""
+msgstr "Bản ghi tổng hợp A"
 
 #: templates/components/table.html:19
 msgid "Today"
-msgstr ""
+msgstr "Hôm nay"
 
 #: templates/components/table.html:20 templates/components/table.html:26
 msgid "View item"
-msgstr ""
+msgstr "Xem mục"
 
 #: templates/components/table.html:23
 msgid "Synthetic record B with a long label to test line wrapping"
-msgstr ""
+msgstr "Bản ghi tổng hợp B có nhãn dài để kiểm tra ngắt dòng"
 
 #: templates/components/table.html:25
 msgid "Yesterday"
-msgstr ""
+msgstr "Hôm qua"
+
+#: templates/components/theme_controls.html:5
+msgid "Choose color theme"
+msgstr "Chọn giao diện màu"
+
+#: templates/components/theme_controls.html:12
+msgid "System"
+msgstr "Hệ thống"
+
+#: templates/components/theme_controls.html:18
+msgid "Light"
+msgstr "Sáng"
+
+#: templates/components/theme_controls.html:24
+msgid "Dark"
+msgstr "Tối"
 
 #: templates/errors/403.html:4 templates/errors/403.html:9
 msgid "Access denied"
-msgstr ""
+msgstr "Truy cập bị từ chối"
 
 #: templates/errors/403.html:10
 msgid "You do not have permission to access this content."
-msgstr ""
+msgstr "Bạn không có quyền truy cập nội dung này."
 
 #: templates/errors/404.html:4 templates/errors/404.html:9
 msgid "Not found"
-msgstr ""
+msgstr "Không tìm thấy"
 
 #: templates/errors/404.html:10
 msgid "Requested content was not found."
-msgstr ""
+msgstr "Không tìm thấy nội dung được yêu cầu."
+
+#: templates/errors/500.html:4 templates/errors/500.html:9
+msgid "Server error"
+msgstr "Lỗi máy chủ"
+
+#: templates/errors/500.html:10
+msgid "An unexpected error occurred. Try again later."
+msgstr "Đã xảy ra lỗi không mong muốn. Hãy thử lại sau."
 
 #: templates/foundation/component_gallery.html:4
 #: templates/foundation/component_gallery.html:10
 msgid "Interface component gallery"
-msgstr ""
+msgstr "Bộ sưu tập thành phần giao diện"
 
 #: templates/foundation/component_gallery.html:12
 msgid ""
 "Foundation components using semantic HTML, local assets, and visible when "
 "JavaScript is disabled."
 msgstr ""
-
-#: templates/foundation/component_gallery.html:15
-msgid "Choose color theme"
-msgstr ""
-
-#: templates/foundation/component_gallery.html:17
-msgid "System"
-msgstr ""
-
-#: templates/foundation/component_gallery.html:20
-msgid "Light"
-msgstr ""
-
-#: templates/foundation/component_gallery.html:23
-msgid "Dark"
-msgstr ""
+"Các thành phần nền tảng sử dụng HTML ngữ nghĩa, tài nguyên cục bộ và vẫn "
+"hiển thị khi JavaScript bị tắt."

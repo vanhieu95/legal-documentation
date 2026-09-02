@@ -38,3 +38,7 @@ def permission_denied(request: HttpRequest, exception: Exception) -> HttpRespons
 
 def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponse:
     return render(request, "errors/404.html", status=404)
+
+
+def server_error(request: HttpRequest) -> HttpResponse:
+    return render(request, "errors/500.html", status=500)
