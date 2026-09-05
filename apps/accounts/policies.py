@@ -13,7 +13,9 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import Model, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse
 
+from apps.accounts.audit import record_identity_access_denied
 from apps.accounts.permissions import ADMINISTRATOR_GROUP_NAME
+from apps.core.correlation import get_request_correlation_id
 
 
 class ApplicationPermission(StrEnum):
@@ -92,7 +94,16 @@ def application_permission_required(
                 return redirect_to_login(
                     request.get_full_path(), str(settings.LOGIN_URL), REDIRECT_FIELD_NAME
                 )
-            application_access_policy.require_permission(request.user, permission)
+            if not application_access_policy.has_permission(request.user, permission):
+                record_identity_access_denied(
+                    request=request,
+                    actor=request.user,
+                    permission=permission.value,
+                    correlation_id=get_request_correlation_id(request),
+                    route_name=(request.resolver_match.view_name if request.resolver_match else ""),
+                    is_htmx=request.headers.get("HX-Request") == "true",
+                )
+                application_access_policy.require_permission(request.user, permission)
             return view(request, *args, **kwargs)
 
         return wrapped
@@ -111,7 +122,15 @@ def service_permission_required(
             actor = kwargs.get("actor")
             if not isinstance(actor, (User, AnonymousUser)):
                 raise PermissionDenied
-            application_access_policy.require_permission(actor, permission)
+            correlation_id = kwargs.get("correlation_id")
+            if not application_access_policy.has_permission(actor, permission):
+                if isinstance(correlation_id, str):
+                    record_identity_access_denied(
+                        actor=actor if isinstance(actor, User) else None,
+                        permission=permission.value,
+                        correlation_id=correlation_id,
+                    )
+                application_access_policy.require_permission(actor, permission)
             return service(*args, **kwargs)
 
         return wrapped

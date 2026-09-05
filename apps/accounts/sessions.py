@@ -14,6 +14,9 @@ from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from apps.accounts.audit import record_identity_session_expired
+from apps.core.correlation import get_request_correlation_id
+
 INACTIVITY_SESSION_LIMIT = timedelta(minutes=30)
 ABSOLUTE_SESSION_LIMIT = timedelta(hours=8)
 SESSION_STARTED_AT_KEY = "accounts.session_started_at"
@@ -61,8 +64,18 @@ def establish_session_timestamps(request: HttpRequest) -> None:
     request.session.set_expiry(math.ceil(INACTIVITY_SESSION_LIMIT.total_seconds()))
 
 
-def notify_session_expired(*, user_id: int, reason: SessionExpiryReason) -> None:
-    """No-persistence integration boundary implemented by AUD-002."""
+def notify_session_expired(
+    *,
+    user_id: int,
+    reason: SessionExpiryReason,
+    correlation_id: str,
+) -> None:
+    """Record session-expiry audit evidence without persisting protected response data."""
+    record_identity_session_expired(
+        user_id=user_id,
+        reason_code=reason.value,
+        correlation_id=correlation_id,
+    )
 
 
 def invalidate_user_sessions(user_id: int) -> int:
@@ -115,7 +128,11 @@ class SessionLifetimeMiddleware(MiddlewareMixin):
             if reason is not None:
                 user_id = request.user.pk
                 request.session.flush()
-                notify_session_expired(user_id=user_id, reason=reason)
+                notify_session_expired(
+                    user_id=user_id,
+                    reason=reason,
+                    correlation_id=get_request_correlation_id(request),
+                )
                 redirect_url = _reauthentication_url(request)
                 if request.headers.get("HX-Request") == "true":
                     response = HttpResponse(status=401)

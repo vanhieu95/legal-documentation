@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import cast
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -7,18 +8,27 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from apps.accounts.audit import (
+    record_identity_login_failure,
+    record_identity_login_success,
+    record_identity_logout,
+)
 from apps.accounts.forms import (
+    AUDIT_REASON_INACTIVE_ACCOUNT,
+    AUDIT_REASON_NOT_ADMINISTRATOR,
     GENERIC_AUTHENTICATION_FAILURE,
     AdministratorAuthenticationForm,
 )
 from apps.accounts.policies import ApplicationPermission, application_permission_required
 from apps.accounts.sessions import establish_session_timestamps, safe_local_destination
+from apps.audit.actions import AuditOutcome
 
 
 @never_cache
@@ -31,10 +41,23 @@ def login(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         submitted_form = AdministratorAuthenticationForm(request=request, data=request.POST)
         if submitted_form.is_valid():
-            auth_login(request, submitted_form.get_user())
+            authenticated_user = submitted_form.get_user()
+            record_identity_login_success(request=request, actor=authenticated_user)
+            auth_login(request, authenticated_user)
             establish_session_timestamps(request)
             return redirect(safe_destination or reverse("accounts:dashboard"))
         form = AdministratorAuthenticationForm(request=request)
+        reason_code = submitted_form.audit_failure_reason_code
+        outcome = (
+            AuditOutcome.DENIED
+            if reason_code in {AUDIT_REASON_INACTIVE_ACCOUNT, AUDIT_REASON_NOT_ADMINISTRATOR}
+            else AuditOutcome.FAILURE
+        )
+        record_identity_login_failure(
+            request=request,
+            reason_code=reason_code,
+            outcome=outcome,
+        )
         authentication_error = str(GENERIC_AUTHENTICATION_FAILURE)
     else:
         form = AdministratorAuthenticationForm(request=request)
@@ -55,6 +78,7 @@ def login(request: HttpRequest) -> HttpResponse:
 @require_POST
 @login_required
 def logout(request: HttpRequest) -> HttpResponse:
+    record_identity_logout(request=request, actor=cast(User, request.user))
     auth_logout(request)
     return redirect(settings.LOGIN_URL)
 

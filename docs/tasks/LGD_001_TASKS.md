@@ -202,7 +202,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 3 — Append-only audit foundation
 
-### [ ] AUD-001 — Create the append-only audit model and recorder
+### [x] AUD-001 — Create the append-only audit model and recorder
 
 - **Outcome:** A domain-agnostic service atomically records immutable audit events with safe bounded metadata and correlation IDs; business apps need no audit-model import.
 - **SPEC:** §§9, 10.2, 16, 17.1; **FR:** none directly; **AC:** `AC-17`, `AC-18`.
@@ -218,7 +218,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Later services can record required events without domain coupling; update/delete attempts fail through supported paths.
 - **Size:** M. **Blockers/skills:** **Security skill**; `api-and-interface-design`, `code-review-and-quality`.
 
-### [ ] AUD-002 — Integrate identity and denied-access audit events
+### [x] AUD-002 — Integrate identity and denied-access audit events
 
 - **Outcome:** Successful/failed login, logout, session expiry, account/password/group/permission changes, and attempted unauthorized sensitive access produce bounded audit events.
 - **SPEC:** §§5.1, 16, 17.1; **FR:** `FR-AUTH-01`, `FR-AUTH-02`; **AC:** `AC-01`, `AC-02`, `AC-04`.
@@ -234,7 +234,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Identity acceptance tests assert the exact required audit outcomes without content leakage.
 - **Size:** S. **Blockers/skills:** **Security skill**, `code-review-and-quality`.
 
-### [ ] AUD-003 — Deliver authorized audit browsing
+### [x] AUD-003 — Deliver authorized audit browsing
 
 - **Outcome:** Administrators can browse paginated, filterable audit metadata through a purpose-built page/full-fragment response; no mutation path exists.
 - **SPEC:** §§4.2, 14, 17.1; **FR:** `FR-AUTH-02`; **AC:** `AC-02`, `AC-06`, `AC-08`, `AC-09`.
@@ -252,8 +252,8 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ### Checkpoint M3
 
-- [ ] Identity events are recorded once with correlation IDs and safe metadata.
-- [ ] Audit rows are append-only and browseable only with permission; tests and migration drift pass.
+- [x] Identity events are recorded once with correlation IDs and safe metadata.
+- [x] Audit rows are append-only and browseable only with permission; tests and migration drift pass.
 
 ## Milestone 4 — Case-management vertical slice
 
