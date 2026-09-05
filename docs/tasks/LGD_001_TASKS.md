@@ -257,7 +257,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 4 — Case-management vertical slice
 
-### [ ] CASE-001 — Model courts, entities, addresses, and officials
+### [x] CASE-001 — Model courts, entities, addresses, and officials
 
 - **Outcome:** Reusable reference entities have UUID identity, validation, active state, durable uniqueness, history-friendly addresses, and query indexes.
 - **SPEC:** §§6.2, 7.1–7.2, 10.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`.

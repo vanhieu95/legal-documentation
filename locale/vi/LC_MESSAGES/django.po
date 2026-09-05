@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 19:32+0700\n"
+"POT-Creation-Date: 2026-09-05 16:41+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -47,100 +47,184 @@ msgstr "Tên đăng nhập"
 msgid "Password"
 msgstr "Mật khẩu"
 
-#: apps/audit/forms.py:28 templates/audit/_audit_results.html:32
+#: apps/audit/forms.py:29 templates/audit/_audit_results.html:32
 msgid "Action"
 msgstr "Hành động"
 
-#: apps/audit/forms.py:30
+#: apps/audit/forms.py:31
 msgid "All actions"
 msgstr "Tất cả hành động"
 
-#: apps/audit/forms.py:33 templates/audit/_audit_results.html:33
+#: apps/audit/forms.py:34 templates/audit/_audit_results.html:33
 #: templates/audit/_audit_results.html:98
 msgid "Outcome"
 msgstr "Kết quả"
 
-#: apps/audit/forms.py:35
+#: apps/audit/forms.py:36
 msgid "All outcomes"
 msgstr "Tất cả kết quả"
 
-#: apps/audit/forms.py:38 templates/audit/_audit_results.html:34
+#: apps/audit/forms.py:39 templates/audit/_audit_results.html:34
 #: templates/audit/_audit_results.html:102
 msgid "Actor"
 msgstr "Người thực hiện"
 
-#: apps/audit/forms.py:43
+#: apps/audit/forms.py:44
 msgid "Target type"
 msgstr "Loại đối tượng"
 
-#: apps/audit/forms.py:45
+#: apps/audit/forms.py:46
 msgid "All target types"
 msgstr "Tất cả loại đối tượng"
 
-#: apps/audit/forms.py:48
+#: apps/audit/forms.py:49
 msgid "Target identifier"
 msgstr "Mã định danh đối tượng"
 
-#: apps/audit/forms.py:53 templates/audit/_audit_results.html:36
+#: apps/audit/forms.py:54 templates/audit/_audit_results.html:36
 #: templates/audit/_audit_results.html:118
 msgid "Correlation ID"
 msgstr "Mã tương quan"
 
-#: apps/audit/forms.py:58
+#: apps/audit/forms.py:59
 msgid "From"
 msgstr "Từ"
 
-#: apps/audit/forms.py:69
+#: apps/audit/forms.py:70
 msgid "To"
 msgstr "Đến"
 
-#: apps/audit/forms.py:80
+#: apps/audit/forms.py:81
 msgid "Sort"
 msgstr "Sắp xếp"
 
-#: apps/audit/forms.py:83
+#: apps/audit/forms.py:84
 msgid "Newest first"
 msgstr "Mới nhất trước"
 
-#: apps/audit/forms.py:84
+#: apps/audit/forms.py:85
 msgid "Oldest first"
 msgstr "Cũ nhất trước"
 
-#: apps/audit/forms.py:85
+#: apps/audit/forms.py:86
 msgid "Action (A–Z)"
 msgstr "Hành động (A–Z)"
 
-#: apps/audit/forms.py:86
+#: apps/audit/forms.py:87
 msgid "Action (Z–A)"
 msgstr "Hành động (Z–A)"
 
-#: apps/audit/forms.py:87
+#: apps/audit/forms.py:88
 msgid "Outcome (A–Z)"
 msgstr "Kết quả (A–Z)"
 
-#: apps/audit/forms.py:88
+#: apps/audit/forms.py:89
 msgid "Outcome (Z–A)"
 msgstr "Kết quả (Z–A)"
 
-#: apps/audit/forms.py:89
+#: apps/audit/forms.py:90
 msgid "Target type (A–Z)"
 msgstr "Loại đối tượng (A–Z)"
 
-#: apps/audit/forms.py:90
+#: apps/audit/forms.py:91
 msgid "Target type (Z–A)"
 msgstr "Loại đối tượng (Z–A)"
 
-#: apps/audit/forms.py:91
+#: apps/audit/forms.py:92
 msgid "Correlation ID (A–Z)"
 msgstr "Mã tương quan (A–Z)"
 
-#: apps/audit/forms.py:92
+#: apps/audit/forms.py:93
 msgid "Correlation ID (Z–A)"
 msgstr "Mã tương quan (Z–A)"
 
-#: apps/audit/forms.py:97
+#: apps/audit/forms.py:98
 msgid "Page size"
 msgstr "Kích thước trang"
+
+#: apps/cases/models.py:13
+msgid "District-level court"
+msgstr "Tòa án cấp huyện"
+
+#: apps/cases/models.py:14
+msgid "Provincial-level court"
+msgstr "Tòa án cấp tỉnh"
+
+#: apps/cases/models.py:15
+msgid "High People's Court"
+msgstr "Tòa án nhân dân cấp cao"
+
+#: apps/cases/models.py:16
+msgid "Supreme People's Court"
+msgstr "Tòa án nhân dân tối cao"
+
+#: apps/cases/models.py:51
+msgid "A court cannot be its own superior."
+msgstr "Tòa án không thể là tòa án cấp trên của chính mình."
+
+#: apps/cases/models.py:56
+msgid "Individual"
+msgstr "Cá nhân"
+
+#: apps/cases/models.py:57
+msgid "Organization"
+msgstr "Tổ chức"
+
+#: apps/cases/models.py:115
+msgid "An identity document number is required for an individual."
+msgstr "Cá nhân phải có số giấy tờ tùy thân."
+
+#: apps/cases/models.py:120
+msgid "A registration number is only valid for an organization."
+msgstr "Số đăng ký chỉ áp dụng cho tổ chức."
+
+#: apps/cases/models.py:125
+msgid "Organization type is only valid for an organization."
+msgstr "Loại hình tổ chức chỉ áp dụng cho tổ chức."
+
+#: apps/cases/models.py:131
+msgid "A registration number is required for an organization."
+msgstr "Tổ chức phải có số đăng ký."
+
+#: apps/cases/models.py:136
+msgid "An identity document number is only valid for an individual."
+msgstr "Số giấy tờ tùy thân chỉ áp dụng cho cá nhân."
+
+#: apps/cases/models.py:141
+msgid "Date of birth is only valid for an individual."
+msgstr "Ngày sinh chỉ áp dụng cho cá nhân."
+
+#: apps/cases/models.py:150
+msgid "Permanent address"
+msgstr "Địa chỉ thường trú"
+
+#: apps/cases/models.py:151
+msgid "Current address"
+msgstr "Địa chỉ hiện tại"
+
+#: apps/cases/models.py:152
+msgid "Registered office"
+msgstr "Trụ sở đăng ký"
+
+#: apps/cases/models.py:153
+msgid "Contact address"
+msgstr "Địa chỉ liên hệ"
+
+#: apps/cases/models.py:191
+msgid "The end date cannot be before the start date."
+msgstr "Ngày kết thúc không được trước ngày bắt đầu."
+
+#: apps/cases/models.py:219
+msgid "An official must reference an individual."
+msgstr "Người tiến hành tố tụng phải tham chiếu đến một cá nhân."
+
+#: apps/cases/models.py:223
+msgid "An active official requires an active individual."
+msgstr "Người tiến hành tố tụng đang hoạt động phải gắn với cá nhân đang hoạt động."
+
+#: apps/cases/models.py:227
+msgid "An active official requires an active home court."
+msgstr "Người tiến hành tố tụng đang hoạt động phải thuộc tòa án đang hoạt động."
 
 #: apps/cases/views.py:17
 msgid "Case management is not available yet."
@@ -225,7 +309,8 @@ msgstr "Thử điều chỉnh hoặc xóa bộ lọc để xem thêm kết quả
 
 #: templates/audit/_audit_results.html:15
 msgid "Identity and workflow events will appear here after they are recorded."
-msgstr "Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
+msgstr ""
+"Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
 
 #: templates/audit/_audit_results.html:21
 #, python-format
@@ -304,8 +389,8 @@ msgstr "Sau"
 #: templates/audit/list.html:13
 msgid "Browse bounded audit metadata. Sensitive payloads are never shown here."
 msgstr ""
-"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ "
-"hiển thị tại đây."
+"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ hiển "
+"thị tại đây."
 
 #: templates/audit/list.html:28
 msgid "Loading audit results…"
