@@ -425,3 +425,106 @@ credentials, generated-document content, or other sensitive payloads.
   `d81089f` (`AUD-003`); `eb7c78b` (CP-AUD-B evidence).
 - **Deviations or blockers:** PostgreSQL index-profile verification remains skipped unless
   `TEST_DATABASE_URL` is set. `CASE-001` is eligible next.
+
+## CASE-001 — Model courts, entities, addresses, and officials
+
+- **Completion date:** 2026-09-07
+- **Outcome:** Added UUID-backed `Court`, `Entity`, `EntityAddress`, and `Official` models with
+  stable court codes, kind-dependent identity/registration validation, historical addresses,
+  active-state rules, protected relationships, synthetic factories, and privacy-conscious Django
+  Admin configuration.
+- **Important files changed:** `apps/cases/{models,forms,admin}.py`,
+  `apps/cases/migrations/0001_initial.py`, `apps/cases/tests/test_reference_models.py`,
+  `tests/factories.py`, and the Vietnamese catalog.
+- **Migrations created:** `cases.0001_initial`, containing UUID primary keys, conditional unique
+  identity/registration constraints, court hierarchy and address-date checks, protected foreign
+  keys, and the reviewed court/entity/address/official indexes.
+- **Focused tests executed:** 13 focused model/form/migration tests passed on PostgreSQL, covering
+  Unicode preservation, boundary lengths, kind-dependent validation, direct database constraints,
+  inactive relational choices, migration state, index columns, factories, and safe admin search
+  fields. Empty-database migration, reversal to `cases zero`, and reapplication all passed.
+- **PostgreSQL evidence:** `sqlmigrate` and live catalog inspection confirmed UUID columns,
+  constraints, foreign keys, and indexes. On a 3,000-row-per-model synthetic dataset, `EXPLAIN
+  (ANALYZE, BUFFERS)` used `case_court_active_name_idx`, `case_entity_kind_name_idx`,
+  `case_address_history_idx`, and, under selective court/active distribution,
+  `case_official_court_active_idx`; representative executions were 0.028 ms, 0.015 ms, 0.479 ms,
+  and 0.044 ms respectively.
+- **Security/privacy review:** Identity and registration values are absent from URLs, logs, audit
+  metadata, and list/admin search fields; fixtures use explicit synthetic placeholders only. Test
+  data is synthetic and Vietnamese Unicode is preserved without destructive normalization. No JSON
+  business payload, signal workflow, hard deletion, or `documents` dependency was introduced.
+- **Commit:** `1e243df` (`feat(cases): model reusable reference records`).
+- **Deviations or blockers:** None.
+
+## CASE-002 — Deliver reference-entity maintenance workflows
+
+- **Completion date:** 2026-09-07
+- **Outcome:** Administrators can list, search, filter, create, edit, and confirm deactivation of
+  courts, entities, historical addresses, and officials through explicit transactional services.
+  Ordinary requests return full pages; HTMX returns narrow fragments with swappable `422`
+  validation, same-origin redirects, canonical filter URLs, and `Vary: HX-Request`. All workflows
+  retain a JavaScript-disabled path.
+- **Important files changed:** `apps/cases/{audit,forms,policies,selectors,services,views,urls}.py`,
+  `templates/cases/references/`, reference workflow tests, local CSS/JavaScript and built assets,
+  browser fixtures/tests, audit action contracts, and the Vietnamese catalog.
+- **Migrations created:** None. Query-count and PostgreSQL plan evidence did not justify an
+  additional CASE-002 index.
+- **Focused tests executed:** 58 cases tests passed on SQLite. The final PostgreSQL profile passed
+  63 tests covering all cases tests plus audit migration and database integration profiles. Tests
+  exercise anonymous/inactive/non-Administrator/missing-permission/Administrator/superuser access,
+  view and service permission boundaries, object-policy lookup, CSRF on every unsafe route in
+  normal and HTMX modes, all-resource valid create/edit/deactivate flows, invalid value
+  preservation, inactive and cross-object choices, UUID-safe not-found handling, empty/filter/error
+  states, bounded pagination, and success/failure/denied audit events.
+- **Broader checks executed:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  Tailwind build, exact asset verification, message extraction/compilation, and the full ordinary
+  coverage command passed (`252 passed`, two intentional PostgreSQL-profile skips, 95.03% branch
+  coverage). The complete PostgreSQL run passed `253` tests with no skips and 95.28% coverage
+  before the final UI and identifier-autocomplete refinements; the final focused PostgreSQL profile
+  then passed again.
+- **Browser and accessibility verification:** All 39 pinned-Chromium tests passed. Reference pages
+  were exercised at 375px, 768px, and 1440px with no page overflow and responsive labelled-card or
+  table presentation. Runtime checks covered HTMX form loading, swappable `422` validation,
+  preserved Unicode, linked and focused error summaries, fragment-heading focus, a named native
+  confirmation dialog, focus restoration, local no-eval assets, and JavaScript-disabled editing.
+  Screenshot inspection of compact/tablet/wide lists, the long form, and confirmation found no
+  blocking reflow, clipping, hierarchy, or focus issue.
+- **Authorization, CSRF, and audit evidence:** Reference view/add/change/deactivate permissions are
+  checked by both views and sensitive services; posted relations are rebound to active authorized
+  querysets and target objects are policy-scoped and re-fetched. Every unsafe normal/HTMX route
+  rejects missing CSRF. Audit success stores target UUID and sorted changed field names only;
+  validation failure stores only bounded reason/type codes; permission denial uses the existing
+  domain-neutral contract. Repeated deactivation is idempotent and emits one transition event.
+- **Performance evidence:** The reference list uses two bounded selector queries and preloads its
+  displayed relationships; a complete authenticated rendered request is capped at 15 queries with
+  no row-dependent growth. Search input is limited to 100 characters and results to 25 per page.
+- **Security/privacy review:** No identity/registration value appears in list output, logs, URLs,
+  errors, or audit metadata; fixtures contain synthetic placeholders only. Autocomplete is disabled
+  for identity/registration controls. Sensitive browser history/cache remains disabled; error states
+  disclose no exception detail; state-changing GET, `csrf_exempt`, direct POST-to-model assignment,
+  signals, hard deletion, debug output, test suppression, and document-domain imports are absent.
+- **Commit:** `fdb7ae9` (`feat(cases): deliver reference maintenance workflows`).
+- **Deviations or blockers:** The PostgreSQL gate exposed an approved-audit test that inferred
+  columns from PostgreSQL-truncated index names. Catalog evidence proved the composite index was
+  present; the test now asserts introspected index columns and passes on PostgreSQL. Chrome DevTools
+  MCP was unavailable, so the repository's pinned real Playwright Chromium supplied runtime DOM,
+  keyboard, focus, viewport, CSP, and no-JavaScript evidence.
+
+## CP-CASE-A — Checkpoint closure
+
+- **Completion date:** 2026-09-07
+- **Status:** Local implementation and verification are complete; human approval is pending at the
+  mandatory checkpoint pause.
+- **Completed tasks:** `CASE-001`, `CASE-002`.
+- **Checkpoint evidence:** Reference invariants and indexes are live in a reversible sequential
+  `cases.0001` migration; authorized full-page and HTMX maintenance, safe audit recording,
+  confirmation-based deactivation, responsive Vietnamese presentation, and no-JavaScript fallback
+  all pass. Final gates include 63 PostgreSQL profile tests, 39 Chromium tests, 95.03% ordinary
+  branch coverage, and green lint, format, typing, Django, migration, CSS, asset, and i18n checks.
+- **Dependency/migration review:** `cases` imports only Django, `core`, `accounts`, and `audit`; it
+  imports no `documents` code. `audit` remains domain-neutral. The migration graph has one
+  sequential cases leaf and migrated cleanly from empty PostgreSQL, reversed, and reapplied.
+- **Commits:** `1e243df` for `CASE-001`; `fdb7ae9` for `CASE-002`.
+- **Deviations or blockers:** No implementation blocker. `.codegraph/` remains an unrelated,
+  pre-existing untracked directory and was not modified or committed. `CASE-003` through
+  `CASE-005` are next, but remain blocked on human approval of `CP-CASE-A`.

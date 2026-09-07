@@ -42,6 +42,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 | CP-HARD-A…F | `SEC-002`, `OPS-002`, `I18N-002`, `PERF-001`, `OPS-003`, `REL-001` |
 
 - [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
+- [x] `CP-CASE-A` — Local checkpoint gates passed on 2026-09-07; human approval is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -273,7 +274,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Reference models enforce invariants and contain no document dependency or unvalidated JSON.
 - **Size:** M. **Blockers/skills:** `test-driven-development`, `code-review-and-quality`.
 
-### [ ] CASE-002 — Deliver reference-entity maintenance workflows
+### [x] CASE-002 — Deliver reference-entity maintenance workflows
 
 - **Outcome:** Administrators can create/edit/deactivate courts, entities and officials through validated services/forms and responsive full/HTMX pages.
 - **SPEC:** §§4.2, 6.2, 13–16, 17.1; **FR:** `FR-CASE-07`; **AC:** `AC-02`, `AC-03`, `AC-05`, `AC-08`, `AC-09`.
