@@ -122,6 +122,9 @@ def test_application_javascript_disables_sensitive_browser_state() -> None:
     assert "eval(" not in javascript
     assert "new Function" not in javascript
     assert 'getResponseHeader("HX-Redirect")' in javascript
+    assert "event.detail.xhr.status === 422" in javascript
+    assert "event.detail.xhr.status === 409" in javascript
+    assert "event.detail.isError = false" in javascript
     assert "destination.origin !== window.location.origin" in javascript
     assert "event.detail.shouldSwap = false" in javascript
     assert "window.location.assign" in javascript

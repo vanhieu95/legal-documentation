@@ -1,0 +1,11 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} · VDS{% endblock %}
+{% block page_context %}{% translate "Case references" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface reference-form-page" aria-labelledby="reference-dialog-title">
+    {% include "cases/references/_deactivate_form.html" %}
+  </section>
+{% endblock %}

@@ -20,6 +20,7 @@ from django.contrib.auth.models import User  # noqa: E402
 from django.contrib.sessions.models import Session  # noqa: E402
 
 from apps.accounts.permissions import seed_administrator_permissions  # noqa: E402
+from apps.cases.models import Court  # noqa: E402
 
 if settings.SETTINGS_MODULE != "config.settings.browser_test":
     raise RuntimeError("Browser fixtures may only be created with browser-test settings.")
@@ -61,4 +62,15 @@ replace_synthetic_user(
 replace_synthetic_user(
     "synthetic-browser-non-administrator",
     "synthetic-browser-password-123!",
+)
+
+Court.objects.update_or_create(
+    code="SYN-BROWSER",
+    defaults={
+        "full_name": "Tòa án nhân dân thử nghiệm trình duyệt",
+        "short_name": "TAND thử nghiệm",
+        "level": Court.Level.DISTRICT,
+        "address": "Địa chỉ hành chính thử nghiệm",
+        "is_active": True,
+    },
 )

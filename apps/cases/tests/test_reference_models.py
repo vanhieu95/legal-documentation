@@ -7,6 +7,7 @@ from typing import cast
 
 import pytest
 from django import forms
+from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection, transaction
 
@@ -261,3 +262,20 @@ def test_reference_model_indexes_exist_in_database() -> None:
                 for column in details["columns"]
             }
             assert required_columns <= indexed_columns
+
+
+def test_operational_admin_avoids_identity_and_registration_search_fields() -> None:
+    entity_admin = admin.site._registry[Entity]
+    address_admin = admin.site._registry[EntityAddress]
+
+    assert "identity_document_number" not in entity_admin.search_fields
+    assert "registration_number" not in entity_admin.search_fields
+    assert "full_address" not in address_admin.search_fields
+    assert {"full_address", "province", "district", "ward"} <= set(address_admin.readonly_fields)
+
+
+def test_sensitive_entity_identifiers_disable_browser_autocomplete() -> None:
+    form = EntityForm()
+
+    assert form.fields["identity_document_number"].widget.attrs["autocomplete"] == "off"
+    assert form.fields["registration_number"].widget.attrs["autocomplete"] == "off"

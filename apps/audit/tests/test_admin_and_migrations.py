@@ -66,21 +66,18 @@ def test_audit_event_migration_indexes_exist() -> None:
 
     table_name = AuditEvent._meta.db_table
     with connection.cursor() as cursor:
-        cursor.execute(
-            """
-            SELECT indexname
-            FROM pg_indexes
-            WHERE tablename = %s
-            """,
-            [table_name],
-        )
-        index_names = {row[0] for row in cursor.fetchall()}
+        constraints = connection.introspection.get_constraints(cursor, table_name)
+    index_columns = {
+        tuple(details["columns"])
+        for details in constraints.values()
+        if details["index"] or details["unique"]
+    }
 
-    assert any("occurred_at" in name for name in index_names)
-    assert any("action" in name for name in index_names)
-    assert any("outcome" in name for name in index_names)
-    assert any("correlation_id" in name for name in index_names)
-    assert any("target_type" in name and "target_id" in name for name in index_names)
+    assert ("occurred_at",) in index_columns
+    assert ("action",) in index_columns
+    assert ("outcome",) in index_columns
+    assert ("correlation_id",) in index_columns
+    assert ("target_type", "target_id") in index_columns
 
 
 @pytest.mark.django_db

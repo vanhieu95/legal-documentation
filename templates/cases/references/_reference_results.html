@@ -1,0 +1,68 @@
+{% load i18n %}
+<div id="reference-results" hx-history="false">
+  {% if validation_errors %}
+    <div class="alert alert-danger" role="alert">
+      <p class="alert-title">{% translate "Filter error" %}</p>
+      <ul class="alert-list">{% for error in validation_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% elif unavailable %}
+    <div class="state" role="alert">
+      <p class="state-title">{% translate "References are temporarily unavailable" %}</p>
+      <p class="state-message">{% translate "Retry this page. No submitted information was changed." %}</p>
+    </div>
+  {% elif reference_page.total_count == 0 %}
+    <div class="state" role="status" aria-live="polite">
+      <p class="state-title" data-testid="{% if has_active_filters %}reference-empty-filtered{% else %}reference-empty-initial{% endif %}">
+        {% if has_active_filters %}{% translate "No matching references" %}{% else %}{% translate "No references yet" %}{% endif %}
+      </p>
+      <p class="state-message">
+        {% if has_active_filters %}{% translate "Adjust or clear the filters to see more records." %}{% else %}{% translate "Create the first reusable reference record." %}{% endif %}
+      </p>
+    </div>
+  {% else %}
+    <p class="reference-results-summary" role="status" aria-live="polite">
+      {% blocktranslate with total=reference_page.total_count %}{{ total }} reference records.{% endblocktranslate %}
+    </p>
+    <div class="reference-table-view table-region" role="region" aria-label="{{ config.plural_label }}">
+      <table class="data-table">
+        <thead><tr><th scope="col">{% translate "Record" %}</th><th scope="col">{% translate "Details" %}</th><th scope="col">{% translate "State" %}</th><th scope="col">{% translate "Actions" %}</th></tr></thead>
+        <tbody>
+          {% for record in reference_page.items %}
+            <tr>
+              <td>
+                {% if config.key == "courts" %}{{ record.full_name }}{% elif config.key == "entities" %}{{ record.legal_name }}{% elif config.key == "addresses" %}{{ record.entity.legal_name }}{% else %}{{ record.entity.legal_name }}{% endif %}
+              </td>
+              <td>
+                {% if config.key == "courts" %}{{ record.code }} · {{ record.short_name }}{% elif config.key == "entities" %}{{ record.get_kind_display }}{% elif config.key == "addresses" %}{{ record.get_kind_display }} · {{ record.full_address }}{% else %}{{ record.title }} · {{ record.home_court.short_name }}{% endif %}
+              </td>
+              <td>{% if record.is_active %}<span class="badge badge-success">{% translate "Active" %}</span>{% else %}<span class="badge badge-neutral">{% translate "Inactive" %}</span>{% endif %}</td>
+              <td><div class="reference-actions">
+                {% if can_change %}<a class="button button-quiet" href="{% url 'cases:reference-edit' reference_type=config.key object_id=record.pk %}" hx-get="{% url 'cases:reference-edit' reference_type=config.key object_id=record.pk %}" hx-target="#reference-workspace" hx-swap="innerHTML">{% translate "Edit" %}</a>{% endif %}
+                {% if can_deactivate and record.is_active %}<a class="button button-danger" href="{% url 'cases:reference-deactivate' reference_type=config.key object_id=record.pk %}" hx-get="{% url 'cases:reference-deactivate' reference_type=config.key object_id=record.pk %}" hx-target="#reference-dialog-content" hx-swap="innerHTML" data-reference-dialog-trigger>{% translate "Deactivate" %}</a>{% endif %}
+              </div></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="reference-card-view" aria-label="{{ config.plural_label }}">
+      {% for record in reference_page.items %}
+        <article class="reference-card">
+          <h2>{% if config.key == "courts" %}{{ record.full_name }}{% elif config.key == "entities" %}{{ record.legal_name }}{% else %}{{ record }}{% endif %}</h2>
+          <p>{% if record.is_active %}{% translate "Active" %}{% else %}{% translate "Inactive" %}{% endif %}</p>
+          <div class="reference-actions">
+            {% if can_change %}<a class="button button-quiet" href="{% url 'cases:reference-edit' reference_type=config.key object_id=record.pk %}" hx-get="{% url 'cases:reference-edit' reference_type=config.key object_id=record.pk %}" hx-target="#reference-workspace" hx-swap="innerHTML">{% translate "Edit" %}</a>{% endif %}
+            {% if can_deactivate and record.is_active %}<a class="button button-danger" href="{% url 'cases:reference-deactivate' reference_type=config.key object_id=record.pk %}" hx-get="{% url 'cases:reference-deactivate' reference_type=config.key object_id=record.pk %}" hx-target="#reference-dialog-content" hx-swap="innerHTML" data-reference-dialog-trigger>{% translate "Deactivate" %}</a>{% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% if reference_page.page_count > 1 %}
+      <nav class="reference-pagination" aria-label="{% translate 'Reference pagination' %}">
+        {% if reference_page.has_previous %}<a class="button button-quiet" href="?q={{ form.q.value|default:''|urlencode }}&state={{ form.state.value|default:'active' }}&page={{ reference_page.page|add:'-1' }}" hx-get="?q={{ form.q.value|default:''|urlencode }}&state={{ form.state.value|default:'active' }}&page={{ reference_page.page|add:'-1' }}" hx-target="#reference-results" hx-swap="outerHTML" hx-push-url="true">{% translate "Previous" %}</a>{% endif %}
+        <span aria-current="page">{% blocktranslate with page=reference_page.page pages=reference_page.page_count %}Page {{ page }} of {{ pages }}{% endblocktranslate %}</span>
+        {% if reference_page.has_next %}<a class="button button-quiet" href="?q={{ form.q.value|default:''|urlencode }}&state={{ form.state.value|default:'active' }}&page={{ reference_page.page|add:'1' }}" hx-get="?q={{ form.q.value|default:''|urlencode }}&state={{ form.state.value|default:'active' }}&page={{ reference_page.page|add:'1' }}" hx-target="#reference-results" hx-swap="outerHTML" hx-push-url="true">{% translate "Next" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+</div>

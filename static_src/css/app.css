@@ -364,6 +364,7 @@ a {
   background: var(--color-surface);
   font-size: 0.857rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .badge-success {
@@ -742,6 +743,10 @@ a {
   display: none !important;
 }
 
+.js .no-js-only {
+  display: none !important;
+}
+
 .no-js dialog.dialog {
   position: static;
   display: block;
@@ -1014,5 +1019,65 @@ a {
   .loading-indicator {
     border-color: CanvasText;
     border-top-color: Highlight;
+  }
+}
+
+.reference-page,
+.reference-form-page {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.reference-header,
+.reference-filter-form,
+.reference-tabs,
+.reference-actions,
+.reference-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.reference-header {
+  justify-content: space-between;
+  align-items: start;
+}
+
+.reference-filter-form .field {
+  flex: 1 1 220px;
+}
+
+.reference-results-summary {
+  margin: 0 0 var(--space-4);
+}
+
+.reference-card-view {
+  display: none;
+  gap: var(--space-4);
+}
+
+.reference-card {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+}
+
+.reference-card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1rem;
+}
+
+.reference-form-page {
+  max-width: 800px;
+}
+
+@media (max-width: 639px) {
+  .reference-table-view {
+    display: none;
+  }
+
+  .reference-card-view {
+    display: grid;
   }
 }

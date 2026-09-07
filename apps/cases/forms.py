@@ -4,10 +4,34 @@ from typing import Any, cast
 
 from django import forms
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 from apps.cases.models import Court, Entity, EntityAddress, Official
 
 FIELD_CONTROL = "field-control"
+
+
+class ReferenceListFilterForm(forms.Form):
+    q = forms.CharField(
+        label=_("Search"),
+        required=False,
+        max_length=100,
+        widget=forms.SearchInput(attrs={"class": FIELD_CONTROL, "autocomplete": "off"}),
+    )
+    state = forms.ChoiceField(
+        label=_("State"),
+        required=False,
+        choices=(("active", _("Active")), ("inactive", _("Inactive")), ("all", _("All"))),
+        initial="active",
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
+    )
+    page = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput())
+
+    def clean_state(self) -> str:
+        return self.cleaned_data.get("state") or "active"
+
+    def clean_page(self) -> int:
+        return self.cleaned_data.get("page") or 1
 
 
 class ReferenceModelForm(forms.ModelForm):  # type: ignore[type-arg]
@@ -29,8 +53,15 @@ class CourtForm(ReferenceModelForm):
             "level",
             "address",
             "superior_court",
-            "is_active",
         )
+        labels = {
+            "code": _("Court code"),
+            "full_name": _("Full court name"),
+            "short_name": _("Short court name"),
+            "level": _("Court level"),
+            "address": _("Court address"),
+            "superior_court": _("Superior court"),
+        }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -56,9 +87,21 @@ class EntityForm(ReferenceModelForm):
             "registration_number",
             "date_of_birth",
             "organization_type",
-            "is_active",
         )
-        widgets = {"date_of_birth": forms.DateInput(attrs={"type": "date"})}
+        widgets = {
+            "identity_document_number": forms.TextInput(attrs={"autocomplete": "off"}),
+            "registration_number": forms.TextInput(attrs={"autocomplete": "off"}),
+            "date_of_birth": forms.DateInput(attrs={"type": "date"}),
+        }
+        labels = {
+            "kind": _("Entity kind"),
+            "legal_name": _("Authoritative legal name"),
+            "display_name": _("Display name"),
+            "identity_document_number": _("Identity document number"),
+            "registration_number": _("Registration number"),
+            "date_of_birth": _("Date of birth"),
+            "organization_type": _("Organization type"),
+        }
 
 
 class EntityAddressForm(ReferenceModelForm):
@@ -73,11 +116,20 @@ class EntityAddressForm(ReferenceModelForm):
             "ward",
             "valid_from",
             "valid_to",
-            "is_active",
         )
         widgets = {
             "valid_from": forms.DateInput(attrs={"type": "date"}),
             "valid_to": forms.DateInput(attrs={"type": "date"}),
+        }
+        labels = {
+            "entity": _("Entity"),
+            "kind": _("Address kind"),
+            "full_address": _("Full legal address"),
+            "province": _("Province or municipality"),
+            "district": _("District"),
+            "ward": _("Ward or commune"),
+            "valid_from": _("Valid from"),
+            "valid_to": _("Valid to"),
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -92,7 +144,13 @@ class EntityAddressForm(ReferenceModelForm):
 class OfficialForm(ReferenceModelForm):
     class Meta:
         model = Official
-        fields = ("entity", "home_court", "title", "position", "is_active")
+        fields = ("entity", "home_court", "title", "position")
+        labels = {
+            "entity": _("Individual"),
+            "home_court": _("Home court"),
+            "title": _("Title"),
+            "position": _("Position"),
+        }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

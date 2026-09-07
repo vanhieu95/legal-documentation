@@ -124,6 +124,10 @@
   });
 
   document.addEventListener("htmx:beforeSwap", (event) => {
+    if (event.detail.xhr.status === 422 || event.detail.xhr.status === 409) {
+      event.detail.shouldSwap = true;
+      event.detail.isError = false;
+    }
     const redirect = event.detail.xhr.getResponseHeader("HX-Redirect");
     if (!redirect) {
       return;
@@ -156,6 +160,41 @@
   document.addEventListener("htmx:afterRequest", () => {
     activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
     updateBusyPresentation();
+  });
+
+  let referenceDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-reference-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      referenceDialogTrigger = trigger;
+    }
+    const closeButton = event.target.closest("[data-reference-dialog-close]");
+    if (closeButton) {
+      document.getElementById("reference-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    const target = event.detail.target;
+    if (target?.id === "reference-dialog-content") {
+      const dialog = document.getElementById("reference-dialog");
+      if (dialog instanceof HTMLDialogElement) {
+        dialog.showModal();
+        dialog.querySelector("button, a, input, select, textarea")?.focus();
+      }
+    }
+    const summary = target?.querySelector?.("[data-error-summary]");
+    if (summary instanceof HTMLElement) {
+      summary.focus();
+      return;
+    }
+    const referenceFormHeading = target?.querySelector?.("[data-reference-form-heading]");
+    if (referenceFormHeading instanceof HTMLElement) {
+      referenceFormHeading.focus();
+    }
+  });
+  document.getElementById("reference-dialog")?.addEventListener("close", () => {
+    referenceDialogTrigger?.focus();
+    referenceDialogTrigger = null;
   });
 
   const errorSummary = document.querySelector("[data-error-summary]");

@@ -519,3 +519,90 @@ test("the authenticated shell reflows at 200 percent zoom", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Bảng điều khiển" })).toBeVisible();
   await expectNoPageOverflow(page);
 });
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`court references reflow at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    await page.goto("/case-references/courts/");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Tòa án" })).toBeVisible();
+    if (viewport.width < 640) {
+      await expect(page.locator(".reference-card-view")).toBeVisible();
+      await expect(page.locator(".reference-card-view")).toContainText(
+        "Tòa án nhân dân thử nghiệm trình duyệt",
+      );
+      await expect(page.locator(".reference-table-view")).not.toBeVisible();
+    } else {
+      await expect(page.locator(".reference-table-view")).toBeVisible();
+      await expect(page.locator(".reference-table-view")).toContainText(
+        "Tòa án nhân dân thử nghiệm trình duyệt",
+      );
+      await expect(page.locator(".reference-card-view")).not.toBeVisible();
+    }
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("an invalid HTMX reference form swaps the 422 fragment and focuses its summary", async ({
+  page,
+}) => {
+  await signInAsAdministrator(page);
+  await page.goto("/case-references/courts/");
+  await page.getByRole("link", { name: "Tạo dữ liệu tham chiếu" }).click();
+  await expect(page.getByRole("heading", { name: "Tạo Tòa án" })).toBeFocused();
+
+  await page.locator("#id_code").fill(" ");
+  await page.locator("#id_full_name").fill("Tòa án thử nghiệm đã nhập");
+  await page.locator("#id_short_name").fill("TAND thử nghiệm");
+  await page.locator("#id_level").selectOption("district");
+  await page.locator("#id_address").fill("Địa chỉ hành chính thử nghiệm");
+  await page.getByRole("button", { name: "Lưu dữ liệu tham chiếu" }).click();
+
+  const summary = page.locator("[data-error-summary]");
+  await expect(summary).toBeVisible();
+  await expect(summary).toBeFocused();
+  await expect(page.locator("#id_full_name")).toHaveValue("Tòa án thử nghiệm đã nhập");
+  await expect(page.locator("#reference-form")).toBeVisible();
+});
+
+test("the enhanced deactivation confirmation names the court and restores focus", async ({
+  page,
+}) => {
+  await signInAsAdministrator(page);
+  await page.goto("/case-references/courts/");
+  const trigger = page.getByRole("link", { name: "Ngừng sử dụng" }).first();
+  await trigger.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("SYN-BROWSER");
+  await expect(dialog.getByRole("button", { name: "Xác nhận ngừng sử dụng" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Hủy" }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+});
+
+test("reference editing works without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/case-references/courts/?q=SYN-BROWSER");
+  await page.getByRole("link", { name: "Chỉnh sửa" }).first().click();
+
+  await page.locator("#id_short_name").fill("TAND không JavaScript");
+  await page.getByRole("button", { name: "Lưu dữ liệu tham chiếu" }).click();
+
+  await expect(page).toHaveURL(/\/case-references\/courts\/.+\/edit\/$/);
+  await expect(page.locator(".alert-success")).toContainText("Đã cập nhật dữ liệu tham chiếu");
+  await expect(page.locator("#id_short_name")).toHaveValue("TAND không JavaScript");
+  await expectNoPageOverflow(page);
+  await context.close();
+});
