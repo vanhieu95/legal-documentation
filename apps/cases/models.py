@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import uuid
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
@@ -225,6 +227,169 @@ class Official(models.Model):
         if self.is_active and self.home_court_id is not None and not self.home_court.is_active:
             errors["home_court"] = ValidationError(
                 _("An active official requires an active home court."), code="inactive"
+            )
+        if errors:
+            raise ValidationError(errors)
+
+
+class CaseRecord(models.Model):
+    class ProceduralStage(models.TextChoices):
+        PRE_ACCEPTANCE = "pre_acceptance", _("Pre-acceptance")
+        ACCEPTED = "accepted", _("Accepted")
+        PREPARATION = "preparation", _("Preparation")
+        HEARING = "hearing", _("Hearing")
+        RESOLVED = "resolved", _("Resolved")
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", _("Active")
+        ARCHIVED = "archived", _("Archived")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    internal_reference = models.CharField(max_length=64, unique=True)
+    court = models.ForeignKey(Court, on_delete=models.PROTECT, related_name="cases")
+    matter_type = models.CharField(max_length=255)
+    procedural_stage = models.CharField(max_length=24, choices=ProceduralStage.choices)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    acceptance_number = models.CharField(max_length=64, blank=True)
+    acceptance_year = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1900), MaxValueValidator(9999)],
+    )
+    acceptance_date = models.DateField(null=True, blank=True)
+    acceptance_type_code = models.CharField(max_length=32, blank=True)
+    revision = models.PositiveBigIntegerField(default=1, validators=[MinValueValidator(1)])
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="created_case_records",
+        editable=False,
+    )
+    last_edited_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="edited_case_records",
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+    archived_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="archived_case_records",
+        editable=False,
+    )
+    archived_at = models.DateTimeField(null=True, blank=True, editable=False)
+    archive_reason = models.CharField(max_length=500, blank=True, editable=False)
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        indexes = [
+            models.Index(fields=["status", "procedural_stage"], name="case_record_state_stage_idx"),
+            models.Index(fields=["court", "status"], name="case_record_court_state_idx"),
+            models.Index(
+                fields=["acceptance_year", "acceptance_type_code", "acceptance_date"],
+                name="case_record_acceptance_idx",
+            ),
+            models.Index(fields=["updated_at"], name="case_record_updated_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        procedural_stage="pre_acceptance",
+                        acceptance_number="",
+                        acceptance_year__isnull=True,
+                        acceptance_date__isnull=True,
+                        acceptance_type_code="",
+                    )
+                    | (
+                        ~Q(procedural_stage="pre_acceptance")
+                        & Q(acceptance_number__gt="")
+                        & Q(acceptance_year__isnull=False)
+                        & Q(acceptance_date__isnull=False)
+                        & Q(acceptance_type_code__gt="")
+                    )
+                ),
+                name="case_record_acceptance_group_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(revision__gte=1),
+                name="case_record_revision_positive",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        status="active",
+                        archived_by__isnull=True,
+                        archived_at__isnull=True,
+                        archive_reason="",
+                    )
+                    | Q(
+                        status="archived",
+                        archived_by__isnull=False,
+                        archived_at__isnull=False,
+                        archive_reason__gt="",
+                    )
+                ),
+                name="case_record_archive_metadata_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    procedural_stage__in=(
+                        "pre_acceptance",
+                        "accepted",
+                        "preparation",
+                        "hearing",
+                        "resolved",
+                    )
+                ),
+                name="case_record_stage_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=("active", "archived")),
+                name="case_record_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(acceptance_year__isnull=True)
+                    | Q(acceptance_year__gte=1900, acceptance_year__lte=9999)
+                ),
+                name="case_record_acceptance_year_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Case record {self.pk}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors: dict[str, ValidationError] = {}
+        acceptance_fields = {
+            "acceptance_number": self.acceptance_number,
+            "acceptance_year": self.acceptance_year,
+            "acceptance_date": self.acceptance_date,
+            "acceptance_type_code": self.acceptance_type_code,
+        }
+        is_pre_acceptance = self.procedural_stage == self.ProceduralStage.PRE_ACCEPTANCE
+        for field_name, value in acceptance_fields.items():
+            present = value is not None and value != ""
+            if (is_pre_acceptance and present) or (not is_pre_acceptance and not present):
+                errors[field_name] = ValidationError(
+                    _("Acceptance details must be completed together after acceptance."),
+                    code="acceptance_group",
+                )
+
+        archive_values = (self.archived_by_id, self.archived_at, self.archive_reason)
+        if self.status == self.Status.ACTIVE and any(archive_values):
+            errors["status"] = ValidationError(
+                _("Active cases cannot contain archive metadata."), code="archive_state"
+            )
+        if self.status == self.Status.ARCHIVED and not all(archive_values):
+            errors["status"] = ValidationError(
+                _("Archived cases require complete archive metadata."), code="archive_state"
             )
         if errors:
             raise ValidationError(errors)

@@ -7,8 +7,14 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import Client
 
-from apps.cases.models import Court, Entity, EntityAddress, Official
-from tests.factories import CourtFactory, EntityAddressFactory, EntityFactory, OfficialFactory
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from tests.factories import (
+    CaseRecordFactory,
+    CourtFactory,
+    EntityAddressFactory,
+    EntityFactory,
+    OfficialFactory,
+)
 
 
 @pytest.fixture
@@ -44,3 +50,8 @@ def address_factory() -> Callable[..., EntityAddress]:
 @pytest.fixture
 def official_factory() -> Callable[..., Official]:
     return OfficialFactory.create
+
+
+@pytest.fixture
+def case_factory() -> Callable[..., CaseRecord]:
+    return CaseRecordFactory.create

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from apps.cases.models import Court, Entity, EntityAddress, Official
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 
 
 @admin.register(Court)
@@ -38,3 +38,22 @@ class OfficialAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     search_fields = ("entity__legal_name", "title", "position")
     autocomplete_fields = ("entity", "home_court")
     ordering = ("entity__legal_name",)
+
+
+@admin.register(CaseRecord)
+class CaseRecordAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("id", "status", "procedural_stage", "revision", "updated_at")
+    list_filter = ("status", "procedural_stage", "court")
+    readonly_fields = (
+        "id",
+        "created_by",
+        "last_edited_by",
+        "created_at",
+        "updated_at",
+        "revision",
+        "archived_by",
+        "archived_at",
+        "archive_reason",
+    )
+    autocomplete_fields = ("court",)
+    ordering = ("-updated_at",)

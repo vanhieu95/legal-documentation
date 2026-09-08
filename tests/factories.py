@@ -6,7 +6,7 @@ import factory
 from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
 
-from apps.cases.models import Court, Entity, EntityAddress, Official
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 
 
 class UserFactory(DjangoModelFactory[User]):
@@ -72,3 +72,17 @@ class OfficialFactory(DjangoModelFactory[Official]):
     home_court = factory.SubFactory(CourtFactory)
     title = "Judge"
     position = "Civil division"
+
+
+class CaseRecordFactory(DjangoModelFactory[CaseRecord]):
+    """Create a synthetic incomplete pre-acceptance case."""
+
+    class Meta:
+        model = CaseRecord
+
+    internal_reference = factory.Sequence(lambda number: f"SYN-CASE-{number:06d}")
+    court = factory.SubFactory(CourtFactory)
+    matter_type = "Synthetic civil matter"
+    procedural_stage = CaseRecord.ProceduralStage.PRE_ACCEPTANCE
+    created_by = factory.SubFactory(UserFactory)
+    last_edited_by = factory.SelfAttribute("created_by")

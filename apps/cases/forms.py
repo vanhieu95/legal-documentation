@@ -6,7 +6,7 @@ from django import forms
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.cases.models import Court, Entity, EntityAddress, Official
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 
 FIELD_CONTROL = "field-control"
 
@@ -167,3 +167,37 @@ class OfficialForm(ReferenceModelForm):
         home_court_field = cast("forms.ModelChoiceField[Court]", self.fields["home_court"])
         entity_field.queryset = entity_queryset.order_by("legal_name")
         home_court_field.queryset = court_queryset.order_by("full_name")
+
+
+class CaseRecordForm(ReferenceModelForm):
+    class Meta:
+        model = CaseRecord
+        fields = (
+            "internal_reference",
+            "court",
+            "matter_type",
+            "procedural_stage",
+            "acceptance_number",
+            "acceptance_year",
+            "acceptance_date",
+            "acceptance_type_code",
+        )
+        widgets = {"acceptance_date": forms.DateInput(attrs={"type": "date"})}
+        labels = {
+            "internal_reference": _("Internal reference"),
+            "court": _("Court"),
+            "matter_type": _("Matter type"),
+            "procedural_stage": _("Procedural stage"),
+            "acceptance_number": _("Acceptance number"),
+            "acceptance_year": _("Acceptance year"),
+            "acceptance_date": _("Acceptance date"),
+            "acceptance_type_code": _("Acceptance type code"),
+        }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        queryset = Court.objects.filter(is_active=True)
+        if self.instance.pk and self.instance.court_id:
+            queryset = Court.objects.filter(Q(is_active=True) | Q(pk=self.instance.court_id))
+        court_field = cast("forms.ModelChoiceField[Court]", self.fields["court"])
+        court_field.queryset = queryset.order_by("full_name")

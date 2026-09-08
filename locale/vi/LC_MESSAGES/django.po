@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 22:21+0700\n"
+"POT-Creation-Date: 2026-09-07 23:29+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -150,7 +150,8 @@ msgstr "Tìm kiếm"
 msgid "State"
 msgstr "Trạng thái"
 
-#: apps/cases/forms.py:24 templates/cases/references/_reference_results.html:38
+#: apps/cases/forms.py:24 apps/cases/models.py:244
+#: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
 msgstr "Đang hoạt động"
@@ -248,7 +249,7 @@ msgstr "Có hiệu lực từ"
 msgid "Valid to"
 msgstr "Có hiệu lực đến"
 
-#: apps/cases/forms.py:149 apps/cases/models.py:56
+#: apps/cases/forms.py:149 apps/cases/models.py:58
 msgid "Individual"
 msgstr "Cá nhân"
 
@@ -264,91 +265,155 @@ msgstr "Chức danh"
 msgid "Position"
 msgstr "Vị trí công tác"
 
-#: apps/cases/models.py:13
+#: apps/cases/forms.py:187
+msgid "Internal reference"
+msgstr "Mã tham chiếu nội bộ"
+
+#: apps/cases/forms.py:188 apps/cases/views.py:74
+msgid "Court"
+msgstr "Tòa án"
+
+#: apps/cases/forms.py:189
+msgid "Matter type"
+msgstr "Loại việc dân sự"
+
+#: apps/cases/forms.py:190
+msgid "Procedural stage"
+msgstr "Giai đoạn tố tụng"
+
+#: apps/cases/forms.py:191
+msgid "Acceptance number"
+msgstr "Số thụ lý"
+
+#: apps/cases/forms.py:192
+msgid "Acceptance year"
+msgstr "Năm thụ lý"
+
+#: apps/cases/forms.py:193
+msgid "Acceptance date"
+msgstr "Ngày thụ lý"
+
+#: apps/cases/forms.py:194
+msgid "Acceptance type code"
+msgstr "Mã loại thụ lý"
+
+#: apps/cases/models.py:15
 msgid "District-level court"
 msgstr "Tòa án cấp huyện"
 
-#: apps/cases/models.py:14
+#: apps/cases/models.py:16
 msgid "Provincial-level court"
 msgstr "Tòa án cấp tỉnh"
 
-#: apps/cases/models.py:15
+#: apps/cases/models.py:17
 msgid "High People's Court"
 msgstr "Tòa án nhân dân cấp cao"
 
-#: apps/cases/models.py:16
+#: apps/cases/models.py:18
 msgid "Supreme People's Court"
 msgstr "Tòa án nhân dân tối cao"
 
-#: apps/cases/models.py:51
+#: apps/cases/models.py:53
 msgid "A court cannot be its own superior."
 msgstr "Tòa án không thể là tòa án cấp trên của chính mình."
 
-#: apps/cases/models.py:57
+#: apps/cases/models.py:59
 msgid "Organization"
 msgstr "Tổ chức"
 
-#: apps/cases/models.py:115
+#: apps/cases/models.py:117
 msgid "An identity document number is required for an individual."
 msgstr "Cá nhân phải có số giấy tờ tùy thân."
 
-#: apps/cases/models.py:120
+#: apps/cases/models.py:122
 msgid "A registration number is only valid for an organization."
 msgstr "Số đăng ký chỉ áp dụng cho tổ chức."
 
-#: apps/cases/models.py:125
+#: apps/cases/models.py:127
 msgid "Organization type is only valid for an organization."
 msgstr "Loại hình tổ chức chỉ áp dụng cho tổ chức."
 
-#: apps/cases/models.py:131
+#: apps/cases/models.py:133
 msgid "A registration number is required for an organization."
 msgstr "Tổ chức phải có số đăng ký."
 
-#: apps/cases/models.py:136
+#: apps/cases/models.py:138
 msgid "An identity document number is only valid for an individual."
 msgstr "Số giấy tờ tùy thân chỉ áp dụng cho cá nhân."
 
-#: apps/cases/models.py:141
+#: apps/cases/models.py:143
 msgid "Date of birth is only valid for an individual."
 msgstr "Ngày sinh chỉ áp dụng cho cá nhân."
 
-#: apps/cases/models.py:150
+#: apps/cases/models.py:152
 msgid "Permanent address"
 msgstr "Địa chỉ thường trú"
 
-#: apps/cases/models.py:151
+#: apps/cases/models.py:153
 msgid "Current address"
 msgstr "Địa chỉ hiện tại"
 
-#: apps/cases/models.py:152
+#: apps/cases/models.py:154
 msgid "Registered office"
 msgstr "Trụ sở đăng ký"
 
-#: apps/cases/models.py:153
+#: apps/cases/models.py:155
 msgid "Contact address"
 msgstr "Địa chỉ liên hệ"
 
-#: apps/cases/models.py:191
+#: apps/cases/models.py:193
 msgid "The end date cannot be before the start date."
 msgstr "Ngày kết thúc không được trước ngày bắt đầu."
 
-#: apps/cases/models.py:219
+#: apps/cases/models.py:221
 msgid "An official must reference an individual."
 msgstr "Người tiến hành tố tụng phải tham chiếu đến một cá nhân."
 
-#: apps/cases/models.py:223
+#: apps/cases/models.py:225
 msgid "An active official requires an active individual."
 msgstr ""
 "Người tiến hành tố tụng đang hoạt động phải gắn với cá nhân đang hoạt động."
 
-#: apps/cases/models.py:227
+#: apps/cases/models.py:229
 msgid "An active official requires an active home court."
 msgstr ""
 "Người tiến hành tố tụng đang hoạt động phải thuộc tòa án đang hoạt động."
 
-#: apps/cases/views.py:74
-msgid "Court"
-msgstr "Tòa án"
+#: apps/cases/models.py:237
+msgid "Pre-acceptance"
+msgstr "Chưa thụ lý"
+
+#: apps/cases/models.py:238
+msgid "Accepted"
+msgstr "Đã thụ lý"
+
+#: apps/cases/models.py:239
+msgid "Preparation"
+msgstr "Chuẩn bị xét đơn"
+
+#: apps/cases/models.py:240
+msgid "Hearing"
+msgstr "Phiên họp"
+
+#: apps/cases/models.py:241
+msgid "Resolved"
+msgstr "Đã giải quyết"
+
+#: apps/cases/models.py:245
+msgid "Archived"
+msgstr "Đã lưu trữ"
+
+#: apps/cases/models.py:383
+msgid "Acceptance details must be completed together after acceptance."
+msgstr "Thông tin thụ lý phải được điền đầy đủ cùng nhau sau khi thụ lý."
+
+#: apps/cases/models.py:390
+msgid "Active cases cannot contain archive metadata."
+msgstr "Hồ sơ đang hoạt động không được chứa thông tin lưu trữ."
+
+#: apps/cases/models.py:394
+msgid "Archived cases require complete archive metadata."
+msgstr "Hồ sơ đã lưu trữ phải có đầy đủ thông tin lưu trữ."
 
 #: apps/cases/views.py:75
 msgid "Courts"
