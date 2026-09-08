@@ -3,11 +3,13 @@ from __future__ import annotations
 from django.contrib import admin
 
 from apps.cases.models import (
+    CaseOfficialAssignment,
     CaseParticipant,
     CaseRecord,
     Court,
     Entity,
     EntityAddress,
+    Hearing,
     Official,
     Representation,
 )
@@ -79,3 +81,17 @@ class RepresentationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     list_display = ("id", "representation_type", "is_active")
     list_filter = ("representation_type", "is_active")
     readonly_fields = ("id", "case", "representative_entity", "represented_participant")
+
+
+@admin.register(CaseOfficialAssignment)
+class CaseOfficialAssignmentAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("id", "role", "ordering", "is_active")
+    list_filter = ("role", "is_active")
+    readonly_fields = ("id", "case", "official")
+
+
+@admin.register(Hearing)
+class HearingAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("id", "instance_level", "status", "scheduled_at")
+    list_filter = ("instance_level", "status")
+    readonly_fields = ("id", "case", "created_at", "updated_at")

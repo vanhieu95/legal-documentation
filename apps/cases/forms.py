@@ -7,11 +7,13 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.cases.models import (
+    CaseOfficialAssignment,
     CaseParticipant,
     CaseRecord,
     Court,
     Entity,
     EntityAddress,
+    Hearing,
     Official,
     Representation,
 )
@@ -352,4 +354,112 @@ def representation_formset(
     return cast(
         ScopedRepresentationFormSet,
         RepresentationFormSet(data=data, case=case, prefix="representations"),
+    )
+
+
+class CaseOfficialAssignmentForm(ReferenceModelForm):
+    class Meta:
+        model = CaseOfficialAssignment
+        fields = ("official", "role", "ordering", "effective_from", "effective_to")
+        widgets = {
+            "effective_from": forms.DateInput(attrs={"type": "date"}),
+            "effective_to": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        super().__init__(*args, **kwargs)
+        queryset = Official.objects.filter(home_court=case.court, is_active=True)
+        if self.instance.pk and self.instance.official_id:
+            queryset = Official.objects.filter(
+                Q(home_court=case.court, is_active=True) | Q(pk=self.instance.official_id)
+            )
+        official_field = cast("forms.ModelChoiceField[Official]", self.fields["official"])
+        official_field.queryset = queryset.order_by("entity__legal_name")
+
+
+class HearingForm(ReferenceModelForm):
+    class Meta:
+        model = Hearing
+        fields = ("instance_level", "scheduled_at", "location", "status")
+        widgets = {"scheduled_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
+
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        super().__init__(*args, **kwargs)
+
+
+class ScopedAssignmentFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        kwargs["queryset"] = CaseOfficialAssignment.objects.filter(case=case, is_active=True)
+        super().__init__(*args, **kwargs)
+
+    def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs(index)
+        kwargs["case"] = self.case
+        return kwargs
+
+    def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> CaseOfficialAssignment:
+        form.instance.case = self.case
+        return cast(CaseOfficialAssignment, super().save_new(form, commit=commit))
+
+    def delete_existing(self, obj: CaseOfficialAssignment, commit: bool = True) -> None:
+        if commit:
+            obj.is_active = False
+            obj.save(update_fields=["is_active"])
+
+
+class ScopedHearingFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        kwargs["queryset"] = Hearing.objects.filter(case=case)
+        super().__init__(*args, **kwargs)
+
+    def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs(index)
+        kwargs["case"] = self.case
+        return kwargs
+
+    def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> Hearing:
+        form.instance.case = self.case
+        return cast(Hearing, super().save_new(form, commit=commit))
+
+    def delete_existing(self, obj: Hearing, commit: bool = True) -> None:
+        if commit:
+            obj.status = Hearing.Status.CANCELLED
+            obj.save(update_fields=["status", "updated_at"])
+
+
+AssignmentFormSet = forms.modelformset_factory(
+    CaseOfficialAssignment,
+    form=CaseOfficialAssignmentForm,
+    formset=ScopedAssignmentFormSet,
+    extra=1,
+    can_delete=True,
+)
+HearingFormSet = forms.modelformset_factory(
+    Hearing,
+    form=HearingForm,
+    formset=ScopedHearingFormSet,
+    extra=1,
+    can_delete=True,
+)
+
+
+def assignment_formset(
+    *, case: CaseRecord, data: dict[str, str] | None = None
+) -> ScopedAssignmentFormSet:
+    return cast(
+        ScopedAssignmentFormSet,
+        AssignmentFormSet(data=data, case=case, prefix="assignments"),
+    )
+
+
+def hearing_formset(
+    *, case: CaseRecord, data: dict[str, str] | None = None
+) -> ScopedHearingFormSet:
+    return cast(
+        ScopedHearingFormSet,
+        HearingFormSet(data=data, case=case, prefix="hearings"),
     )

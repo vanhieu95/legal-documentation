@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Literal, cast
 
 from django.core.paginator import EmptyPage, Page, Paginator
 from django.db.models import Q, QuerySet
+from django.utils import timezone
 
-from apps.cases.models import Court, Entity, EntityAddress, Official
+from apps.cases.models import (
+    CaseOfficialAssignment,
+    CaseRecord,
+    Court,
+    Entity,
+    EntityAddress,
+    Hearing,
+    Official,
+)
 
 ReferenceType = Literal["courts", "entities", "addresses", "officials"]
 ReferenceRecord = Court | Entity | EntityAddress | Official
@@ -89,3 +99,30 @@ def list_references(
         has_previous=selected.has_previous(),
         has_next=selected.has_next(),
     )
+
+
+def current_case_assignments(
+    *, case: CaseRecord, on_date: date | None = None
+) -> QuerySet[CaseOfficialAssignment]:
+    selected_date = on_date or timezone.localdate()
+    return (
+        CaseOfficialAssignment.objects.filter(
+            case=case,
+            is_active=True,
+            effective_from__lte=selected_date,
+        )
+        .filter(Q(effective_to__isnull=True) | Q(effective_to__gte=selected_date))
+        .select_related("official", "official__entity")
+        .order_by("ordering", "id")
+    )
+
+
+def upcoming_case_hearings(
+    *, case: CaseRecord, from_time: datetime | None = None
+) -> QuerySet[Hearing]:
+    selected_time = from_time or timezone.now()
+    return Hearing.objects.filter(
+        case=case,
+        status=Hearing.Status.SCHEDULED,
+        scheduled_at__gte=selected_time,
+    ).order_by("scheduled_at", "id")

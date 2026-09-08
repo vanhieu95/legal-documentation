@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -544,3 +547,131 @@ class Representation(models.Model):
                     )
                 }
             )
+
+
+class CaseOfficialAssignment(models.Model):
+    class Role(models.TextChoices):
+        JUDGE = "judge", _("Judge")
+        PRESIDING_JUDGE = "presiding_judge", _("Presiding judge")
+        CLERK = "clerk", _("Court clerk")
+        PROSECUTOR = "prosecutor", _("Prosecutor")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(
+        CaseRecord, on_delete=models.PROTECT, related_name="official_assignments"
+    )
+    official = models.ForeignKey(
+        Official, on_delete=models.PROTECT, related_name="case_assignments"
+    )
+    role = models.CharField(max_length=24, choices=Role.choices)
+    ordering = models.PositiveIntegerField(default=0)
+    effective_from = models.DateField()
+    effective_to = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("ordering", "id")
+        indexes = [
+            models.Index(fields=["case", "role", "ordering"], name="case_assign_role_order_idx"),
+            models.Index(fields=["official", "role"], name="case_assign_official_idx"),
+            models.Index(
+                fields=["case", "is_active", "effective_from", "effective_to"],
+                name="case_assign_current_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(role__in=("judge", "presiding_judge", "clerk", "prosecutor")),
+                name="case_assign_role_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(ordering__gte=0), name="case_assign_order_nonnegative"
+            ),
+            models.CheckConstraint(
+                condition=Q(effective_to__isnull=True) | Q(effective_to__gte=F("effective_from")),
+                name="case_assign_dates_valid",
+            ),
+            models.UniqueConstraint(
+                fields=["case", "official", "role"],
+                condition=Q(is_active=True),
+                name="case_assign_active_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Official assignment {self.pk or 'unsaved'}"
+
+    def clean(self) -> None:
+        super().clean()
+        errors: dict[str, ValidationError] = {}
+        if self.effective_to and self.effective_to < self.effective_from:
+            errors["effective_to"] = ValidationError(
+                _("The end date cannot be before the start date.")
+            )
+        if self.official_id is not None and self.is_active and not self.official.is_active:
+            errors["official"] = ValidationError(_("The selected official is inactive."))
+        if (
+            self.case_id is not None
+            and self.official_id is not None
+            and self.official.home_court_id != self.case.court_id
+        ):
+            errors["official"] = ValidationError(
+                _("The selected official must belong to the case court.")
+            )
+        if errors:
+            raise ValidationError(errors)
+
+
+class Hearing(models.Model):
+    class InstanceLevel(models.TextChoices):
+        FIRST_INSTANCE = "first_instance", _("First-instance")
+        APPELLATE = "appellate", _("Appellate")
+
+    class Status(models.TextChoices):
+        SCHEDULED = "scheduled", _("Scheduled")
+        POSTPONED = "postponed", _("Postponed")
+        COMPLETED = "completed", _("Completed")
+        CANCELLED = "cancelled", _("Cancelled")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(CaseRecord, on_delete=models.PROTECT, related_name="hearings")
+    instance_level = models.CharField(max_length=16, choices=InstanceLevel.choices)
+    scheduled_at = models.DateTimeField()
+    location = models.CharField(max_length=500)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.SCHEDULED)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+
+    class Meta:
+        ordering = ("scheduled_at", "id")
+        indexes = [
+            models.Index(fields=["status", "scheduled_at"], name="case_hearing_upcoming_idx"),
+            models.Index(fields=["case", "scheduled_at"], name="case_hearing_case_time_idx"),
+            models.Index(
+                fields=["case", "status", "scheduled_at"], name="case_hearing_case_state_idx"
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(instance_level__in=("first_instance", "appellate")),
+                name="case_hearing_instance_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=("scheduled", "postponed", "completed", "cancelled")),
+                name="case_hearing_status_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Hearing {self.pk or 'unsaved'}"
+
+    def clean(self) -> None:
+        super().clean()
+        if self.scheduled_at and timezone.is_naive(self.scheduled_at):
+            raise ValidationError(
+                {"scheduled_at": _("The scheduled datetime must include a timezone.")}
+            )
+
+    @property
+    def scheduled_at_ho_chi_minh(self) -> datetime:
+        return self.scheduled_at.astimezone(ZoneInfo("Asia/Ho_Chi_Minh"))

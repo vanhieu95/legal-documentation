@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import factory
 from django.contrib.auth.models import User
+from django.utils import timezone
 from factory.django import DjangoModelFactory
 
 from apps.cases.models import (
+    CaseOfficialAssignment,
     CaseParticipant,
     CaseRecord,
     Court,
     Entity,
     EntityAddress,
+    Hearing,
     Official,
     Representation,
 )
@@ -113,3 +117,24 @@ class RepresentationFactory(DjangoModelFactory[Representation]):
     representative_entity = factory.SubFactory(EntityFactory)
     represented_participant = factory.SubFactory(CaseParticipantFactory)
     representation_type = Representation.Type.AUTHORIZED
+
+
+class CaseOfficialAssignmentFactory(DjangoModelFactory[CaseOfficialAssignment]):
+    class Meta:
+        model = CaseOfficialAssignment
+
+    case = factory.SubFactory(CaseRecordFactory)
+    official = factory.SubFactory(OfficialFactory, home_court=factory.SelfAttribute("..case.court"))
+    role = CaseOfficialAssignment.Role.JUDGE
+    effective_from = date(2026, 1, 1)
+
+
+class HearingFactory(DjangoModelFactory[Hearing]):
+    class Meta:
+        model = Hearing
+
+    case = factory.SubFactory(CaseRecordFactory)
+    instance_level = Hearing.InstanceLevel.FIRST_INSTANCE
+    scheduled_at = factory.LazyFunction(timezone.now)
+    location = "Synthetic hearing room"
+    status = Hearing.Status.SCHEDULED
