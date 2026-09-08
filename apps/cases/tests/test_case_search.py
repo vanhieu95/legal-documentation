@@ -54,6 +54,11 @@ def result_ids(administrator: User, **values: object) -> list[object]:
     return [item.pk for item in list_cases(actor=administrator, form=form).items]
 
 
+def require_postgresql_unicode_casefold(query: str) -> None:
+    if any(ord(character) > 127 for character in query) and connection.vendor != "postgresql":
+        pytest.skip("Vietnamese Unicode case-fold verification requires PostgreSQL.")
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     ("field", "stored", "query"),
@@ -72,6 +77,7 @@ def test_searches_each_case_field_with_approved_matching(
     stored: object,
     query: str,
 ) -> None:
+    require_postgresql_unicode_casefold(query)
     overrides: dict[str, object] = {field: stored}
     case = (
         accepted_case(case_factory, **overrides)
@@ -112,6 +118,7 @@ def test_searches_court_name_and_code(
     stored: str,
     query: str,
 ) -> None:
+    require_postgresql_unicode_casefold(query)
     case = case_factory(court=court_factory(**{court_field: stored}))
 
     assert result_ids(administrator, q=query) == [case.pk]
@@ -123,6 +130,7 @@ def test_searches_participant_and_representative_entity_names_without_duplicates
     case_factory: Callable[..., CaseRecord],
     entity_factory: Callable[..., Entity],
 ) -> None:
+    require_postgresql_unicode_casefold("NGUYỄN VĂN THỬ")
     case = case_factory()
     first = CaseParticipant.objects.create(
         case=case,
