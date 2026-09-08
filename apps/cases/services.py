@@ -13,9 +13,9 @@ from apps.accounts.policies import (
     service_permission_required,
 )
 from apps.audit.actions import AuditAction, AuditTargetType
-from apps.cases.audit import record_reference_success
-from apps.cases.forms import CourtForm, EntityAddressForm, EntityForm, OfficialForm
-from apps.cases.models import Court, Entity, EntityAddress, Official
+from apps.cases.audit import record_case_success, record_reference_success
+from apps.cases.forms import CaseRecordForm, CourtForm, EntityAddressForm, EntityForm, OfficialForm
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 from apps.cases.policies import ReferenceObjectPolicy
 
 
@@ -26,6 +26,29 @@ def _changed_fields(form: CourtForm | EntityForm | EntityAddressForm | OfficialF
 def _require_valid(form: CourtForm | EntityForm | EntityAddressForm | OfficialForm) -> None:
     if not form.is_valid():
         raise ValueError("A valid reference form is required.")
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_CASES)
+def create_case(*, actor: User, form: CaseRecordForm, correlation_id: str) -> CaseRecord:
+    """Create a case from revalidated client fields and server-owned metadata."""
+    rebound = CaseRecordForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case form is required.")
+    case = rebound.save(commit=False)
+    case.status = CaseRecord.Status.ACTIVE
+    case.revision = 1
+    case.created_by = actor
+    case.last_edited_by = actor
+    case.full_clean()
+    case.save()
+    record_case_success(
+        actor=actor,
+        action=AuditAction.CASE_CREATED,
+        target_id=str(case.pk),
+        correlation_id=correlation_id,
+    )
+    return case
 
 
 def _get_reference[TReference: Court | Entity | EntityAddress | Official](

@@ -182,12 +182,12 @@
         dialog.querySelector("button, a, input, select, textarea")?.focus();
       }
     }
-    const summary = target?.querySelector?.("[data-error-summary]");
+    const summary = document.querySelector("[data-error-summary], [data-conflict-summary]");
     if (summary instanceof HTMLElement) {
       summary.focus();
       return;
     }
-    const referenceFormHeading = target?.querySelector?.("[data-reference-form-heading]");
+    const referenceFormHeading = document.querySelector("[data-reference-form-heading]");
     if (referenceFormHeading instanceof HTMLElement) {
       referenceFormHeading.focus();
     }

@@ -1,5 +1,8 @@
 const { defineConfig } = require("@playwright/test");
 
+const port = process.env.PLAYWRIGHT_PORT || "8000";
+const baseURL = `http://127.0.0.1:${port}`;
+
 module.exports = defineConfig({
   testDir: "tests/browser",
   fullyParallel: false,
@@ -8,7 +11,7 @@ module.exports = defineConfig({
   reporter: "list",
   outputDir: "test-results",
   use: {
-    baseURL: "http://127.0.0.1:8000",
+    baseURL,
     browserName: "chromium",
     screenshot: "off",
     trace: "off",
@@ -18,8 +21,8 @@ module.exports = defineConfig({
     command:
       ".venv/bin/python manage.py migrate --noinput --settings=config.settings.browser_test && " +
       ".venv/bin/python scripts/prepare_browser_test_database.py && " +
-      ".venv/bin/python manage.py runserver 127.0.0.1:8000 --noreload --insecure --settings=config.settings.browser_test",
-    url: "http://127.0.0.1:8000/health/live/",
+      `.venv/bin/python manage.py runserver 127.0.0.1:${port} --noreload --insecure --settings=config.settings.browser_test`,
+    url: `${baseURL}/health/live/`,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },

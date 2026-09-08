@@ -1072,6 +1072,45 @@ a {
   max-width: 800px;
 }
 
+.case-overview {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.case-overview-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: 0.857rem;
+  font-weight: 600;
+}
+
+.case-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.case-details dt {
+  color: var(--color-text-muted);
+  font-size: 0.857rem;
+  font-weight: 600;
+}
+
+.case-details dd {
+  margin: var(--space-1) 0 0;
+  overflow-wrap: anywhere;
+  color: var(--color-text-strong);
+}
+
 @media (max-width: 639px) {
   .reference-table-view {
     display: none;

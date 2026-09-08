@@ -126,3 +126,10 @@ def upcoming_case_hearings(
         status=Hearing.Status.SCHEDULED,
         scheduled_at__gte=selected_time,
     ).order_by("scheduled_at", "id")
+
+
+def case_overview_queryset() -> QuerySet[CaseRecord]:
+    """Load overview relations with a fixed number of queries."""
+    return CaseRecord.objects.select_related(
+        "court", "created_by", "last_edited_by"
+    ).prefetch_related("participants", "representations", "official_assignments", "hearings")

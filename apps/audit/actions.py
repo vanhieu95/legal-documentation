@@ -28,6 +28,8 @@ class AuditAction(StrEnum):
     REFERENCE_OFFICIAL_CREATED = "reference.official_created"
     REFERENCE_OFFICIAL_UPDATED = "reference.official_updated"
     REFERENCE_OFFICIAL_DEACTIVATED = "reference.official_deactivated"
+    CASE_CREATED = "case.created"
+    CASE_UPDATED = "case.updated"
 
 
 class AuditOutcome(StrEnum):
@@ -50,3 +52,4 @@ class AuditTargetType(StrEnum):
     ENTITY = "entity"
     ENTITY_ADDRESS = "entity_address"
     OFFICIAL = "official"
+    CASE = "case"

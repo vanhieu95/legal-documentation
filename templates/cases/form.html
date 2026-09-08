@@ -1,0 +1,12 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} · VDS{% endblock %}
+{% block page_context %}{% translate "Cases" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface reference-form-page" aria-labelledby="case-form-heading">
+    <h1 id="case-form-heading" class="gallery-title">{{ page_title }}</h1>
+    {% include "cases/_case_form.html" %}
+  </section>
+{% endblock %}

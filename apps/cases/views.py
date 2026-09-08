@@ -25,19 +25,26 @@ from apps.accounts.policies import (
     get_object_or_not_found,
 )
 from apps.audit.actions import AuditAction
-from apps.cases.audit import record_reference_validation_failure
+from apps.cases.audit import record_case_failure, record_reference_validation_failure
 from apps.cases.forms import (
+    CaseRecordForm,
     CourtForm,
     EntityAddressForm,
     EntityForm,
     OfficialForm,
     ReferenceListFilterForm,
 )
-from apps.cases.models import Court, Entity, EntityAddress, Official
-from apps.cases.policies import ReferenceObjectPolicy
-from apps.cases.selectors import ReferenceListPage, ReferenceType, list_references
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from apps.cases.policies import ReferenceObjectPolicy, case_object_policy
+from apps.cases.selectors import (
+    ReferenceListPage,
+    ReferenceType,
+    case_overview_queryset,
+    list_references,
+)
 from apps.cases.services import (
     create_address,
+    create_case,
     create_court,
     create_entity,
     create_official,
@@ -144,6 +151,32 @@ def _user(request: HttpRequest) -> User:
     return cast(User, request.user)
 
 
+def _case_object(
+    request: HttpRequest, case_id: uuid.UUID, permission: ApplicationPermission
+) -> CaseRecord:
+    return get_object_or_not_found(
+        actor=_user(request),
+        permission=permission,
+        queryset=case_overview_queryset(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+
+
+def _render_case_form(
+    request: HttpRequest, *, form: CaseRecordForm, status: int = 200
+) -> HttpResponse:
+    context = {
+        "form": form,
+        "is_htmx": _is_htmx(request),
+        "page_title": gettext("Create case"),
+        "form_action": reverse("cases:create"),
+        "cancel_url": reverse("cases:list"),
+    }
+    template = "cases/_case_form.html" if _is_htmx(request) else "cases/form.html"
+    return _vary(render(request, template, context, status=status))
+
+
 def _reference_capabilities(actor: User) -> dict[str, bool]:
     """Evaluate Administrator membership once for reference-list controls."""
     is_administrator = application_access_policy.is_application_administrator(actor)
@@ -225,6 +258,44 @@ def case_list_placeholder(request: HttpRequest) -> HttpResponse:
             "page_title": gettext("Cases"),
             "state_message": gettext("Case management is not available yet."),
         },
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.ADD_CASES)
+def case_create(request: HttpRequest) -> HttpResponse:
+    form = CaseRecordForm(request.POST or None)
+    if request.method == "POST":
+        correlation_id = get_request_correlation_id(request)
+        if form.is_valid():
+            case = create_case(actor=_user(request), form=form, correlation_id=correlation_id)
+            messages.success(request, gettext("Case created."))
+            destination = reverse("cases:detail", kwargs={"case_id": case.pk})
+            if _is_htmx(request):
+                return _vary(HttpResponse(status=204, headers={"HX-Redirect": destination}))
+            return _vary(redirect(destination))
+        record_case_failure(
+            actor=_user(request),
+            action=AuditAction.CASE_CREATED,
+            correlation_id=correlation_id,
+            reason_code="validation_error",
+        )
+        return _render_case_form(request, form=form, status=422 if _is_htmx(request) else 200)
+    return _render_case_form(request, form=form)
+
+
+@never_cache
+@require_GET
+@application_permission_required(ApplicationPermission.VIEW_CASES)
+def case_detail(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
+    case = _case_object(request, case_id, ApplicationPermission.VIEW_CASES)
+    return _vary(
+        render(
+            request,
+            "cases/detail.html",
+            {"case": case, "page_title": gettext("Case overview")},
+        )
     )
 
 

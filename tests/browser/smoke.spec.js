@@ -451,6 +451,85 @@ test("named shell navigation updates its active state and remains server-protect
   await expect(page.getByRole("heading", { name: "Hồ sơ việc dân sự" })).toBeVisible();
 });
 
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`case creation and overview reflow at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    await page.goto("/cases/new/");
+
+    await page.locator('[name="internal_reference"]').fill(`SYN-BROWSER-${viewport.name}-${Date.now()}`);
+    await page.locator('[name="court"]').selectOption({ label: "SYN-BROWSER — TAND thử nghiệm" });
+    await page.locator('[name="matter_type"]').fill("Yêu cầu dân sự Unicode thử nghiệm");
+    await page.locator('[name="procedural_stage"]').selectOption("pre_acceptance");
+    await expectNoPageOverflow(page);
+    await page.getByRole("button", { name: "Tạo hồ sơ việc dân sự" }).click();
+
+    await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("SYN-BROWSER-");
+    await expect(page.getByText("Yêu cầu dân sự Unicode thử nghiệm")).toBeVisible();
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("invalid HTMX case creation preserves input and focuses its linked summary", async ({ page }) => {
+  await signInAsAdministrator(page);
+  await page.goto("/cases/new/");
+  await page.locator('[name="internal_reference"]').fill(`SYN-BROWSER-INVALID-${Date.now()}`);
+  await page.locator('[name="court"]').selectOption({ label: "SYN-BROWSER — TAND thử nghiệm" });
+  await page.locator('[name="matter_type"]').fill("Giá trị Unicode cần giữ lại");
+  await page.locator('[name="procedural_stage"]').selectOption("accepted");
+  await page.locator('[name="acceptance_number"]').fill("42");
+  await page.getByRole("button", { name: "Tạo hồ sơ việc dân sự" }).click();
+
+  const summary = page.locator("[data-error-summary]");
+  await expect(summary).toBeFocused();
+  await expect(summary.getByRole("link").first()).toBeVisible();
+  await expect(page.locator('[name="matter_type"]')).toHaveValue("Giá trị Unicode cần giữ lại");
+  expect(
+    await page.evaluate(() => ({
+      local: Object.keys(window.localStorage),
+      session: Object.keys(window.sessionStorage),
+    })),
+  ).toEqual({ local: [], session: [] });
+});
+
+test("case creation reflows at 200 percent zoom with visible keyboard focus", async ({ page }) => {
+  await page.setViewportSize({ width: 640, height: 900 });
+  await signInAsAdministrator(page);
+  await page.goto("/cases/new/");
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
+
+  const referenceField = page.locator('[name="internal_reference"]');
+  await referenceField.focus();
+  await expect(referenceField).toBeFocused();
+  await expect(referenceField).toHaveCSS("outline-style", "solid");
+  await expectNoPageOverflow(page);
+});
+
+test("case creation and detail remain usable without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/cases/new/");
+  await page.locator('[name="internal_reference"]').fill(`SYN-BROWSER-NOJS-${Date.now()}`);
+  await page.locator('[name="court"]').selectOption({ label: "SYN-BROWSER — TAND thử nghiệm" });
+  await page.locator('[name="matter_type"]').fill("Yêu cầu không JavaScript");
+  await page.locator('[name="procedural_stage"]').selectOption("pre_acceptance");
+  await page.getByRole("button", { name: "Tạo hồ sơ việc dân sự" }).click();
+
+  await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expect(page.getByText("Yêu cầu không JavaScript")).toBeVisible();
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
 test("the authenticated shell theme stores only an explicit presentation preference", async ({ page }) => {
   await signInAsAdministrator(page);
   await page.getByRole("button", { name: "Tối" }).click();
