@@ -12,7 +12,7 @@ from django.db import close_old_connections, connection
 from django.test import Client
 from django.urls import reverse
 
-from apps.accounts.permissions import ADMINISTRATOR_GROUP_NAME
+from apps.accounts.permissions import seed_administrator_permissions
 from apps.audit.models import AuditEvent
 from apps.cases.forms import CaseRecordEditForm
 from apps.cases.models import CaseRecord
@@ -23,7 +23,7 @@ PASSWORD = "synthetic-test-password"
 
 @pytest.fixture
 def administrator_group() -> Group:
-    return Group.objects.get(name=ADMINISTRATOR_GROUP_NAME)
+    return seed_administrator_permissions()
 
 
 @pytest.fixture

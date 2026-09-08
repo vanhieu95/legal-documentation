@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 10:58+0700\n"
+"POT-Creation-Date: 2026-09-08 11:09+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Bảng điều khiển"
 
-#: apps/accounts/context_processors.py:26 apps/cases/views.py:278
+#: apps/accounts/context_processors.py:26 apps/cases/views.py:279
 #: templates/cases/detail.html:5 templates/cases/form.html:5
 msgid "Cases"
 msgstr "Hồ sơ việc dân sự"
@@ -614,66 +614,66 @@ msgstr "Địa chỉ"
 msgid "Officials"
 msgstr "Người tiến hành tố tụng"
 
+#: apps/cases/views.py:178 apps/cases/views.py:181
+msgid "Create case"
+msgstr "Tạo hồ sơ việc dân sự"
+
 #: apps/cases/views.py:183 templates/cases/detail.html:12
 msgid "Edit case"
 msgstr "Chỉnh sửa hồ sơ"
 
-#: apps/cases/views.py:183 apps/cases/views.py:194
-msgid "Create case"
-msgstr "Tạo hồ sơ việc dân sự"
-
-#: apps/cases/views.py:194
+#: apps/cases/views.py:186
 msgid "Save case"
 msgstr "Lưu hồ sơ"
 
-#: apps/cases/views.py:219
+#: apps/cases/views.py:220
 #, python-format
 msgid "%(kind)s for %(entity)s"
 msgstr "%(kind)s của %(entity)s"
 
-#: apps/cases/views.py:225
+#: apps/cases/views.py:226
 msgid "Reference record"
 msgstr "Dữ liệu tham chiếu"
 
-#: apps/cases/views.py:251
+#: apps/cases/views.py:252
 #, python-format
 msgid "Create %(type)s"
 msgstr "Tạo %(type)s"
 
-#: apps/cases/views.py:251
+#: apps/cases/views.py:252
 #, python-format
 msgid "Edit %(type)s"
 msgstr "Chỉnh sửa %(type)s"
 
-#: apps/cases/views.py:279
+#: apps/cases/views.py:280
 msgid "Case management is not available yet."
 msgstr "Chức năng quản lý hồ sơ việc dân sự chưa khả dụng."
 
-#: apps/cases/views.py:293
+#: apps/cases/views.py:294
 msgid "Case created."
 msgstr "Đã tạo hồ sơ việc dân sự."
 
-#: apps/cases/views.py:319
+#: apps/cases/views.py:320
 msgid "Case overview"
 msgstr "Tổng quan hồ sơ việc dân sự"
 
-#: apps/cases/views.py:352
+#: apps/cases/views.py:353
 msgid "Case updated."
 msgstr "Đã cập nhật hồ sơ việc dân sự."
 
-#: apps/cases/views.py:427
+#: apps/cases/views.py:428
 msgid "Reference record created."
 msgstr "Đã tạo dữ liệu tham chiếu."
 
-#: apps/cases/views.py:468
+#: apps/cases/views.py:469
 msgid "Reference record updated."
 msgstr "Đã cập nhật dữ liệu tham chiếu."
 
-#: apps/cases/views.py:509
+#: apps/cases/views.py:510
 msgid "Reference record deactivated."
 msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 
-#: apps/cases/views.py:517
+#: apps/cases/views.py:518
 #, python-format
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
