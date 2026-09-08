@@ -607,40 +607,46 @@ test("case editing and full-page conflict recovery work without JavaScript", asy
   await context.close();
 });
 
-test("archive confirmation traps focus, cancels safely, restores focus, and completes", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await signInAsAdministrator(page);
-  const detailUrl = await createSyntheticCase(page, "BROWSER-ARCHIVE");
-  const trigger = page.getByRole("link", { name: "Lưu trữ hồ sơ" });
-  await trigger.focus();
-  await page.keyboard.press("Enter");
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`archive confirmation traps focus, cancels safely, restores focus, and completes at the ${viewport.name} viewport`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const detailUrl = await createSyntheticCase(page, `BROWSER-ARCHIVE-${viewport.name}`);
+    const trigger = page.getByRole("link", { name: "Lưu trữ hồ sơ" });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
 
-  const dialog = page.getByRole("dialog", { name: "Lưu trữ hồ sơ" });
-  await expect(dialog).toBeVisible();
-  await expect(page.getByLabel("Lý do lưu trữ")).toBeFocused();
-  await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("button", { name: "Hủy" })).toBeFocused();
-  await dialog.getByRole("button", { name: "Hủy" }).click();
-  await expect(dialog).not.toBeVisible();
-  await expect(trigger).toBeFocused();
+    const dialog = page.getByRole("dialog", { name: "Lưu trữ hồ sơ" });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByLabel("Lý do lưu trữ")).toBeFocused();
+    await page.keyboard.press("Shift+Tab");
+    await expect(dialog.getByRole("button", { name: "Hủy" })).toBeFocused();
+    await dialog.getByRole("button", { name: "Hủy" }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
 
-  await trigger.click();
-  await expect(dialog).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(dialog).not.toBeVisible();
-  await expect(trigger).toBeFocused();
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
 
-  await trigger.click();
-  await expect(dialog).toBeVisible();
-  await page.getByLabel("Lý do lưu trữ").fill("Lý do lưu trữ Unicode thử nghiệm");
-  await dialog.getByRole("button", { name: "Xác nhận lưu trữ" }).click();
-  await expect(page).toHaveURL(detailUrl);
-  await expect(page.getByRole("link", { name: "Khôi phục hồ sơ" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Chỉnh sửa hồ sơ" })).not.toBeVisible();
-  await expectNoPageOverflow(page);
-});
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await page.getByLabel("Lý do lưu trữ").fill("Lý do lưu trữ Unicode thử nghiệm");
+    await dialog.getByRole("button", { name: "Xác nhận lưu trữ" }).click();
+    await expect(page).toHaveURL(detailUrl);
+    await expect(page.getByRole("link", { name: "Khôi phục hồ sơ" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Chỉnh sửa hồ sơ" })).not.toBeVisible();
+    await expectNoPageOverflow(page);
+  });
+}
 
 test("archive and restore confirmations work without JavaScript", async ({ browser }) => {
   const context = await browser.newContext({
