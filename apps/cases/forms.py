@@ -6,7 +6,15 @@ from django import forms
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from apps.cases.models import (
+    CaseParticipant,
+    CaseRecord,
+    Court,
+    Entity,
+    EntityAddress,
+    Official,
+    Representation,
+)
 
 FIELD_CONTROL = "field-control"
 
@@ -201,3 +209,147 @@ class CaseRecordForm(ReferenceModelForm):
             queryset = Court.objects.filter(Q(is_active=True) | Q(pk=self.instance.court_id))
         court_field = cast("forms.ModelChoiceField[Court]", self.fields["court"])
         court_field.queryset = queryset.order_by("full_name")
+
+
+class CaseParticipantForm(ReferenceModelForm):
+    class Meta:
+        model = CaseParticipant
+        fields = (
+            "entity",
+            "role",
+            "case_address",
+            "case_workplace",
+            "case_contact",
+            "ordering",
+            "effective_from",
+            "effective_to",
+        )
+        widgets = {
+            "case_address": forms.Textarea(attrs={"rows": 3}),
+            "case_contact": forms.Textarea(attrs={"rows": 3}),
+            "effective_from": forms.DateInput(attrs={"type": "date"}),
+            "effective_to": forms.DateInput(attrs={"type": "date"}),
+        }
+
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        super().__init__(*args, **kwargs)
+        queryset = Entity.objects.filter(is_active=True)
+        if self.instance.pk and self.instance.entity_id:
+            queryset = Entity.objects.filter(Q(is_active=True) | Q(pk=self.instance.entity_id))
+        entity_field = cast("forms.ModelChoiceField[Entity]", self.fields["entity"])
+        entity_field.queryset = queryset.order_by("legal_name")
+
+
+class RepresentationForm(ReferenceModelForm):
+    class Meta:
+        model = Representation
+        fields = (
+            "representative_entity",
+            "represented_participant",
+            "representation_type",
+            "authority_reference",
+            "authority_date",
+            "description",
+        )
+        widgets = {
+            "authority_date": forms.DateInput(attrs={"type": "date"}),
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        super().__init__(*args, **kwargs)
+        entity_queryset = Entity.objects.filter(is_active=True)
+        participant_queryset = CaseParticipant.objects.filter(case=case, is_active=True)
+        if self.instance.pk:
+            entity_queryset = Entity.objects.filter(
+                Q(is_active=True) | Q(pk=self.instance.representative_entity_id)
+            )
+            participant_queryset = CaseParticipant.objects.filter(
+                Q(case=case, is_active=True) | Q(pk=self.instance.represented_participant_id)
+            )
+        representative_field = cast(
+            "forms.ModelChoiceField[Entity]", self.fields["representative_entity"]
+        )
+        participant_field = cast(
+            "forms.ModelChoiceField[CaseParticipant]", self.fields["represented_participant"]
+        )
+        representative_field.queryset = entity_queryset.order_by("legal_name")
+        participant_field.queryset = participant_queryset.order_by("ordering", "id")
+
+
+class ScopedParticipantFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        kwargs["queryset"] = CaseParticipant.objects.filter(case=case, is_active=True)
+        super().__init__(*args, **kwargs)
+
+    def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs(index)
+        kwargs["case"] = self.case
+        return kwargs
+
+    def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> CaseParticipant:
+        form.instance.case = self.case
+        return cast(CaseParticipant, super().save_new(form, commit=commit))
+
+    def delete_existing(self, obj: CaseParticipant, commit: bool = True) -> None:
+        if commit:
+            obj.is_active = False
+            obj.save(update_fields=["is_active"])
+
+
+class ScopedRepresentationFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
+    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+        self.case = case
+        kwargs["queryset"] = Representation.objects.filter(case=case, is_active=True)
+        super().__init__(*args, **kwargs)
+
+    def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs(index)
+        kwargs["case"] = self.case
+        return kwargs
+
+    def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> Representation:
+        form.instance.case = self.case
+        return cast(Representation, super().save_new(form, commit=commit))
+
+    def delete_existing(self, obj: Representation, commit: bool = True) -> None:
+        if commit:
+            obj.is_active = False
+            obj.save(update_fields=["is_active"])
+
+
+ParticipantFormSet = forms.modelformset_factory(
+    CaseParticipant,
+    form=CaseParticipantForm,
+    formset=ScopedParticipantFormSet,
+    extra=1,
+    can_delete=True,
+)
+RepresentationFormSet = forms.modelformset_factory(
+    Representation,
+    form=RepresentationForm,
+    formset=ScopedRepresentationFormSet,
+    extra=1,
+    can_delete=True,
+)
+
+
+def participant_formset(
+    *, case: CaseRecord, data: dict[str, str] | None = None
+) -> ScopedParticipantFormSet:
+    return cast(
+        ScopedParticipantFormSet,
+        ParticipantFormSet(data=data, case=case, prefix="participants"),
+    )
+
+
+def representation_formset(
+    *, case: CaseRecord, data: dict[str, str] | None = None
+) -> ScopedRepresentationFormSet:
+    return cast(
+        ScopedRepresentationFormSet,
+        RepresentationFormSet(data=data, case=case, prefix="representations"),
+    )

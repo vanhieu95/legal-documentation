@@ -393,3 +393,154 @@ class CaseRecord(models.Model):
             )
         if errors:
             raise ValidationError(errors)
+
+
+class CaseParticipant(models.Model):
+    class Role(models.TextChoices):
+        REQUESTER = "requester", _("Requester")
+        RESPONDENT = "respondent", _("Respondent")
+        RELATED_PARTY = "related_party", _("Related party")
+        WITNESS = "witness", _("Witness")
+        EXPERT = "expert", _("Expert")
+        INTERPRETER = "interpreter", _("Interpreter")
+        RIGHTS_PROTECTOR = "rights_protector", _("Rights protector")
+        OTHER = "other", _("Other")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(CaseRecord, on_delete=models.PROTECT, related_name="participants")
+    entity = models.ForeignKey(Entity, on_delete=models.PROTECT, related_name="case_participations")
+    role = models.CharField(max_length=24, choices=Role.choices)
+    case_address = models.TextField(max_length=1000, blank=True)
+    case_workplace = models.TextField(max_length=500, blank=True)
+    case_contact = models.TextField(max_length=500, blank=True)
+    ordering = models.PositiveIntegerField(default=0)
+    effective_from = models.DateField(null=True, blank=True)
+    effective_to = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("ordering", "id")
+        indexes = [
+            models.Index(
+                fields=["case", "role", "ordering"],
+                name="case_part_role_order_idx",
+            ),
+            models.Index(
+                fields=["entity", "is_active", "role"],
+                name="case_part_entity_state_idx",
+            ),
+            models.Index(
+                fields=["case", "is_active", "effective_from", "effective_to"],
+                name="case_part_effective_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(
+                    role__in=(
+                        "requester",
+                        "respondent",
+                        "related_party",
+                        "witness",
+                        "expert",
+                        "interpreter",
+                        "rights_protector",
+                        "other",
+                    )
+                ),
+                name="case_part_role_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(ordering__gte=0), name="case_part_order_nonnegative"
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(effective_from__isnull=True)
+                    | Q(effective_to__isnull=True)
+                    | Q(effective_to__gte=F("effective_from"))
+                ),
+                name="case_part_dates_valid",
+            ),
+            models.UniqueConstraint(
+                fields=["case", "entity", "role"],
+                condition=Q(is_active=True),
+                name="case_part_active_role_uniq",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Case participant {self.pk or 'unsaved'}"
+
+    def clean(self) -> None:
+        super().clean()
+        if self.effective_from and self.effective_to and self.effective_to < self.effective_from:
+            raise ValidationError(
+                {"effective_to": _("The end date cannot be before the start date.")}
+            )
+
+
+class Representation(models.Model):
+    class Type(models.TextChoices):
+        LEGAL = "legal", _("Legal representative")
+        AUTHORIZED = "authorized", _("Authorized representative")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(CaseRecord, on_delete=models.PROTECT, related_name="representations")
+    representative_entity = models.ForeignKey(
+        Entity, on_delete=models.PROTECT, related_name="representations_given"
+    )
+    represented_participant = models.ForeignKey(
+        CaseParticipant, on_delete=models.PROTECT, related_name="representations"
+    )
+    representation_type = models.CharField(max_length=16, choices=Type.choices)
+    authority_reference = models.CharField(max_length=255, blank=True)
+    authority_date = models.DateField(null=True, blank=True)
+    description = models.TextField(max_length=1000, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("id",)
+        indexes = [
+            models.Index(
+                fields=["case", "represented_participant"],
+                name="case_repr_case_part_idx",
+            ),
+            models.Index(
+                fields=["representative_entity", "case"],
+                name="case_repr_entity_case_idx",
+            ),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(representation_type__in=("legal", "authorized")),
+                name="case_repr_type_valid",
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "case",
+                    "representative_entity",
+                    "represented_participant",
+                    "representation_type",
+                ],
+                condition=Q(is_active=True),
+                name="case_repr_active_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Representation {self.pk or 'unsaved'}"
+
+    def clean(self) -> None:
+        super().clean()
+        if (
+            self.case_id is not None
+            and self.represented_participant_id is not None
+            and self.represented_participant.case_id != self.case_id
+        ):
+            raise ValidationError(
+                {
+                    "represented_participant": _(
+                        "The represented participant must belong to the selected case."
+                    )
+                }
+            )

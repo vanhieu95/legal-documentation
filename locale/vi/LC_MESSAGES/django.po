@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-07 23:29+0700\n"
+"POT-Creation-Date: 2026-09-08 09:05+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -142,158 +142,158 @@ msgstr "Mã tương quan (Z–A)"
 msgid "Page size"
 msgstr "Kích thước trang"
 
-#: apps/cases/forms.py:16
+#: apps/cases/forms.py:24
 msgid "Search"
 msgstr "Tìm kiếm"
 
-#: apps/cases/forms.py:22 templates/cases/references/_reference_results.html:28
+#: apps/cases/forms.py:30 templates/cases/references/_reference_results.html:28
 msgid "State"
 msgstr "Trạng thái"
 
-#: apps/cases/forms.py:24 apps/cases/models.py:244
+#: apps/cases/forms.py:32 apps/cases/models.py:244
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
 msgstr "Đang hoạt động"
 
-#: apps/cases/forms.py:24 templates/cases/references/_reference_results.html:38
+#: apps/cases/forms.py:32 templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Inactive"
 msgstr "Ngừng hoạt động"
 
-#: apps/cases/forms.py:24
+#: apps/cases/forms.py:32
 msgid "All"
 msgstr "Tất cả"
 
-#: apps/cases/forms.py:58
+#: apps/cases/forms.py:66
 msgid "Court code"
 msgstr "Mã tòa án"
 
-#: apps/cases/forms.py:59
+#: apps/cases/forms.py:67
 msgid "Full court name"
 msgstr "Tên đầy đủ của tòa án"
 
-#: apps/cases/forms.py:60
+#: apps/cases/forms.py:68
 msgid "Short court name"
 msgstr "Tên viết tắt của tòa án"
 
-#: apps/cases/forms.py:61
+#: apps/cases/forms.py:69
 msgid "Court level"
 msgstr "Cấp tòa án"
 
-#: apps/cases/forms.py:62
+#: apps/cases/forms.py:70
 msgid "Court address"
 msgstr "Địa chỉ tòa án"
 
-#: apps/cases/forms.py:63
+#: apps/cases/forms.py:71
 msgid "Superior court"
 msgstr "Tòa án cấp trên"
 
-#: apps/cases/forms.py:97
+#: apps/cases/forms.py:105
 msgid "Entity kind"
 msgstr "Loại chủ thể"
 
-#: apps/cases/forms.py:98
+#: apps/cases/forms.py:106
 msgid "Authoritative legal name"
 msgstr "Tên pháp lý chính thức"
 
-#: apps/cases/forms.py:99 templates/components/form_fields.html:6
+#: apps/cases/forms.py:107 templates/components/form_fields.html:6
 msgid "Display name"
 msgstr "Tên hiển thị"
 
-#: apps/cases/forms.py:100
+#: apps/cases/forms.py:108
 msgid "Identity document number"
 msgstr "Số giấy tờ tùy thân"
 
-#: apps/cases/forms.py:101
+#: apps/cases/forms.py:109
 msgid "Registration number"
 msgstr "Số đăng ký"
 
-#: apps/cases/forms.py:102
+#: apps/cases/forms.py:110
 msgid "Date of birth"
 msgstr "Ngày sinh"
 
-#: apps/cases/forms.py:103
+#: apps/cases/forms.py:111
 msgid "Organization type"
 msgstr "Loại hình tổ chức"
 
-#: apps/cases/forms.py:125 apps/cases/views.py:87
+#: apps/cases/forms.py:133 apps/cases/views.py:87
 msgid "Entity"
 msgstr "Chủ thể"
 
-#: apps/cases/forms.py:126
+#: apps/cases/forms.py:134
 msgid "Address kind"
 msgstr "Loại địa chỉ"
 
-#: apps/cases/forms.py:127
+#: apps/cases/forms.py:135
 msgid "Full legal address"
 msgstr "Địa chỉ pháp lý đầy đủ"
 
-#: apps/cases/forms.py:128
+#: apps/cases/forms.py:136
 msgid "Province or municipality"
 msgstr "Tỉnh hoặc thành phố trực thuộc trung ương"
 
-#: apps/cases/forms.py:129
+#: apps/cases/forms.py:137
 msgid "District"
 msgstr "Quận hoặc huyện"
 
-#: apps/cases/forms.py:130
+#: apps/cases/forms.py:138
 msgid "Ward or commune"
 msgstr "Phường hoặc xã"
 
-#: apps/cases/forms.py:131
+#: apps/cases/forms.py:139
 msgid "Valid from"
 msgstr "Có hiệu lực từ"
 
-#: apps/cases/forms.py:132
+#: apps/cases/forms.py:140
 msgid "Valid to"
 msgstr "Có hiệu lực đến"
 
-#: apps/cases/forms.py:149 apps/cases/models.py:58
+#: apps/cases/forms.py:157 apps/cases/models.py:58
 msgid "Individual"
 msgstr "Cá nhân"
 
-#: apps/cases/forms.py:150
+#: apps/cases/forms.py:158
 msgid "Home court"
 msgstr "Tòa án công tác"
 
-#: apps/cases/forms.py:151
+#: apps/cases/forms.py:159
 msgid "Title"
 msgstr "Chức danh"
 
-#: apps/cases/forms.py:152
+#: apps/cases/forms.py:160
 msgid "Position"
 msgstr "Vị trí công tác"
 
-#: apps/cases/forms.py:187
+#: apps/cases/forms.py:195
 msgid "Internal reference"
 msgstr "Mã tham chiếu nội bộ"
 
-#: apps/cases/forms.py:188 apps/cases/views.py:74
+#: apps/cases/forms.py:196 apps/cases/views.py:74
 msgid "Court"
 msgstr "Tòa án"
 
-#: apps/cases/forms.py:189
+#: apps/cases/forms.py:197
 msgid "Matter type"
 msgstr "Loại việc dân sự"
 
-#: apps/cases/forms.py:190
+#: apps/cases/forms.py:198
 msgid "Procedural stage"
 msgstr "Giai đoạn tố tụng"
 
-#: apps/cases/forms.py:191
+#: apps/cases/forms.py:199
 msgid "Acceptance number"
 msgstr "Số thụ lý"
 
-#: apps/cases/forms.py:192
+#: apps/cases/forms.py:200
 msgid "Acceptance year"
 msgstr "Năm thụ lý"
 
-#: apps/cases/forms.py:193
+#: apps/cases/forms.py:201
 msgid "Acceptance date"
 msgstr "Ngày thụ lý"
 
-#: apps/cases/forms.py:194
+#: apps/cases/forms.py:202
 msgid "Acceptance type code"
 msgstr "Mã loại thụ lý"
 
@@ -361,7 +361,7 @@ msgstr "Trụ sở đăng ký"
 msgid "Contact address"
 msgstr "Địa chỉ liên hệ"
 
-#: apps/cases/models.py:193
+#: apps/cases/models.py:193 apps/cases/models.py:478
 msgid "The end date cannot be before the start date."
 msgstr "Ngày kết thúc không được trước ngày bắt đầu."
 
@@ -403,17 +403,61 @@ msgstr "Đã giải quyết"
 msgid "Archived"
 msgstr "Đã lưu trữ"
 
-#: apps/cases/models.py:383
+#: apps/cases/models.py:381
 msgid "Acceptance details must be completed together after acceptance."
 msgstr "Thông tin thụ lý phải được điền đầy đủ cùng nhau sau khi thụ lý."
 
-#: apps/cases/models.py:390
+#: apps/cases/models.py:388
 msgid "Active cases cannot contain archive metadata."
 msgstr "Hồ sơ đang hoạt động không được chứa thông tin lưu trữ."
 
-#: apps/cases/models.py:394
+#: apps/cases/models.py:392
 msgid "Archived cases require complete archive metadata."
 msgstr "Hồ sơ đã lưu trữ phải có đầy đủ thông tin lưu trữ."
+
+#: apps/cases/models.py:400
+msgid "Requester"
+msgstr "Người yêu cầu"
+
+#: apps/cases/models.py:401
+msgid "Respondent"
+msgstr "Người bị yêu cầu"
+
+#: apps/cases/models.py:402
+msgid "Related party"
+msgstr "Người có quyền lợi, nghĩa vụ liên quan"
+
+#: apps/cases/models.py:403
+msgid "Witness"
+msgstr "Người làm chứng"
+
+#: apps/cases/models.py:404
+msgid "Expert"
+msgstr "Người giám định"
+
+#: apps/cases/models.py:405
+msgid "Interpreter"
+msgstr "Người phiên dịch"
+
+#: apps/cases/models.py:406
+msgid "Rights protector"
+msgstr "Người bảo vệ quyền và lợi ích hợp pháp"
+
+#: apps/cases/models.py:407
+msgid "Other"
+msgstr "Khác"
+
+#: apps/cases/models.py:484
+msgid "Legal representative"
+msgstr "Người đại diện theo pháp luật"
+
+#: apps/cases/models.py:485
+msgid "Authorized representative"
+msgstr "Người đại diện theo ủy quyền"
+
+#: apps/cases/models.py:543
+msgid "The represented participant must belong to the selected case."
+msgstr "Người được đại diện phải thuộc vụ việc đã chọn."
 
 #: apps/cases/views.py:75
 msgid "Courts"

@@ -6,7 +6,15 @@ import factory
 from django.contrib.auth.models import User
 from factory.django import DjangoModelFactory
 
-from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from apps.cases.models import (
+    CaseParticipant,
+    CaseRecord,
+    Court,
+    Entity,
+    EntityAddress,
+    Official,
+    Representation,
+)
 
 
 class UserFactory(DjangoModelFactory[User]):
@@ -86,3 +94,22 @@ class CaseRecordFactory(DjangoModelFactory[CaseRecord]):
     procedural_stage = CaseRecord.ProceduralStage.PRE_ACCEPTANCE
     created_by = factory.SubFactory(UserFactory)
     last_edited_by = factory.SelfAttribute("created_by")
+
+
+class CaseParticipantFactory(DjangoModelFactory[CaseParticipant]):
+    class Meta:
+        model = CaseParticipant
+
+    case = factory.SubFactory(CaseRecordFactory)
+    entity = factory.SubFactory(EntityFactory)
+    role = CaseParticipant.Role.REQUESTER
+
+
+class RepresentationFactory(DjangoModelFactory[Representation]):
+    class Meta:
+        model = Representation
+
+    case = factory.SelfAttribute("represented_participant.case")
+    representative_entity = factory.SubFactory(EntityFactory)
+    represented_participant = factory.SubFactory(CaseParticipantFactory)
+    representation_type = Representation.Type.AUTHORIZED

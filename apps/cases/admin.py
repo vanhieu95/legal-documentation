@@ -2,7 +2,15 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from apps.cases.models import (
+    CaseParticipant,
+    CaseRecord,
+    Court,
+    Entity,
+    EntityAddress,
+    Official,
+    Representation,
+)
 
 
 @admin.register(Court)
@@ -57,3 +65,17 @@ class CaseRecordAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     )
     autocomplete_fields = ("court",)
     ordering = ("-updated_at",)
+
+
+@admin.register(CaseParticipant)
+class CaseParticipantAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("id", "role", "ordering", "is_active")
+    list_filter = ("role", "is_active")
+    readonly_fields = ("id", "case", "entity")
+
+
+@admin.register(Representation)
+class RepresentationAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ("id", "representation_type", "is_active")
+    list_filter = ("representation_type", "is_active")
+    readonly_fields = ("id", "case", "representative_entity", "represented_participant")
