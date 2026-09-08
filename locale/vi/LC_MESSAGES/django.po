@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 09:13+0700\n"
+"POT-Creation-Date: 2026-09-08 09:19+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -217,7 +217,7 @@ msgstr "Ngày sinh"
 msgid "Organization type"
 msgstr "Loại hình tổ chức"
 
-#: apps/cases/forms.py:135 apps/cases/views.py:87
+#: apps/cases/forms.py:135 apps/cases/forms.py:236 apps/cases/views.py:87
 msgid "Entity"
 msgstr "Chủ thể"
 
@@ -296,6 +296,82 @@ msgstr "Ngày thụ lý"
 #: apps/cases/forms.py:204
 msgid "Acceptance type code"
 msgstr "Mã loại thụ lý"
+
+#: apps/cases/forms.py:237
+msgid "Participant role"
+msgstr "Vai trò tham gia tố tụng"
+
+#: apps/cases/forms.py:238
+msgid "Case-specific address"
+msgstr "Địa chỉ theo vụ việc"
+
+#: apps/cases/forms.py:239
+msgid "Case-specific workplace"
+msgstr "Nơi làm việc theo vụ việc"
+
+#: apps/cases/forms.py:240
+msgid "Case-specific contact"
+msgstr "Thông tin liên hệ theo vụ việc"
+
+#: apps/cases/forms.py:241 apps/cases/forms.py:389
+msgid "Ordering"
+msgstr "Thứ tự"
+
+#: apps/cases/forms.py:242 apps/cases/forms.py:390
+msgid "Effective from"
+msgstr "Có hiệu lực từ"
+
+#: apps/cases/forms.py:243 apps/cases/forms.py:391
+msgid "Effective to"
+msgstr "Có hiệu lực đến"
+
+#: apps/cases/forms.py:272
+msgid "Representative"
+msgstr "Người đại diện"
+
+#: apps/cases/forms.py:273
+msgid "Represented participant"
+msgstr "Người tham gia tố tụng được đại diện"
+
+#: apps/cases/forms.py:274
+msgid "Representation type"
+msgstr "Loại đại diện"
+
+#: apps/cases/forms.py:275
+msgid "Authority reference"
+msgstr "Căn cứ đại diện"
+
+#: apps/cases/forms.py:276
+msgid "Authority date"
+msgstr "Ngày xác lập quyền đại diện"
+
+#: apps/cases/forms.py:277
+msgid "Description"
+msgstr "Mô tả"
+
+#: apps/cases/forms.py:387 apps/cases/views.py:113
+msgid "Official"
+msgstr "Người tiến hành tố tụng"
+
+#: apps/cases/forms.py:388
+msgid "Procedural role"
+msgstr "Vai trò tố tụng"
+
+#: apps/cases/forms.py:412
+msgid "Instance level"
+msgstr "Cấp xét xử"
+
+#: apps/cases/forms.py:413
+msgid "Scheduled date and time"
+msgstr "Ngày giờ dự kiến"
+
+#: apps/cases/forms.py:414
+msgid "Location"
+msgstr "Địa điểm"
+
+#: apps/cases/forms.py:415 templates/components/table.html:10
+msgid "Status"
+msgstr "Trạng thái"
 
 #: apps/cases/models.py:18
 msgid "District-level court"
@@ -526,10 +602,6 @@ msgstr "Địa chỉ"
 #: apps/cases/views.py:101
 msgid "Addresses"
 msgstr "Địa chỉ"
-
-#: apps/cases/views.py:113
-msgid "Official"
-msgstr "Người tiến hành tố tụng"
 
 #: apps/cases/views.py:114
 msgid "Officials"
@@ -1073,10 +1145,6 @@ msgstr "Dữ liệu tổng hợp minh họa cách trình bày bảng"
 #: templates/components/table.html:9
 msgid "Item"
 msgstr "Mục"
-
-#: templates/components/table.html:10
-msgid "Status"
-msgstr "Trạng thái"
 
 #: templates/components/table.html:11
 msgid "Updated"

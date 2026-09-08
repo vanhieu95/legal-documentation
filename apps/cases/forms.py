@@ -232,6 +232,16 @@ class CaseParticipantForm(ReferenceModelForm):
             "effective_from": forms.DateInput(attrs={"type": "date"}),
             "effective_to": forms.DateInput(attrs={"type": "date"}),
         }
+        labels = {
+            "entity": _("Entity"),
+            "role": _("Participant role"),
+            "case_address": _("Case-specific address"),
+            "case_workplace": _("Case-specific workplace"),
+            "case_contact": _("Case-specific contact"),
+            "ordering": _("Ordering"),
+            "effective_from": _("Effective from"),
+            "effective_to": _("Effective to"),
+        }
 
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
@@ -257,6 +267,14 @@ class RepresentationForm(ReferenceModelForm):
         widgets = {
             "authority_date": forms.DateInput(attrs={"type": "date"}),
             "description": forms.Textarea(attrs={"rows": 3}),
+        }
+        labels = {
+            "representative_entity": _("Representative"),
+            "represented_participant": _("Represented participant"),
+            "representation_type": _("Representation type"),
+            "authority_reference": _("Authority reference"),
+            "authority_date": _("Authority date"),
+            "description": _("Description"),
         }
 
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
@@ -365,6 +383,13 @@ class CaseOfficialAssignmentForm(ReferenceModelForm):
             "effective_from": forms.DateInput(attrs={"type": "date"}),
             "effective_to": forms.DateInput(attrs={"type": "date"}),
         }
+        labels = {
+            "official": _("Official"),
+            "role": _("Procedural role"),
+            "ordering": _("Ordering"),
+            "effective_from": _("Effective from"),
+            "effective_to": _("Effective to"),
+        }
 
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
@@ -383,6 +408,12 @@ class HearingForm(ReferenceModelForm):
         model = Hearing
         fields = ("instance_level", "scheduled_at", "location", "status")
         widgets = {"scheduled_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
+        labels = {
+            "instance_level": _("Instance level"),
+            "scheduled_at": _("Scheduled date and time"),
+            "location": _("Location"),
+            "status": _("Status"),
+        }
 
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
