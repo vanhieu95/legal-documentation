@@ -647,3 +647,118 @@ credentials, generated-document content, or other sensitive payloads.
   `CASE-007`/`CASE-008`. No CP-CASE-B blocker remains. `.codegraph/` is a pre-existing unrelated
   untracked directory and was not modified or committed. The next eligible tasks are `CASE-006`
   and `CASE-007` under `CP-CASE-C`; neither was started.
+
+## CASE-006 — Deliver case creation and overview detail
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Administrators can create incomplete pre-acceptance or fully accepted civil-matter
+  cases at the named `/cases/new/` route and view a purpose-built overview at the canonical UUID
+  detail route. Normal submissions use full pages and canonical redirects; HTMX submissions use a
+  narrow `204` redirect or swappable `422` form fragment with preserved values, linked errors,
+  focused summary, and `Vary: HX-Request`. The overview safely summarizes prefetched relationship
+  counts without exposing relationship editing.
+- **Important files changed:** `apps/cases/{audit,policies,selectors,services,views,urls}.py`,
+  `apps/cases/tests/test_case_workflows.py`, `templates/cases/`, local CSS/JavaScript and built
+  assets, Playwright configuration and smoke tests, audit action contracts, and the Vietnamese
+  catalog.
+- **Migrations created:** None. Existing `cases.0002` PostgreSQL acceptance and revision
+  constraints remain the durable invariant layer; migration drift reported no changes.
+- **Focused tests executed:** The creation/detail module passed 37 tests and the complete cases
+  suite passed 176 tests after CASE-006. Coverage includes every partial acceptance group, model
+  and database validation, server-owned revision/actors/timestamps, posted metadata tampering,
+  active court re-querying, full/HTMX success and invalid behavior, CSRF, the complete principal
+  and permission matrix, generic UUID failures, Unicode, bounded audit outcomes, and a fixed
+  five-query overview relationship load.
+- **Browser and accessibility verification:** The complete pinned-Chromium suite passed 45 tests.
+  Live create/detail checks covered 375px, 768px, and 1440px layouts, no page-level overflow,
+  visible keyboard focus, focused linked `422` summaries, 200% zoom/reflow, Vietnamese labels and
+  Unicode, JavaScript-disabled creation/detail, local assets, and absence of case data from browser
+  storage or HTMX history.
+- **Authorization, CSRF, audit, and privacy:** Add/view permissions are enforced at views, add is
+  rechecked by the atomic service, detail objects are policy-scoped, and court identifiers are
+  rebound through active choices. Every unsafe normal/HTMX request retains Django CSRF protection.
+  Creation audit rows contain only action/outcome, case UUID, correlation ID, and a bounded failure
+  reason; no form values or case content are recorded.
+- **Commit:** `ed36d6a` (`feat(cases): deliver case creation and overview`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable, so the repository's pinned real
+  Playwright Chromium provided DOM, keyboard, focus, responsive, zoom, HTMX, storage, and no-script
+  evidence. Environment port 8000 was occupied; Playwright gained an opt-in port setting and ran
+  on isolated port 8010. No implementation blocker remains.
+
+## CASE-007 — Deliver optimistic case editing and conflict recovery
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Administrators edit cases through the named UUID edit route. The explicit service
+  revalidates the form and object permission, then performs one conditional PostgreSQL update on
+  the submitted expected revision. A success increments the server-owned revision exactly once
+  and updates the server-owned editor/time; a stale request returns a full-page or swappable HTMX
+  `409`, preserves submitted values, and offers Vietnamese reload/compare guidance without
+  overwriting the winner.
+- **Important files changed:** `apps/cases/{forms,audit,services,views,urls}.py`,
+  `apps/cases/tests/test_case_editing.py`, shared case templates, local JavaScript and built asset,
+  browser smoke tests, and the Vietnamese catalog.
+- **Migrations created:** None. The compare-and-swap uses the existing positive revision column and
+  database constraints.
+- **Focused tests executed:** The edit module passed 16 tests on the lightweight profile with one
+  explicit PostgreSQL-only skip, then all 17 tests on PostgreSQL. The complete cases suite passed
+  192 tests with the PostgreSQL concurrency test skipped only on SQLite. Tests cover successful
+  edit and one increment, editor/time ownership, invalid preservation and `422`, two stale clients,
+  repeated conflict, normal/HTMX `409`, expected-revision and actor/archive tampering, full access
+  matrix, direct-service denial, CSRF, guessed UUID, Unicode, `Vary`, and safe success/conflict/
+  validation/denial audits.
+- **PostgreSQL concurrency evidence:** Two genuine concurrent connections submitted different
+  values against revision 1. Exactly one conditional update succeeded, the other raised the
+  conflict outcome, durable revision became 2, and the winning database value remained intact.
+  The complete CASE-007 PostgreSQL module passed 17/17.
+- **Browser and accessibility verification:** The complete pinned-Chromium suite passed 47 tests.
+  Two tabs loaded revision 1; the first keyboard submission succeeded and the second received a
+  focused HTMX conflict summary with its input retained, then reload displayed the first tab's
+  value at revision 2. A JavaScript-disabled two-tab flow returned a real full-page `409` and kept
+  the stale submitted value. Compact and wide layouts, 200% zoom/reflow, visible focus, Vietnamese
+  guidance, and no horizontal overflow passed.
+- **Authorization, CSRF, audit, and privacy:** Change permission is required independently by view
+  and service, objects are policy-scoped, and posted related values are rebound. Submitted revision
+  is comparison-only; creator, editor, timestamp, archive fields, and arbitrary next revision are
+  ignored. Audits contain target UUID, outcome, correlation ID, safe changed field names, or a
+  bounded reason code only—never changed values or payloads.
+- **Commits:** `82bc070` (`feat(cases): add optimistic case editing`); `c69aece`
+  (`fix(cases): stabilize checkpoint verification`).
+- **Deviations or blockers:** The full default coverage run exposed transactional test isolation
+  after Django flush; the test fixture now idempotently seeds the approved permission group and the
+  entire gate passes. No product behavior or approved feature commit was amended. No blocker
+  remains.
+
+## CP-CASE-C — Checkpoint closure
+
+- **Completion date:** 2026-09-08
+- **Status:** Local implementation and verification complete; `CASE-006` and `CASE-007` are
+  complete. Work stopped before `CASE-008`.
+- **Checkpoint evidence:** Ruff lint and format, mypy, Django system and migration-drift checks,
+  Tailwind build, message extraction/compilation, exact frontend asset verification, and sensitive
+  coverage passed. The mandated full ordinary coverage command passed 386 tests with three
+  intentional PostgreSQL-profile skips at 95.68% branch coverage. The complete PostgreSQL 18.6
+  run passed all 389 tests plus two parameter subtests with no skips. The complete live Chromium
+  suite passed 47 tests.
+- **PostgreSQL and migration verification:** A disposable UTF-8 PostgreSQL database applied all
+  migrations from zero through `cases.0004`; a second migrate reported no migrations to apply.
+  The full PostgreSQL suite exercised constraints and the concurrent compare-and-swap. No schema
+  change or migration drift exists in CP-CASE-C.
+- **HTTP, authorization, and audit verification:** Normal/HTMX create, detail, edit, invalid `422`,
+  and stale `409` paths passed, as did anonymous, inactive, non-Administrator, missing-permission,
+  Administrator, superuser, direct-service denial, CSRF, and generic object-failure checks. Audit
+  success/failure/conflict/denial metadata remains bounded and content-free.
+- **Performance, accessibility, and privacy review:** Overview relationship reads are fixed at five
+  queries with no row-dependent N+1 behavior; edit reads are bounded. Browser checks cover
+  compact/tablet/wide rendering, keyboard and visible focus, error/conflict focus, 200% zoom,
+  reflow, HTMX and JavaScript-disabled workflows, and sensitive-history/storage protections.
+  Searches found no `cases` import of `documents`, case values in logs/audits/query strings/browser
+  storage, secrets, real personal/legal data, debug output, weakened assertions, archive/restore,
+  relationship editing, or document functionality.
+- **Commits:** `ed36d6a` (`CASE-006`); `82bc070` (`CASE-007`); `c69aece` (verification isolation and
+  catalog refresh). Checkpoint record commit follows this entry.
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable; pinned Playwright Chromium was
+  used as the real-browser fallback. The optional production deployment check passed with only the
+  existing `security.W004` HSTS warning intentionally deferred to `SEC-002`; static collection
+  copied 133 files. `.codegraph/` remains a pre-existing unrelated untracked directory and was not
+  modified or committed. No CP-CASE-C blocker remains. The next eligible tasks are `CASE-008` and
+  `CASE-009` under `CP-CASE-D`; neither was started.

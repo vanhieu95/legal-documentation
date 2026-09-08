@@ -44,6 +44,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
 - [x] `CP-CASE-A` — Approved; local checkpoint gates passed on 2026-09-07.
 - [x] `CP-CASE-B` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-C` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -339,7 +340,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Assignment/hearing contracts are normalized and safe for case detail and document prefill.
 - **Size:** M. **Blockers/skills:** None.
 
-### [ ] CASE-006 — Deliver case creation and overview detail
+### [x] CASE-006 — Deliver case creation and overview detail
 
 - **Outcome:** Administrators create a validated case and view its overview through full-page or HTMX form responses with correct metadata and audit.
 - **SPEC:** §§5.2, 6.2, 13–16, 17.1; **FR:** `FR-CASE-06`, `FR-CASE-08`, `FR-CASE-09`; **AC:** `AC-02`, `AC-03`, `AC-05`, `AC-08`, `AC-09`.
@@ -355,7 +356,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A synthetic case can be created and viewed end to end with correct metadata, authorization, audit, accessibility and errors.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-007 — Deliver optimistic case editing and conflict recovery
+### [x] CASE-007 — Deliver optimistic case editing and conflict recovery
 
 - **Outcome:** Case edits compare submitted revision atomically, increment once on success, and return recoverable `409` conflicts without overwriting newer data.
 - **SPEC:** §§5.2, 6.2, 12, 13.1, 15.3; **FR:** `FR-CASE-06`, `FR-CASE-09`; **AC:** `AC-03`, `AC-05`, `AC-07`.
