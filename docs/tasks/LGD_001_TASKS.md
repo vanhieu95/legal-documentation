@@ -45,6 +45,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-A` — Approved; local checkpoint gates passed on 2026-09-07.
 - [x] `CP-CASE-B` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-C` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -372,7 +373,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A stale write cannot win and the administrator has a tested recovery path.
 - **Size:** M. **Blockers/skills:** **Security skill**, `debugging-and-error-recovery`, `code-review-and-quality`.
 
-### [ ] CASE-008 — Deliver confirmed archive and restore
+### [x] CASE-008 — Deliver confirmed archive and restore
 
 - **Outcome:** Administrators confirm archive/restore, record actor/time/reason and revision, and archived cases remain readable but immutable/unavailable for new generation.
 - **SPEC:** §§4.3, 5.2, 6.2, 14–17; **FR:** `FR-CASE-06`, `FR-CASE-09`; **AC:** `AC-03`, `AC-05`.
@@ -388,7 +389,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Archive lifecycle is explicit, reversible, revisioned, audited, and enforced server-side.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-009 — Build indexed case search, filter, sort, and pagination selectors
+### [x] CASE-009 — Build indexed case search, filter, sort, and pagination selectors
 
 - **Outcome:** A read-only selector returns correct URL-driven results for all required fields, filter combinations, allowlisted sorts, and page sizes at target scale.
 - **SPEC:** §§6.2, 7.1–7.2, 13.1, 14; **FR:** `FR-CASE-01`–`FR-CASE-05`; **AC:** `AC-06`, `AC-26`.

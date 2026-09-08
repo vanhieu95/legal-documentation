@@ -762,3 +762,127 @@ credentials, generated-document content, or other sensitive payloads.
   copied 133 files. `.codegraph/` remains a pre-existing unrelated untracked directory and was not
   modified or committed. No CP-CASE-C blocker remains. The next eligible tasks are `CASE-008` and
   `CASE-009` under `CP-CASE-D`; neither was started.
+
+## CASE-008 — Deliver confirmed archive and restore
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Added stable archive and restore routes with safe full-page and HTMX confirmation
+  flows. Explicit services perform atomic status/revision compare-and-swap transitions, own actor
+  and timestamps, increment revision exactly once, and preserve the existing model's current-state
+  archive metadata contract. Archived cases remain readable, become immutable, and fail the stable
+  document-generation eligibility predicate until restored; no hard-delete route or service exists.
+- **Important files changed:** `apps/cases/{forms,policies,services,views,urls,audit}.py`,
+  `apps/audit/actions.py`, archive/restore templates, local source/built JavaScript, Vietnamese
+  messages, `apps/cases/tests/test_case_archive.py`, and Playwright smoke coverage.
+- **Migrations and indexes:** None. CASE-008 uses the existing `CaseRecord` status, archive
+  metadata, revision, and update columns and creates no schema drift.
+- **Focused tests:** The PostgreSQL archive module passed 34 tests. Coverage includes success,
+  exact revision increments, server actor/time, bounded Vietnamese reasons, restore metadata,
+  repeated and stale requests, genuine concurrent archive and restore races, archived detail/edit
+  behavior, restored editing, the future-generation predicate, the complete principal/permission
+  matrix, direct-service denial, normal/HTMX CSRF, generic inaccessible UUIDs, safe audit metadata,
+  and absence of hard deletion.
+- **PostgreSQL concurrency:** For both archive and restore, two independent connections submitted
+  the same expected revision. Exactly one transition succeeded, exactly one returned the conflict
+  outcome, and the durable status changed with one revision increment and no overwrite.
+- **Authorization, CSRF, and audit:** Separate archive/restore permissions are enforced by both
+  view decorators and service decorators; objects are policy-scoped before transition. Mutations
+  are POST-only and Django CSRF protection rejects normal and HTMX requests without a token.
+  Success, conflict, validation, and denied outcomes are bounded to action/outcome, case UUID,
+  actor, correlation ID, changed field names, reason code, and reason-presence boolean. Archive
+  reason text and case content never enter audit metadata.
+- **Browser and accessibility:** Pinned Playwright Chromium verified dialog initial focus, explicit
+  focus trapping, cancel, Escape, trigger-focus restoration, HTMX completion, and no horizontal
+  overflow at 375px, 768px, and 1440px. A JavaScript-disabled archive-and-restore flow completed
+  through full pages. The final complete browser suite passed 51 tests.
+- **Security/privacy review:** UUID knowledge does not grant access; stale or repeated transitions
+  return safe conflicts and never overwrite newer state. Confirmation truth and permission checks
+  remain server-side. No protected payload is stored in browser storage or HTMX history, and no
+  document dependency or actual generation behavior was introduced.
+- **Commit:** `21e0844` (`feat(cases): add archive and restore workflows`). Accessibility matrix
+  coverage was finalized in `180db82` (`test(cases): verify archive dialog across viewports`).
+- **Deviations or blockers:** The model's approved constraint defines archive columns as current
+  state: restoration clears those columns, while the bounded audit stream retains the historical
+  transition. Chrome DevTools MCP was unavailable, so the repository's pinned real Chromium
+  runner supplied browser-runtime evidence. No implementation blocker remains.
+
+## CASE-009 — Build indexed case search, filter, sort, and pagination selectors
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Added a bounded query form and read-only, permission/object-policy-scoped selector.
+  Search covers internal reference, acceptance number/year/type, matter type, court name/code,
+  participant names, and representative-entity names. Identifiers use exact-compatible prefix
+  matching; Vietnamese names and matter text use PostgreSQL case-insensitive containment without
+  stripping or altering diacritics. Relational joins are duplicate-free.
+- **Filters, sorting, and pagination:** Court, status, procedural stage, acceptance type/year,
+  inclusive acceptance-date bounds, and archive state are explicit validated filters. Updated,
+  created, acceptance date/number, court, and matter type support allowlisted ascending/descending
+  forms with UUID tie-breaking. Page sizes are restricted to 10/25/50/100 with 25 as default;
+  malformed, negative, excessive, reversed-range, arbitrary ORM, and traversal inputs are rejected.
+- **Important files changed:** `apps/cases/{forms,selectors}.py`,
+  `apps/cases/tests/test_case_search.py`, `docs/operations/CASE_009_QUERY_PLANS.md`,
+  `pyproject.toml`, and the Vietnamese catalog.
+- **Migrations and indexes:** None. PostgreSQL evidence selected the existing
+  `case_record_state_stage_idx`; the measured cross-table Unicode containment OR cannot be served
+  as a whole by an ordinary B-tree. At the measured target it did not justify a PostgreSQL trigram
+  extension, changed semantics, or added write/storage cost.
+- **Focused tests:** PostgreSQL passed all 50 active search tests with one intentionally disabled
+  100,000-row profile; the explicit scale invocation separately passed. Tests cover every field,
+  filter, combination, inclusive boundary, sort direction, malicious sort/traversal, bounded query,
+  page/page-size contract, duplicate removal, stable tied pagination, policy scoping, archive state,
+  fixed query counts, no N+1, inspectable plans, and absence of read-only audit events.
+- **Query count and plan evidence:** The complete selector boundary is capped at seven queries:
+  three uncached central authorization checks, count, page fetch, and two bounded prefetches.
+  Reading court, participant-entity, and representative-entity data adds no queries. On 100,000
+  synthetic cases, `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` returned 999 matches in 207.595 ms,
+  used `case_record_state_stage_idx`, hit 2,210 shared buffers with no shared reads, and performed
+  the deterministic sort in memory. Full evidence and trade-offs are recorded in the operations
+  note.
+- **Security/privacy review:** The selector requires `view_cases` before applying the object policy;
+  inputs can reach only fixed ORM expressions and no raw SQL is used. Ordinary discovery emits no
+  audit event and logs no query/results. All fixtures are explicitly synthetic; URLs are not built
+  in this selector-only task. The `cases` app imports no `documents` code.
+- **Commits:** `668b51e` (`feat(cases): add indexed case discovery selectors`); `c609475`
+  (`test(cases): isolate PostgreSQL Unicode casefold checks`).
+- **Deviations or blockers:** SQLite's `icontains` does not provide production-equivalent
+  Vietnamese Unicode case folding. Those exact assertions run on PostgreSQL; ASCII correctness
+  remains in the ordinary profile. This incompatibility and the no-new-index decision are
+  documented. Target hardware load testing remains deferred to the approved performance phase;
+  the 100,000-case architecture profile passes locally.
+
+## CP-CASE-D — Checkpoint closure
+
+- **Completion date:** 2026-09-08
+- **Status:** Local implementation and verification complete; `CASE-008` and `CASE-009` are
+  complete. Work stopped before `CASE-010`.
+- **Checkpoint evidence:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  Tailwind build, message extraction/compilation, frontend asset verification, and diff checks all
+  passed. The mandated ordinary coverage command passed 464 tests with ten intentional
+  PostgreSQL/performance-profile skips at 95.06% branch coverage. The complete PostgreSQL 18.6
+  profile passed 473 tests, one explicit scale-profile skip, and two parameter subtests. The final
+  pinned-Chromium suite passed 51 tests.
+- **PostgreSQL and migration verification:** `cp_case_d_empty` applied all 24 migrations from an
+  empty database through `cases.0004`; the existing partially migrated `cp_case_b` database
+  upgraded successfully and both reported zero unapplied migrations. The loader reported no
+  conflicts and one linear cases leaf, `0004_add_assignments_and_hearings`. Concurrent archive and
+  restore tests passed on separate PostgreSQL connections. No CP-CASE-D migration was needed.
+- **Functional verification:** Archive/restore service/view authorization, normal/HTMX CSRF,
+  immutable archived edits, readable archived details, restored edits, revision conflicts, safe
+  audits, all required search fields and filters, every allowlisted sort direction and page size,
+  malicious input rejection, duplicate elimination, deterministic pagination, fixed relation
+  query counts, and no read-only audit spam all pass. Existing identity, audit, reference, create,
+  detail, and edit suites remain green.
+- **Security, privacy, and dependency review:** No hard deletion, unsafe state-changing GET, raw SQL
+  interpolation, client-owned permission truth, submitted actor/timestamp/archive metadata,
+  diacritic normalization, case-value audit/logging, protected browser storage, secrets, real
+  personal/legal data, debug output, weakened assertions, or new suppression exists. All new data
+  is synthetic. The `cases` dependency direction remains `core`/`accounts`/`audit` only and has no
+  `documents` import.
+- **Commits:** `21e0844` (`CASE-008`); `668b51e` (`CASE-009`); `c609475` (SQLite/PostgreSQL test
+  profile correction); `180db82` (three-viewport archive accessibility coverage). Checkpoint
+  record commit follows this entry.
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable; pinned Playwright Chromium was
+  used as the real-browser fallback. SQLite Unicode case folding is not accepted as production
+  evidence and is explicitly isolated/documented. `.codegraph/` remains a pre-existing unrelated
+  untracked directory and was not modified or committed. No CP-CASE-D blocker remains. The next
+  eligible tasks are `CASE-010` and `CASE-011` under `CP-CASE-E`; neither was started.
