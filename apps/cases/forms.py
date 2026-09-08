@@ -21,6 +21,84 @@ from apps.cases.models import (
 FIELD_CONTROL = "field-control"
 
 
+CASE_SORT_CHOICES = (
+    ("updated", _("Last updated (ascending)")),
+    ("-updated", _("Last updated (descending)")),
+    ("created", _("Created date (ascending)")),
+    ("-created", _("Created date (descending)")),
+    ("acceptance_date", _("Acceptance date (ascending)")),
+    ("-acceptance_date", _("Acceptance date (descending)")),
+    ("acceptance_number", _("Acceptance number (ascending)")),
+    ("-acceptance_number", _("Acceptance number (descending)")),
+    ("court", _("Court (ascending)")),
+    ("-court", _("Court (descending)")),
+    ("matter_type", _("Matter type (ascending)")),
+    ("-matter_type", _("Matter type (descending)")),
+)
+CASE_PAGE_SIZE_CHOICES = ((10, "10"), (25, "25"), (50, "50"), (100, "100"))
+
+
+class CaseListQueryForm(forms.Form):
+    """Canonical, bounded contract for read-only case discovery."""
+
+    q = forms.CharField(required=False, max_length=100, strip=True, label=_("Search"))
+    court = forms.ModelChoiceField(
+        required=False,
+        queryset=Court.objects.order_by("full_name", "code"),
+        label=_("Court"),
+    )
+    status = forms.ChoiceField(
+        required=False,
+        choices=(("", _("All statuses")), *CaseRecord.Status.choices),
+        label=_("Case status"),
+    )
+    procedural_stage = forms.ChoiceField(
+        required=False,
+        choices=(("", _("All procedural stages")), *CaseRecord.ProceduralStage.choices),
+        label=_("Procedural stage"),
+    )
+    acceptance_type_code = forms.CharField(required=False, max_length=32, strip=True)
+    acceptance_year = forms.IntegerField(required=False, min_value=1900, max_value=9999)
+    acceptance_date_from = forms.DateField(required=False)
+    acceptance_date_to = forms.DateField(required=False)
+    archive_state = forms.ChoiceField(
+        required=False,
+        choices=(("all", _("All archive states")), *CaseRecord.Status.choices),
+        label=_("Archive state"),
+    )
+    sort = forms.ChoiceField(required=False, choices=CASE_SORT_CHOICES)
+    page = forms.IntegerField(required=False, min_value=1)
+    page_size = forms.TypedChoiceField(
+        required=False,
+        choices=CASE_PAGE_SIZE_CHOICES,
+        coerce=int,
+        empty_value=None,
+    )
+
+    def clean_archive_state(self) -> str:
+        return self.cleaned_data.get("archive_state") or "all"
+
+    def clean_sort(self) -> str:
+        return self.cleaned_data.get("sort") or "-updated"
+
+    def clean_page(self) -> int:
+        return self.cleaned_data.get("page") or 1
+
+    def clean_page_size(self) -> int:
+        return self.cleaned_data.get("page_size") or 25
+
+    def clean(self) -> dict[str, Any]:
+        cleaned_data = super().clean() or {}
+        date_from = cleaned_data.get("acceptance_date_from")
+        date_to = cleaned_data.get("acceptance_date_to")
+        if date_from and date_to and date_from > date_to:
+            self.add_error(
+                "acceptance_date_to",
+                _("The end date cannot be before the start date."),
+            )
+        return cleaned_data
+
+
 class ReferenceListFilterForm(forms.Form):
     q = forms.CharField(
         label=_("Search"),
