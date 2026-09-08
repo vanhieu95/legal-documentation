@@ -9,6 +9,7 @@
     {% if messages %}{% for message in messages %}<div class="alert alert-success" role="status">{{ message }}</div>{% endfor %}{% endif %}
     <header class="case-overview-header">
       <div><p class="eyebrow">{% translate "Civil matter" %}</p><h1 class="gallery-title">{{ case.internal_reference }}</h1></div>
+      {% if can_edit %}<a class="button button-primary" href="{% url 'cases:edit' case.pk %}">{% translate "Edit case" %}</a>{% endif %}
     </header>
     <section class="surface" aria-labelledby="case-summary-heading">
       <h2 id="case-summary-heading" class="surface-title">{% translate "Overview" %}</h2>

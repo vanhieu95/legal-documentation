@@ -27,6 +27,7 @@ from apps.accounts.policies import (
 from apps.audit.actions import AuditAction
 from apps.cases.audit import record_case_failure, record_reference_validation_failure
 from apps.cases.forms import (
+    CaseRecordEditForm,
     CaseRecordForm,
     CourtForm,
     EntityAddressForm,
@@ -43,6 +44,7 @@ from apps.cases.selectors import (
     list_references,
 )
 from apps.cases.services import (
+    CaseRevisionConflict,
     create_address,
     create_case,
     create_court,
@@ -53,6 +55,7 @@ from apps.cases.services import (
     deactivate_entity,
     deactivate_official,
     update_address,
+    update_case,
     update_court,
     update_entity,
     update_official,
@@ -164,14 +167,32 @@ def _case_object(
 
 
 def _render_case_form(
-    request: HttpRequest, *, form: CaseRecordForm, status: int = 200
+    request: HttpRequest,
+    *,
+    form: CaseRecordForm,
+    case: CaseRecord | None = None,
+    conflict: bool = False,
+    status: int = 200,
 ) -> HttpResponse:
+    if case is None:
+        page_title = gettext("Create case")
+        form_action = reverse("cases:create")
+        cancel_url = reverse("cases:list")
+        submit_label = gettext("Create case")
+    else:
+        page_title = gettext("Edit case")
+        form_action = reverse("cases:edit", kwargs={"case_id": case.pk})
+        cancel_url = reverse("cases:detail", kwargs={"case_id": case.pk})
+        submit_label = gettext("Save case")
     context = {
         "form": form,
+        "case": case,
+        "conflict": conflict,
         "is_htmx": _is_htmx(request),
-        "page_title": gettext("Create case"),
-        "form_action": reverse("cases:create"),
-        "cancel_url": reverse("cases:list"),
+        "page_title": page_title,
+        "form_action": form_action,
+        "cancel_url": cancel_url,
+        "submit_label": submit_label,
     }
     template = "cases/_case_form.html" if _is_htmx(request) else "cases/form.html"
     return _vary(render(request, template, context, status=status))
@@ -294,9 +315,60 @@ def case_detail(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
         render(
             request,
             "cases/detail.html",
-            {"case": case, "page_title": gettext("Case overview")},
+            {
+                "case": case,
+                "page_title": gettext("Case overview"),
+                "can_edit": application_access_policy.has_permission(
+                    _user(request), ApplicationPermission.CHANGE_CASES
+                ),
+            },
         )
     )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.CHANGE_CASES)
+def case_edit(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
+    case = _case_object(request, case_id, ApplicationPermission.CHANGE_CASES)
+    form = CaseRecordEditForm(request.POST or None, instance=case)
+    if request.method == "POST":
+        correlation_id = get_request_correlation_id(request)
+        if form.is_valid():
+            try:
+                update_case(
+                    actor=_user(request),
+                    case_id=case.pk,
+                    form=form,
+                    correlation_id=correlation_id,
+                )
+            except CaseRevisionConflict:
+                return _render_case_form(
+                    request,
+                    form=form,
+                    case=case,
+                    conflict=True,
+                    status=409,
+                )
+            messages.success(request, gettext("Case updated."))
+            destination = reverse("cases:detail", kwargs={"case_id": case.pk})
+            if _is_htmx(request):
+                return _vary(HttpResponse(status=204, headers={"HX-Redirect": destination}))
+            return _vary(redirect(destination))
+        record_case_failure(
+            actor=_user(request),
+            action=AuditAction.CASE_UPDATED,
+            target_id=str(case.pk),
+            correlation_id=correlation_id,
+            reason_code="validation_error",
+        )
+        return _render_case_form(
+            request,
+            form=form,
+            case=case,
+            status=422 if _is_htmx(request) else 200,
+        )
+    return _render_case_form(request, form=form, case=case)
 
 
 @never_cache

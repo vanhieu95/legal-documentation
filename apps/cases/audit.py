@@ -63,13 +63,21 @@ def record_case_success(
 
 
 def record_case_failure(
-    *, actor: User, action: AuditAction, correlation_id: str, reason_code: str
+    *,
+    actor: User,
+    action: AuditAction,
+    correlation_id: str,
+    reason_code: str,
+    target_id: str = "",
 ) -> None:
     record_audit_event(
         action=action,
         outcome=AuditOutcome.FAILURE,
         actor=actor,
-        target=AuditTarget(type=AuditTargetType.APPLICATION),
+        target=AuditTarget(
+            type=AuditTargetType.CASE if target_id else AuditTargetType.APPLICATION,
+            id=target_id,
+        ),
         correlation_id=correlation_id,
         metadata={"reason_code": reason_code},
     )

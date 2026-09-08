@@ -197,7 +197,7 @@
     referenceDialogTrigger = null;
   });
 
-  const errorSummary = document.querySelector("[data-error-summary]");
+  const errorSummary = document.querySelector("[data-error-summary], [data-conflict-summary]");
   if (errorSummary instanceof HTMLElement) {
     errorSummary.focus();
   }

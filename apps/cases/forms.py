@@ -213,6 +213,19 @@ class CaseRecordForm(ReferenceModelForm):
         court_field.queryset = queryset.order_by("full_name")
 
 
+class CaseRecordEditForm(CaseRecordForm):
+    expected_revision = forms.IntegerField(
+        min_value=1,
+        widget=forms.HiddenInput,
+        label=_("Expected revision"),
+    )
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if not self.is_bound and self.instance.pk:
+            self.initial["expected_revision"] = self.instance.revision
+
+
 class CaseParticipantForm(ReferenceModelForm):
     class Meta:
         model = CaseParticipant

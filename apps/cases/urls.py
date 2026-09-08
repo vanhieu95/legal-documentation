@@ -8,6 +8,7 @@ urlpatterns = [
     path("cases/", views.case_list_placeholder, name="list"),
     path("cases/new/", views.case_create, name="create"),
     path("cases/<uuid:case_id>/", views.case_detail, name="detail"),
+    path("cases/<uuid:case_id>/edit/", views.case_edit, name="edit"),
     path(
         "case-references/<str:reference_type>/",
         views.reference_list,

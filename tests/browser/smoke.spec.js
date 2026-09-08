@@ -18,6 +18,17 @@ async function signInAsAdministrator(page) {
   await expect(page).toHaveURL(/\/dashboard\/$/);
 }
 
+async function createSyntheticCase(page, label) {
+  await page.goto("/cases/new/");
+  await page.locator('[name="internal_reference"]').fill(`SYN-${label}-${Date.now()}`);
+  await page.locator('[name="court"]').selectOption({ label: "SYN-BROWSER — TAND thử nghiệm" });
+  await page.locator('[name="matter_type"]').fill("Yêu cầu dân sự ban đầu");
+  await page.locator('[name="procedural_stage"]').selectOption("pre_acceptance");
+  await page.getByRole("button", { name: "Tạo hồ sơ việc dân sự" }).click();
+  await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
+  return page.url();
+}
+
 async function expectNoPageOverflow(page) {
   const overflow = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -527,6 +538,72 @@ test("case creation and detail remain usable without JavaScript", async ({ brows
   await expect(page.locator("html")).toHaveClass("no-js");
   await expect(page.getByText("Yêu cầu không JavaScript")).toBeVisible();
   await expectNoPageOverflow(page);
+  await context.close();
+});
+
+test("two enhanced tabs recover safely from an optimistic case-edit conflict", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "BROWSER-CONFLICT");
+  const editUrl = `${detailUrl}edit/`;
+  const secondTab = await page.context().newPage();
+  await Promise.all([page.goto(editUrl), secondTab.goto(editUrl)]);
+  await expect(page.locator('[name="expected_revision"]')).toHaveValue("1");
+  await expect(secondTab.locator('[name="expected_revision"]')).toHaveValue("1");
+
+  await page.locator('[name="matter_type"]').fill("Giá trị đã lưu từ tab thứ nhất");
+  await secondTab.locator('[name="matter_type"]').fill("Giá trị đang chờ từ tab thứ hai");
+  await page.getByRole("button", { name: "Lưu hồ sơ" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(detailUrl);
+  await secondTab.getByRole("button", { name: "Lưu hồ sơ" }).click();
+
+  const conflict = secondTab.locator("[data-conflict-summary]");
+  await expect(conflict).toBeFocused();
+  await expect(secondTab.locator('[name="matter_type"]')).toHaveValue(
+    "Giá trị đang chờ từ tab thứ hai",
+  );
+  await expect(secondTab.locator('[name="expected_revision"]')).toHaveValue("1");
+  await expectNoPageOverflow(secondTab);
+  await secondTab.getByRole("link", { name: "Tải lại hồ sơ mới nhất" }).click();
+  await expect(secondTab.locator('[name="matter_type"]')).toHaveValue(
+    "Giá trị đã lưu từ tab thứ nhất",
+  );
+  await expect(secondTab.locator('[name="expected_revision"]')).toHaveValue("2");
+  await secondTab.close();
+});
+
+test("case editing and full-page conflict recovery work without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 1440, height: 900 },
+  });
+  const firstTab = await context.newPage();
+  await signInAsAdministrator(firstTab);
+  const detailUrl = await createSyntheticCase(firstTab, "BROWSER-NOJS-EDIT");
+  const editUrl = `${detailUrl}edit/`;
+  const secondTab = await context.newPage();
+  await Promise.all([firstTab.goto(editUrl), secondTab.goto(editUrl)]);
+
+  await firstTab.locator('[name="matter_type"]').fill("Giá trị không JavaScript đã lưu");
+  await secondTab.locator('[name="matter_type"]').fill("Giá trị không JavaScript bị xung đột");
+  await firstTab.getByRole("button", { name: "Lưu hồ sơ" }).click();
+  await expect(firstTab).toHaveURL(detailUrl);
+  const conflictResponse = await Promise.all([
+    secondTab.waitForNavigation(),
+    secondTab.getByRole("button", { name: "Lưu hồ sơ" }).click(),
+  ]);
+
+  expect(conflictResponse[0].status()).toBe(409);
+  await expect(secondTab.locator("html")).toHaveClass("no-js");
+  await expect(secondTab.locator("[data-conflict-summary]")).toBeVisible();
+  await expect(secondTab.locator('[name="matter_type"]')).toHaveValue(
+    "Giá trị không JavaScript bị xung đột",
+  );
+  await secondTab.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
+  await expectNoPageOverflow(secondTab);
   await context.close();
 });
 

@@ -5,7 +5,8 @@ from typing import cast
 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
+from django.utils import timezone
 
 from apps.accounts.policies import (
     ApplicationPermission,
@@ -13,10 +14,21 @@ from apps.accounts.policies import (
     service_permission_required,
 )
 from apps.audit.actions import AuditAction, AuditTargetType
-from apps.cases.audit import record_case_success, record_reference_success
-from apps.cases.forms import CaseRecordForm, CourtForm, EntityAddressForm, EntityForm, OfficialForm
+from apps.cases.audit import record_case_failure, record_case_success, record_reference_success
+from apps.cases.forms import (
+    CaseRecordEditForm,
+    CaseRecordForm,
+    CourtForm,
+    EntityAddressForm,
+    EntityForm,
+    OfficialForm,
+)
 from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
-from apps.cases.policies import ReferenceObjectPolicy
+from apps.cases.policies import ReferenceObjectPolicy, case_object_policy
+
+
+class CaseRevisionConflict(Exception):
+    """The submitted case revision no longer matches durable state."""
 
 
 def _changed_fields(form: CourtForm | EntityForm | EntityAddressForm | OfficialForm) -> list[str]:
@@ -49,6 +61,64 @@ def create_case(*, actor: User, form: CaseRecordForm, correlation_id: str) -> Ca
         correlation_id=correlation_id,
     )
     return case
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseRecordEditForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Atomically update a case only when its expected revision still matches."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    rebound = CaseRecordEditForm(data=form.data, instance=case)
+    if not rebound.is_valid():
+        raise ValueError("A valid case edit form is required.")
+
+    editable_fields = tuple(CaseRecordForm.Meta.fields)
+    changed_fields = [name for name in rebound.changed_data if name in editable_fields]
+    updates = {name: rebound.cleaned_data[name] for name in editable_fields}
+    updates.update(
+        revision=F("revision") + 1,
+        last_edited_by=actor,
+        updated_at=timezone.now(),
+    )
+    expected_revision = rebound.cleaned_data["expected_revision"]
+
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case_id,
+            revision=expected_revision,
+        ).update(**updates)
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_UPDATED,
+                target_id=str(case_id),
+                correlation_id=correlation_id,
+                changed_fields=changed_fields,
+            )
+
+    if updated_count != 1:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="revision_conflict",
+        )
+        raise CaseRevisionConflict
+    return CaseRecord.objects.select_related("court", "created_by", "last_edited_by").get(
+        pk=case_id
+    )
 
 
 def _get_reference[TReference: Court | Entity | EntityAddress | Official](
