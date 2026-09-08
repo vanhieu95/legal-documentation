@@ -4,6 +4,7 @@ import uuid
 from typing import cast
 
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import F, QuerySet
 from django.utils import timezone
@@ -16,15 +17,17 @@ from apps.accounts.policies import (
 from apps.audit.actions import AuditAction, AuditTargetType
 from apps.cases.audit import record_case_failure, record_case_success, record_reference_success
 from apps.cases.forms import (
+    CaseArchiveForm,
     CaseRecordEditForm,
     CaseRecordForm,
+    CaseRestoreForm,
     CourtForm,
     EntityAddressForm,
     EntityForm,
     OfficialForm,
 )
 from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
-from apps.cases.policies import ReferenceObjectPolicy, case_object_policy
+from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_object_policy
 
 
 class CaseRevisionConflict(Exception):
@@ -79,6 +82,8 @@ def update_case(
         object_policy=case_object_policy,
         pk=case_id,
     )
+    if not can_edit_case(case):
+        raise PermissionDenied
     rebound = CaseRecordEditForm(data=form.data, instance=case)
     if not rebound.is_valid():
         raise ValueError("A valid case edit form is required.")
@@ -119,6 +124,141 @@ def update_case(
     return CaseRecord.objects.select_related("court", "created_by", "last_edited_by").get(
         pk=case_id
     )
+
+
+CASE_ARCHIVE_CHANGED_FIELDS = ("status", "archived_by", "archived_at", "archive_reason")
+
+
+def _transition_conflict(
+    *,
+    actor: User,
+    action: AuditAction,
+    case_id: uuid.UUID,
+    expected_status: str,
+    correlation_id: str,
+    reason_supplied: bool | None = None,
+) -> None:
+    current = CaseRecord.objects.only("status").get(pk=case_id)
+    reason_code = "state_conflict" if current.status != expected_status else "revision_conflict"
+    record_case_failure(
+        actor=actor,
+        action=action,
+        target_id=str(case_id),
+        correlation_id=correlation_id,
+        reason_code=reason_code,
+        reason_supplied=reason_supplied,
+    )
+    raise CaseRevisionConflict
+
+
+@service_permission_required(ApplicationPermission.ARCHIVE_CASES)
+def archive_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseArchiveForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Archive an active case with one atomic compare-and-swap update."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.ARCHIVE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    rebound = CaseArchiveForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case archive form is required.")
+    expected_revision = rebound.cleaned_data["expected_revision"]
+    now = timezone.now()
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case.pk,
+            status=CaseRecord.Status.ACTIVE,
+            revision=expected_revision,
+        ).update(
+            status=CaseRecord.Status.ARCHIVED,
+            archived_by=actor,
+            archived_at=now,
+            archive_reason=rebound.cleaned_data["reason"],
+            revision=F("revision") + 1,
+            last_edited_by=actor,
+            updated_at=now,
+        )
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_ARCHIVED,
+                target_id=str(case.pk),
+                correlation_id=correlation_id,
+                changed_fields=CASE_ARCHIVE_CHANGED_FIELDS,
+                metadata={"reason_supplied": True},
+            )
+    if updated_count != 1:
+        _transition_conflict(
+            actor=actor,
+            action=AuditAction.CASE_ARCHIVED,
+            case_id=case.pk,
+            expected_status=CaseRecord.Status.ACTIVE,
+            correlation_id=correlation_id,
+            reason_supplied=True,
+        )
+    return CaseRecord.objects.get(pk=case.pk)
+
+
+@service_permission_required(ApplicationPermission.RESTORE_CASES)
+def restore_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseRestoreForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Restore an archived case under the current-state archive metadata contract."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.RESTORE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    rebound = CaseRestoreForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case restore form is required.")
+    expected_revision = rebound.cleaned_data["expected_revision"]
+    now = timezone.now()
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case.pk,
+            status=CaseRecord.Status.ARCHIVED,
+            revision=expected_revision,
+        ).update(
+            status=CaseRecord.Status.ACTIVE,
+            archived_by=None,
+            archived_at=None,
+            archive_reason="",
+            revision=F("revision") + 1,
+            last_edited_by=actor,
+            updated_at=now,
+        )
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_RESTORED,
+                target_id=str(case.pk),
+                correlation_id=correlation_id,
+                changed_fields=CASE_ARCHIVE_CHANGED_FIELDS,
+            )
+    if updated_count != 1:
+        _transition_conflict(
+            actor=actor,
+            action=AuditAction.CASE_RESTORED,
+            case_id=case.pk,
+            expected_status=CaseRecord.Status.ARCHIVED,
+            correlation_id=correlation_id,
+        )
+    return CaseRecord.objects.get(pk=case.pk)
 
 
 def _get_reference[TReference: Court | Entity | EntityAddress | Official](

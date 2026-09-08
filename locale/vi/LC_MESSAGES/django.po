@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-08 11:09+0700\n"
+"POT-Creation-Date: 2026-09-08 14:09+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -21,8 +21,9 @@ msgstr ""
 msgid "Dashboard"
 msgstr "Bảng điều khiển"
 
-#: apps/accounts/context_processors.py:26 apps/cases/views.py:279
+#: apps/accounts/context_processors.py:26 apps/cases/views.py:284
 #: templates/cases/detail.html:5 templates/cases/form.html:5
+#: templates/cases/transition.html:5
 msgid "Cases"
 msgstr "Hồ sơ việc dân sự"
 
@@ -218,7 +219,7 @@ msgstr "Ngày sinh"
 msgid "Organization type"
 msgstr "Loại hình tổ chức"
 
-#: apps/cases/forms.py:135 apps/cases/forms.py:249 apps/cases/views.py:97
+#: apps/cases/forms.py:135 apps/cases/forms.py:270 apps/cases/views.py:102
 msgid "Entity"
 msgstr "Chủ thể"
 
@@ -270,20 +271,20 @@ msgstr "Vị trí công tác"
 msgid "Internal reference"
 msgstr "Mã tham chiếu nội bộ"
 
-#: apps/cases/forms.py:198 apps/cases/views.py:84
-#: templates/cases/detail.html:17
+#: apps/cases/forms.py:198 apps/cases/views.py:89
+#: templates/cases/detail.html:21
 msgid "Court"
 msgstr "Tòa án"
 
-#: apps/cases/forms.py:199 templates/cases/detail.html:18
+#: apps/cases/forms.py:199 templates/cases/detail.html:22
 msgid "Matter type"
 msgstr "Loại việc dân sự"
 
-#: apps/cases/forms.py:200 templates/cases/detail.html:19
+#: apps/cases/forms.py:200 templates/cases/detail.html:23
 msgid "Procedural stage"
 msgstr "Giai đoạn tố tụng"
 
-#: apps/cases/forms.py:201 templates/cases/detail.html:23
+#: apps/cases/forms.py:201 templates/cases/detail.html:27
 msgid "Acceptance number"
 msgstr "Số thụ lý"
 
@@ -291,7 +292,7 @@ msgstr "Số thụ lý"
 msgid "Acceptance year"
 msgstr "Năm thụ lý"
 
-#: apps/cases/forms.py:203 templates/cases/detail.html:24
+#: apps/cases/forms.py:203 templates/cases/detail.html:28
 msgid "Acceptance date"
 msgstr "Ngày thụ lý"
 
@@ -299,83 +300,87 @@ msgstr "Ngày thụ lý"
 msgid "Acceptance type code"
 msgstr "Mã loại thụ lý"
 
-#: apps/cases/forms.py:220
+#: apps/cases/forms.py:220 apps/cases/forms.py:233
 msgid "Expected revision"
 msgstr "Phiên bản dự kiến"
 
-#: apps/cases/forms.py:250
+#: apps/cases/forms.py:241
+msgid "Archive reason"
+msgstr "Lý do lưu trữ"
+
+#: apps/cases/forms.py:271
 msgid "Participant role"
 msgstr "Vai trò tham gia tố tụng"
 
-#: apps/cases/forms.py:251
+#: apps/cases/forms.py:272
 msgid "Case-specific address"
 msgstr "Địa chỉ theo vụ việc"
 
-#: apps/cases/forms.py:252
+#: apps/cases/forms.py:273
 msgid "Case-specific workplace"
 msgstr "Nơi làm việc theo vụ việc"
 
-#: apps/cases/forms.py:253
+#: apps/cases/forms.py:274
 msgid "Case-specific contact"
 msgstr "Thông tin liên hệ theo vụ việc"
 
-#: apps/cases/forms.py:254 apps/cases/forms.py:402
+#: apps/cases/forms.py:275 apps/cases/forms.py:423
 msgid "Ordering"
 msgstr "Thứ tự"
 
-#: apps/cases/forms.py:255 apps/cases/forms.py:403
+#: apps/cases/forms.py:276 apps/cases/forms.py:424
 msgid "Effective from"
 msgstr "Có hiệu lực từ"
 
-#: apps/cases/forms.py:256 apps/cases/forms.py:404
+#: apps/cases/forms.py:277 apps/cases/forms.py:425
 msgid "Effective to"
 msgstr "Có hiệu lực đến"
 
-#: apps/cases/forms.py:285
+#: apps/cases/forms.py:306
 msgid "Representative"
 msgstr "Người đại diện"
 
-#: apps/cases/forms.py:286
+#: apps/cases/forms.py:307
 msgid "Represented participant"
 msgstr "Người tham gia tố tụng được đại diện"
 
-#: apps/cases/forms.py:287
+#: apps/cases/forms.py:308
 msgid "Representation type"
 msgstr "Loại đại diện"
 
-#: apps/cases/forms.py:288
+#: apps/cases/forms.py:309
 msgid "Authority reference"
 msgstr "Căn cứ đại diện"
 
-#: apps/cases/forms.py:289
+#: apps/cases/forms.py:310
 msgid "Authority date"
 msgstr "Ngày xác lập quyền đại diện"
 
-#: apps/cases/forms.py:290
+#: apps/cases/forms.py:311
 msgid "Description"
 msgstr "Mô tả"
 
-#: apps/cases/forms.py:400 apps/cases/views.py:123
+#: apps/cases/forms.py:421 apps/cases/views.py:128
 msgid "Official"
 msgstr "Người tiến hành tố tụng"
 
-#: apps/cases/forms.py:401
+#: apps/cases/forms.py:422
 msgid "Procedural role"
 msgstr "Vai trò tố tụng"
 
-#: apps/cases/forms.py:425
+#: apps/cases/forms.py:446
 msgid "Instance level"
 msgstr "Cấp xét xử"
 
-#: apps/cases/forms.py:426
+#: apps/cases/forms.py:447
 msgid "Scheduled date and time"
 msgstr "Ngày giờ dự kiến"
 
-#: apps/cases/forms.py:427
+#: apps/cases/forms.py:448
 msgid "Location"
 msgstr "Địa điểm"
 
-#: apps/cases/forms.py:428 templates/cases/detail.html:20
+#: apps/cases/forms.py:449 templates/cases/detail.html:24
 #: templates/components/table.html:10
 msgid "Status"
 msgstr "Trạng thái"
@@ -594,86 +599,118 @@ msgstr "Đã hủy"
 msgid "The scheduled datetime must include a timezone."
 msgstr "Ngày giờ dự kiến phải bao gồm múi giờ."
 
-#: apps/cases/views.py:85
+#: apps/cases/views.py:90
 msgid "Courts"
 msgstr "Tòa án"
 
-#: apps/cases/views.py:98
+#: apps/cases/views.py:103
 msgid "Entities"
 msgstr "Chủ thể"
 
-#: apps/cases/views.py:110
+#: apps/cases/views.py:115
 msgid "Address"
 msgstr "Địa chỉ"
 
-#: apps/cases/views.py:111
+#: apps/cases/views.py:116
 msgid "Addresses"
 msgstr "Địa chỉ"
 
-#: apps/cases/views.py:124
+#: apps/cases/views.py:129
 msgid "Officials"
 msgstr "Người tiến hành tố tụng"
 
-#: apps/cases/views.py:178 apps/cases/views.py:181
+#: apps/cases/views.py:183 apps/cases/views.py:186
 msgid "Create case"
 msgstr "Tạo hồ sơ việc dân sự"
 
-#: apps/cases/views.py:183 templates/cases/detail.html:12
+#: apps/cases/views.py:188 templates/cases/detail.html:13
 msgid "Edit case"
 msgstr "Chỉnh sửa hồ sơ"
 
-#: apps/cases/views.py:186
+#: apps/cases/views.py:191
 msgid "Save case"
 msgstr "Lưu hồ sơ"
 
-#: apps/cases/views.py:220
+#: apps/cases/views.py:225
 #, python-format
 msgid "%(kind)s for %(entity)s"
 msgstr "%(kind)s của %(entity)s"
 
-#: apps/cases/views.py:226
+#: apps/cases/views.py:231
 msgid "Reference record"
 msgstr "Dữ liệu tham chiếu"
 
-#: apps/cases/views.py:252
+#: apps/cases/views.py:257
 #, python-format
 msgid "Create %(type)s"
 msgstr "Tạo %(type)s"
 
-#: apps/cases/views.py:252
+#: apps/cases/views.py:257
 #, python-format
 msgid "Edit %(type)s"
 msgstr "Chỉnh sửa %(type)s"
 
-#: apps/cases/views.py:280
+#: apps/cases/views.py:285
 msgid "Case management is not available yet."
 msgstr "Chức năng quản lý hồ sơ việc dân sự chưa khả dụng."
 
-#: apps/cases/views.py:294
+#: apps/cases/views.py:299
 msgid "Case created."
 msgstr "Đã tạo hồ sơ việc dân sự."
 
-#: apps/cases/views.py:320
+#: apps/cases/views.py:325
 msgid "Case overview"
 msgstr "Tổng quan hồ sơ việc dân sự"
 
-#: apps/cases/views.py:353
+#: apps/cases/views.py:369
 msgid "Case updated."
 msgstr "Đã cập nhật hồ sơ việc dân sự."
 
-#: apps/cases/views.py:428
+#: apps/cases/views.py:406 templates/cases/detail.html:14
+msgid "Archive case"
+msgstr "Lưu trữ hồ sơ"
+
+#: apps/cases/views.py:406 templates/cases/detail.html:15
+msgid "Restore case"
+msgstr "Khôi phục hồ sơ"
+
+#: apps/cases/views.py:407
+msgid "Confirm archive"
+msgstr "Xác nhận lưu trữ"
+
+#: apps/cases/views.py:409
+msgid "Confirm restore"
+msgstr "Xác nhận khôi phục"
+
+#: apps/cases/views.py:410
+msgid "Archiving…"
+msgstr "Đang lưu trữ…"
+
+#: apps/cases/views.py:410
+msgid "Restoring…"
+msgstr "Đang khôi phục…"
+
+#: apps/cases/views.py:458
+msgid "Case archived."
+msgstr "Đã lưu trữ hồ sơ việc dân sự."
+
+#: apps/cases/views.py:458
+msgid "Case restored."
+msgstr "Đã khôi phục hồ sơ việc dân sự."
+
+#: apps/cases/views.py:560
 msgid "Reference record created."
 msgstr "Đã tạo dữ liệu tham chiếu."
 
-#: apps/cases/views.py:469
+#: apps/cases/views.py:601
 msgid "Reference record updated."
 msgstr "Đã cập nhật dữ liệu tham chiếu."
 
-#: apps/cases/views.py:510
+#: apps/cases/views.py:642
 msgid "Reference record deactivated."
 msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 
-#: apps/cases/views.py:518
+#: apps/cases/views.py:650
 #, python-format
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
@@ -902,6 +939,7 @@ msgid "Reload the latest case"
 msgstr "Tải lại hồ sơ mới nhất"
 
 #: templates/cases/_case_form.html:13
+#: templates/cases/_case_transition_form.html:12
 #: templates/cases/references/_reference_form.html:6
 msgid "Correct the highlighted fields"
 msgstr "Vui lòng sửa các trường được đánh dấu"
@@ -912,6 +950,8 @@ msgid "Saving…"
 msgstr "Đang lưu…"
 
 #: templates/cases/_case_form.html:34
+#: templates/cases/_case_transition_form.html:37
+#: templates/cases/_case_transition_form.html:38
 #: templates/cases/references/_deactivate_form.html:10
 #: templates/cases/references/_deactivate_form.html:11
 #: templates/cases/references/_reference_form.html:25
@@ -919,39 +959,60 @@ msgstr "Đang lưu…"
 msgid "Cancel"
 msgstr "Hủy"
 
+#: templates/cases/_case_transition_form.html:6
+msgid "This case changed before the action could be completed."
+msgstr "Hồ sơ đã thay đổi trước khi thao tác có thể hoàn tất."
+
+#: templates/cases/_case_transition_form.html:7
+msgid "Reload the case and confirm the action again."
+msgstr "Hãy tải lại hồ sơ và xác nhận lại thao tác."
+
+#: templates/cases/_case_transition_form.html:21
+msgid ""
+"The case will remain viewable, but editing and new document generation will "
+"be unavailable until it is restored."
+msgstr ""
+"Hồ sơ vẫn có thể xem, nhưng không thể chỉnh sửa hoặc tạo văn bản mới cho đến "
+"khi được khôi phục."
+
+#: templates/cases/_case_transition_form.html:23
+msgid ""
+"The case will return to active editing and document-generation eligibility."
+msgstr "Hồ sơ sẽ có thể được chỉnh sửa và dùng để tạo văn bản trở lại."
+
 #: templates/cases/detail.html:11
 msgid "Civil matter"
 msgstr "Việc dân sự"
 
-#: templates/cases/detail.html:15
+#: templates/cases/detail.html:19
 msgid "Overview"
 msgstr "Tổng quan"
 
-#: templates/cases/detail.html:21
+#: templates/cases/detail.html:25
 msgid "Revision"
 msgstr "Phiên bản"
 
-#: templates/cases/detail.html:29
+#: templates/cases/detail.html:33
 msgid "Related records"
 msgstr "Dữ liệu liên quan"
 
-#: templates/cases/detail.html:31
+#: templates/cases/detail.html:35
 msgid "Participants"
 msgstr "Người tham gia tố tụng"
 
-#: templates/cases/detail.html:32
+#: templates/cases/detail.html:36
 msgid "Representations"
 msgstr "Quan hệ đại diện"
 
-#: templates/cases/detail.html:33
+#: templates/cases/detail.html:37
 msgid "Official assignments"
 msgstr "Phân công người tiến hành tố tụng"
 
-#: templates/cases/detail.html:34
+#: templates/cases/detail.html:38
 msgid "Hearings"
 msgstr "Phiên họp"
 
-#: templates/cases/detail.html:36
+#: templates/cases/detail.html:40
 msgid "Related-record editing will be available in a later workflow."
 msgstr "Việc chỉnh sửa dữ liệu liên quan sẽ có trong quy trình sau."
 

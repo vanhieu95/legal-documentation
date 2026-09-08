@@ -8,6 +8,7 @@ from typing import Any, cast
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError, models
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -27,8 +28,10 @@ from apps.accounts.policies import (
 from apps.audit.actions import AuditAction
 from apps.cases.audit import record_case_failure, record_reference_validation_failure
 from apps.cases.forms import (
+    CaseArchiveForm,
     CaseRecordEditForm,
     CaseRecordForm,
+    CaseRestoreForm,
     CourtForm,
     EntityAddressForm,
     EntityForm,
@@ -36,7 +39,7 @@ from apps.cases.forms import (
     ReferenceListFilterForm,
 )
 from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
-from apps.cases.policies import ReferenceObjectPolicy, case_object_policy
+from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_object_policy
 from apps.cases.selectors import (
     ReferenceListPage,
     ReferenceType,
@@ -45,6 +48,7 @@ from apps.cases.selectors import (
 )
 from apps.cases.services import (
     CaseRevisionConflict,
+    archive_case,
     create_address,
     create_case,
     create_court,
@@ -54,6 +58,7 @@ from apps.cases.services import (
     deactivate_court,
     deactivate_entity,
     deactivate_official,
+    restore_case,
     update_address,
     update_case,
     update_court,
@@ -318,8 +323,17 @@ def case_detail(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
             {
                 "case": case,
                 "page_title": gettext("Case overview"),
-                "can_edit": application_access_policy.has_permission(
+                "can_edit": can_edit_case(case)
+                and application_access_policy.has_permission(
                     _user(request), ApplicationPermission.CHANGE_CASES
+                ),
+                "can_archive": can_edit_case(case)
+                and application_access_policy.has_permission(
+                    _user(request), ApplicationPermission.ARCHIVE_CASES
+                ),
+                "can_restore": not can_edit_case(case)
+                and application_access_policy.has_permission(
+                    _user(request), ApplicationPermission.RESTORE_CASES
                 ),
             },
         )
@@ -331,6 +345,8 @@ def case_detail(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
 @application_permission_required(ApplicationPermission.CHANGE_CASES)
 def case_edit(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
     case = _case_object(request, case_id, ApplicationPermission.CHANGE_CASES)
+    if not can_edit_case(case):
+        raise PermissionDenied
     form = CaseRecordEditForm(request.POST or None, instance=case)
     if request.method == "POST":
         correlation_id = get_request_correlation_id(request)
@@ -369,6 +385,120 @@ def case_edit(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
             status=422 if _is_htmx(request) else 200,
         )
     return _render_case_form(request, form=form, case=case)
+
+
+def _render_case_transition(
+    request: HttpRequest,
+    *,
+    case: CaseRecord,
+    form: CaseArchiveForm | CaseRestoreForm,
+    operation: str,
+    conflict: bool = False,
+    status: int = 200,
+) -> HttpResponse:
+    is_archive = operation == "archive"
+    context = {
+        "case": case,
+        "form": form,
+        "operation": operation,
+        "conflict": conflict,
+        "is_htmx": _is_htmx(request),
+        "page_title": gettext("Archive case") if is_archive else gettext("Restore case"),
+        "submit_label": gettext("Confirm archive") if is_archive else gettext("Confirm restore"),
+        "busy_label": gettext("Archiving…") if is_archive else gettext("Restoring…"),
+        "form_action": reverse(f"cases:{operation}", kwargs={"case_id": case.pk}),
+        "cancel_url": reverse("cases:detail", kwargs={"case_id": case.pk}),
+    }
+    template = "cases/_case_transition_form.html" if _is_htmx(request) else "cases/transition.html"
+    return _vary(render(request, template, context, status=status))
+
+
+def _case_transition(
+    request: HttpRequest,
+    *,
+    case_id: uuid.UUID,
+    operation: str,
+    permission: ApplicationPermission,
+) -> HttpResponse:
+    case = _case_object(request, case_id, permission)
+    is_archive = operation == "archive"
+    form_class = CaseArchiveForm if is_archive else CaseRestoreForm
+    form = form_class(request.POST or None, initial={"expected_revision": case.revision})
+    if request.method == "POST":
+        correlation_id = get_request_correlation_id(request)
+        action = AuditAction.CASE_ARCHIVED if is_archive else AuditAction.CASE_RESTORED
+        if form.is_valid():
+            try:
+                if isinstance(form, CaseArchiveForm):
+                    archive_case(
+                        actor=_user(request),
+                        case_id=case.pk,
+                        form=form,
+                        correlation_id=correlation_id,
+                    )
+                else:
+                    restore_case(
+                        actor=_user(request),
+                        case_id=case.pk,
+                        form=form,
+                        correlation_id=correlation_id,
+                    )
+            except CaseRevisionConflict:
+                return _render_case_transition(
+                    request,
+                    case=case,
+                    form=form,
+                    operation=operation,
+                    conflict=True,
+                    status=409,
+                )
+            messages.success(
+                request, gettext("Case archived.") if is_archive else gettext("Case restored.")
+            )
+            destination = reverse("cases:detail", kwargs={"case_id": case.pk})
+            if _is_htmx(request):
+                return _vary(HttpResponse(status=204, headers={"HX-Redirect": destination}))
+            return _vary(redirect(destination))
+        record_case_failure(
+            actor=_user(request),
+            action=action,
+            target_id=str(case.pk),
+            correlation_id=correlation_id,
+            reason_code="validation_error",
+            reason_supplied=bool(request.POST.get("reason", "").strip()) if is_archive else None,
+        )
+        return _render_case_transition(
+            request,
+            case=case,
+            form=form,
+            operation=operation,
+            status=422 if _is_htmx(request) else 200,
+        )
+    return _render_case_transition(request, case=case, form=form, operation=operation)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.ARCHIVE_CASES)
+def case_archive(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
+    return _case_transition(
+        request,
+        case_id=case_id,
+        operation="archive",
+        permission=ApplicationPermission.ARCHIVE_CASES,
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.RESTORE_CASES)
+def case_restore(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
+    return _case_transition(
+        request,
+        case_id=case_id,
+        operation="restore",
+        permission=ApplicationPermission.RESTORE_CASES,
+    )
 
 
 @never_cache

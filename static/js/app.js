@@ -197,6 +197,50 @@
     referenceDialogTrigger = null;
   });
 
+  let caseDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-case-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      caseDialogTrigger = trigger;
+    }
+    if (event.target.closest("[data-case-dialog-close]")) {
+      document.getElementById("case-transition-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target?.id !== "case-transition-dialog-content") {
+      return;
+    }
+    const dialog = document.getElementById("case-transition-dialog");
+    if (dialog instanceof HTMLDialogElement) {
+      dialog.showModal();
+      dialog.querySelector('button, a, input:not([type="hidden"]), textarea, select')?.focus();
+    }
+  });
+  document.getElementById("case-transition-dialog")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+    const focusableElements = Array.from(
+      event.currentTarget.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled])',
+      ),
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement?.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement?.focus();
+    }
+  });
+  document.getElementById("case-transition-dialog")?.addEventListener("close", () => {
+    caseDialogTrigger?.focus();
+    caseDialogTrigger = null;
+  });
+
   const errorSummary = document.querySelector("[data-error-summary], [data-conflict-summary]");
   if (errorSummary instanceof HTMLElement) {
     errorSummary.focus();

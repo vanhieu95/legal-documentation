@@ -51,6 +51,7 @@ def record_case_success(
     target_id: str,
     correlation_id: str,
     changed_fields: Sequence[str] = (),
+    metadata: dict[str, object] | None = None,
 ) -> None:
     record_audit_event(
         action=action,
@@ -59,6 +60,7 @@ def record_case_success(
         target=AuditTarget(type=AuditTargetType.CASE, id=target_id),
         correlation_id=correlation_id,
         changed_fields=sorted(changed_fields),
+        metadata=metadata,
     )
 
 
@@ -69,7 +71,11 @@ def record_case_failure(
     correlation_id: str,
     reason_code: str,
     target_id: str = "",
+    reason_supplied: bool | None = None,
 ) -> None:
+    metadata: dict[str, object] = {"reason_code": reason_code}
+    if reason_supplied is not None:
+        metadata["reason_supplied"] = reason_supplied
     record_audit_event(
         action=action,
         outcome=AuditOutcome.FAILURE,
@@ -79,5 +85,5 @@ def record_case_failure(
             id=target_id,
         ),
         correlation_id=correlation_id,
-        metadata={"reason_code": reason_code},
+        metadata=metadata,
     )

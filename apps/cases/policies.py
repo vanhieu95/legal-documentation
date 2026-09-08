@@ -15,3 +15,13 @@ class ReferenceObjectPolicy[TModel: Model]:
 
 reference_object_policy = ReferenceObjectPolicy[Model]()
 case_object_policy = ReferenceObjectPolicy[CaseRecord]()
+
+
+def can_edit_case(case: CaseRecord) -> bool:
+    """Return whether the case lifecycle permits mutation."""
+    return case.status == CaseRecord.Status.ACTIVE
+
+
+def can_generate_documents_for_case(case: CaseRecord) -> bool:
+    """Stable domain predicate for later document-generation authorization."""
+    return case.status == CaseRecord.Status.ACTIVE

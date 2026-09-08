@@ -9,7 +9,11 @@
     {% if messages %}{% for message in messages %}<div class="alert alert-success" role="status">{{ message }}</div>{% endfor %}{% endif %}
     <header class="case-overview-header">
       <div><p class="eyebrow">{% translate "Civil matter" %}</p><h1 class="gallery-title">{{ case.internal_reference }}</h1></div>
-      {% if can_edit %}<a class="button button-primary" href="{% url 'cases:edit' case.pk %}">{% translate "Edit case" %}</a>{% endif %}
+      <div class="reference-actions">
+        {% if can_edit %}<a class="button button-primary" href="{% url 'cases:edit' case.pk %}">{% translate "Edit case" %}</a>{% endif %}
+        {% if can_archive %}<a class="button button-danger" href="{% url 'cases:archive' case.pk %}" hx-get="{% url 'cases:archive' case.pk %}" hx-target="#case-transition-dialog-content" hx-swap="innerHTML" data-case-dialog-trigger>{% translate "Archive case" %}</a>{% endif %}
+        {% if can_restore %}<a class="button button-secondary" href="{% url 'cases:restore' case.pk %}" hx-get="{% url 'cases:restore' case.pk %}" hx-target="#case-transition-dialog-content" hx-swap="innerHTML" data-case-dialog-trigger>{% translate "Restore case" %}</a>{% endif %}
+      </div>
     </header>
     <section class="surface" aria-labelledby="case-summary-heading">
       <h2 id="case-summary-heading" class="surface-title">{% translate "Overview" %}</h2>
@@ -35,5 +39,8 @@
       </dl>
       <p class="field-help">{% translate "Related-record editing will be available in a later workflow." %}</p>
     </section>
+    <dialog id="case-transition-dialog" class="dialog" aria-labelledby="case-transition-title">
+      <div id="case-transition-dialog-content" class="dialog-content"></div>
+    </dialog>
   </article>
 {% endblock %}

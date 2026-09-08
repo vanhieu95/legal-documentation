@@ -607,6 +607,63 @@ test("case editing and full-page conflict recovery work without JavaScript", asy
   await context.close();
 });
 
+test("archive confirmation traps focus, cancels safely, restores focus, and completes", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "BROWSER-ARCHIVE");
+  const trigger = page.getByRole("link", { name: "Lưu trữ hồ sơ" });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+
+  const dialog = page.getByRole("dialog", { name: "Lưu trữ hồ sơ" });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByLabel("Lý do lưu trữ")).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(dialog.getByRole("button", { name: "Hủy" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Hủy" }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+
+  await trigger.click();
+  await expect(dialog).toBeVisible();
+  await page.getByLabel("Lý do lưu trữ").fill("Lý do lưu trữ Unicode thử nghiệm");
+  await dialog.getByRole("button", { name: "Xác nhận lưu trữ" }).click();
+  await expect(page).toHaveURL(detailUrl);
+  await expect(page.getByRole("link", { name: "Khôi phục hồ sơ" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Chỉnh sửa hồ sơ" })).not.toBeVisible();
+  await expectNoPageOverflow(page);
+});
+
+test("archive and restore confirmations work without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "BROWSER-NOJS-ARCHIVE");
+
+  await page.getByRole("link", { name: "Lưu trữ hồ sơ" }).click();
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await page.getByLabel("Lý do lưu trữ").fill("Lý do không JavaScript");
+  await page.getByRole("button", { name: "Xác nhận lưu trữ" }).click();
+  await expect(page).toHaveURL(detailUrl);
+  await page.getByRole("link", { name: "Khôi phục hồ sơ" }).click();
+  await page.getByRole("button", { name: "Xác nhận khôi phục" }).click();
+  await expect(page).toHaveURL(detailUrl);
+  await expect(page.getByRole("link", { name: "Chỉnh sửa hồ sơ" })).toBeVisible();
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
 test("the authenticated shell theme stores only an explicit presentation preference", async ({ page }) => {
   await signInAsAdministrator(page);
   await page.getByRole("button", { name: "Tối" }).click();

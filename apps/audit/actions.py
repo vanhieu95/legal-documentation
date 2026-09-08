@@ -30,6 +30,8 @@ class AuditAction(StrEnum):
     REFERENCE_OFFICIAL_DEACTIVATED = "reference.official_deactivated"
     CASE_CREATED = "case.created"
     CASE_UPDATED = "case.updated"
+    CASE_ARCHIVED = "case.archived"
+    CASE_RESTORED = "case.restored"
 
 
 class AuditOutcome(StrEnum):

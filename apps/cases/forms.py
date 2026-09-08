@@ -226,6 +226,27 @@ class CaseRecordEditForm(CaseRecordForm):
             self.initial["expected_revision"] = self.instance.revision
 
 
+class CaseTransitionForm(forms.Form):
+    expected_revision = forms.IntegerField(
+        min_value=1,
+        widget=forms.HiddenInput,
+        label=_("Expected revision"),
+    )
+
+
+class CaseArchiveForm(CaseTransitionForm):
+    reason = forms.CharField(
+        max_length=500,
+        strip=True,
+        label=_("Archive reason"),
+        widget=forms.Textarea(attrs={"class": FIELD_CONTROL, "rows": 4}),
+    )
+
+
+class CaseRestoreForm(CaseTransitionForm):
+    pass
+
+
 class CaseParticipantForm(ReferenceModelForm):
     class Meta:
         model = CaseParticipant
