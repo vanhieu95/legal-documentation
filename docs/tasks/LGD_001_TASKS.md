@@ -42,7 +42,8 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 | CP-HARD-A…F | `SEC-002`, `OPS-002`, `I18N-002`, `PERF-001`, `OPS-003`, `REL-001` |
 
 - [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
-- [x] `CP-CASE-A` — Local checkpoint gates passed on 2026-09-07; human approval is pending.
+- [x] `CP-CASE-A` — Approved; local checkpoint gates passed on 2026-09-07.
+- [x] `CP-CASE-B` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -290,7 +291,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Reference maintenance is usable, authorized, audited, progressively enhanced and value-preserving on errors.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-003 — Model civil cases, acceptance rules, revisions, and archive metadata
+### [x] CASE-003 — Model civil cases, acceptance rules, revisions, and archive metadata
 
 - **Outcome:** `CaseRecord` supports incomplete pre-acceptance data, all-or-together accepted identifiers, metadata, monotonic revisions, archive state and scale indexes.
 - **SPEC:** §§6.2, 7.1–7.2, 10.1, 15.1; **FR:** `FR-CASE-06`, `FR-CASE-08`, `FR-CASE-09`; **AC:** `AC-05`, `AC-07`.
@@ -306,7 +307,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Database and form invariants reject inconsistent acceptance/archive/revision state.
 - **Size:** M. **Blockers/skills:** `test-driven-development`, `code-review-and-quality`.
 
-### [ ] CASE-004 — Model participants and representation contracts
+### [x] CASE-004 — Model participants and representation contracts
 
 - **Outcome:** Cases relate reusable entities through ordered role-specific participant records and legally necessary representations without duplicate accidental roles.
 - **SPEC:** §§6.2, 10.1, 15.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`, `AC-11`.
@@ -322,7 +323,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Relational participant/representation data is validated, indexed, case-scoped, and ready for prefill transfer values.
 - **Size:** M. **Blockers/skills:** Exact template-specific roles wait for contracts; core role list is locked.
 
-### [ ] CASE-005 — Model assignments and hearings
+### [x] CASE-005 — Model assignments and hearings
 
 - **Outcome:** Officials can be assigned to cases by procedural role/effective dates and cases can hold validated, timezone-aware hearing records.
 - **SPEC:** §§6.2, 10.1, 15.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`, `AC-11`.

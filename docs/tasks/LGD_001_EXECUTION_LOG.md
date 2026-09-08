@@ -513,8 +513,8 @@ credentials, generated-document content, or other sensitive payloads.
 ## CP-CASE-A — Checkpoint closure
 
 - **Completion date:** 2026-09-07
-- **Status:** Local implementation and verification are complete; human approval is pending at the
-  mandatory checkpoint pause.
+- **Status:** Approved. Local implementation and verification completed on 2026-09-07; approval was
+  confirmed before CP-CASE-B implementation began.
 - **Completed tasks:** `CASE-001`, `CASE-002`.
 - **Checkpoint evidence:** Reference invariants and indexes are live in a reversible sequential
   `cases.0001` migration; authorized full-page and HTMX maintenance, safe audit recording,
@@ -526,5 +526,124 @@ credentials, generated-document content, or other sensitive payloads.
   sequential cases leaf and migrated cleanly from empty PostgreSQL, reversed, and reapplied.
 - **Commits:** `1e243df` for `CASE-001`; `fdb7ae9` for `CASE-002`.
 - **Deviations or blockers:** No implementation blocker. `.codegraph/` remains an unrelated,
-  pre-existing untracked directory and was not modified or committed. `CASE-003` through
-  `CASE-005` are next, but remain blocked on human approval of `CP-CASE-A`.
+  pre-existing untracked directory and was not modified or committed. Approval was subsequently
+  received and `CASE-003` through `CASE-005` proceeded under CP-CASE-B.
+
+## CASE-003 — Model civil cases, acceptance rules, revisions, and archive metadata
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Added UUID-backed `CaseRecord` with a unique internal reference, court and matter
+  classification, finite procedural/status states, incomplete pre-acceptance support, grouped
+  acceptance metadata, positive revision, creator/editor timestamps and actors, and complete
+  archive metadata. Client forms exclude status, revision, actor, timestamp, and archive controls.
+- **Important files changed:** `apps/cases/{models,forms,admin}.py`,
+  `apps/cases/migrations/0002_add_case_record.py`,
+  `apps/cases/tests/test_case_records.py`, test fixtures/factories, and the Vietnamese catalog.
+- **Migration and constraints:** `cases.0002` adds acceptance-group, archive-group, positive-revision,
+  finite-stage/status, and acceptance-year checks; unique/pattern indexes cover internal reference,
+  with explicit court/status, status/stage, acceptance tuple, and update-time indexes. PostgreSQL
+  SQL inspection confirmed UUID, `date`, and `timestamp with time zone` storage.
+- **Focused tests:** The final combined PostgreSQL cases profile includes all CASE-003 tests. Its
+  dedicated earlier run passed 53 tests; expanded boundary coverage subsequently passed in the
+  complete profiles. Tests cover every partial acceptance combination at model and database level,
+  form rejection, uniqueness, text/year/revision boundaries, actor requirements, archive
+  consistency, Unicode, aware UTC timestamps, safe strings/admin fields, and live indexes.
+- **Security/privacy:** Case details are excluded from `__str__`, admin list/search fields, logs,
+  URLs, and audit metadata. Only synthetic values are used; actor/revision/archive fields cannot be
+  submitted. No JSON, hard deletion, signal workflow, or `documents` dependency was added.
+- **Commit:** `ab5abb3` (`feat(cases): model civil case records`).
+- **Deviations or blockers:** Revision increment and archive transitions remain in their approved
+  explicit-service tasks (`CASE-007` and `CASE-008`); this slice durably establishes their schema
+  and valid states. No blocker remains.
+
+## CASE-004 — Model participants and representation contracts
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Added ordered, effective-dated `CaseParticipant` records for the eight approved core
+  roles and `Representation` contracts for legal or authorized representation. Case-specific
+  address, workplace, contact, authority, and description text preserves Unicode and meaningful
+  line breaks independently from reusable entity data.
+- **Important files changed:** `apps/cases/{models,forms,admin}.py`,
+  `apps/cases/migrations/0003_add_participants_and_representations.py`,
+  `apps/cases/tests/test_case_relationships.py`, factories, and the Vietnamese catalog.
+- **Migration and constraints:** `cases.0003` adds finite role/type checks, non-negative ordering,
+  effective-date ordering, partial unique indexes preventing duplicate active identical roles and
+  representations, protected foreign keys, and case/entity/role/order/effective query indexes.
+- **Forms/formsets:** Constructors own the case scope, relational choices are re-queried, inactive
+  new entities and cross-case represented participants are rejected, posted case identifiers are
+  ignored, and delete checkboxes perform deactivation rather than physical deletion.
+- **Focused tests:** 20 direct relationship tests passed; the CASE-003/004 PostgreSQL profile passed
+  64 tests. Coverage includes every approved role, ordering and multiple legitimate roles,
+  duplicate rejection/history reuse, effective dates, cross-case representation, tampering,
+  inactive choices, add/update/reorder/removal behavior, Unicode/multiline text, constraints, and
+  live index columns.
+- **Security/privacy:** Protected relations and soft lifecycle fields retain legal history. Safe
+  strings/admin lists expose only opaque IDs and categorical state; tests contain synthetic data
+  only and no relationship values enter audit/log metadata.
+- **Commit:** `da032f3` (`feat(cases): model participants and representations`).
+- **Deviations or blockers:** PostgreSQL cannot express the cross-table represented-participant case
+  equality as a row check; it is enforced by model validation and a case-scoped re-queried form
+  choice, with future writes reserved for the explicit `CASE-011` service. No blocker remains.
+
+## CASE-005 — Model assignments and hearings
+
+- **Completion date:** 2026-09-08
+- **Outcome:** Added ordered, effective-dated `CaseOfficialAssignment` records for judge,
+  presiding-judge, clerk, and prosecutor roles, plus timezone-aware `Hearing` records with
+  first-instance/appellate levels, lifecycle status, location, and creation/update timestamps.
+  Reusable selectors return current assignments and upcoming scheduled hearings.
+- **Important files changed:** `apps/cases/{models,forms,selectors,admin}.py`,
+  `apps/cases/migrations/0004_add_assignments_and_hearings.py`,
+  `apps/cases/tests/test_case_schedule.py`, factories, and the Vietnamese catalog.
+- **Migration and constraints:** `cases.0004` adds finite role/instance/status checks,
+  non-negative assignment ordering, effective-date ordering, active-assignment partial uniqueness,
+  and composite indexes for case/role/order, official/role, current effective assignments, and
+  case/status/scheduled hearing queries. PostgreSQL uses `timestamp with time zone` for hearings.
+- **Forms/formsets/selectors:** Official choices are active and same-court scoped; posted case and
+  official tampering is rejected. Assignment removal deactivates history and hearing removal marks
+  it cancelled. Selectors distinguish current/historical assignments and upcoming/past hearings.
+- **Focused tests:** 18 direct schedule tests passed; the combined CASE-003/004/005 PostgreSQL
+  profile passed 82 tests, and the final complete cases PostgreSQL profile passed 140. Tests cover
+  all approved roles, invalid roles/order/date ranges, inactive/cross-court officials, tampering,
+  current/history queries, hearing choices, aware input, UTC persistence, Ho Chi Minh presentation,
+  Unicode location, formsets, constraints, and live indexes.
+- **Manual verification:** A synthetic `2026-09-08 08:30` Asia/Ho_Chi_Minh hearing rendered as
+  `08:30 ngày 08/09/2026 +07`; persisted values were verified as UTC-aware.
+- **Security/privacy:** No detailed minutes, template-specific roles, sensitive string rendering,
+  hard deletion, JSON payload, logging, or document import was introduced. Admin lists use opaque
+  identifiers and bounded categorical/schedule metadata.
+- **Commits:** `8e85d7b` (`feat(cases): model assignments and hearings`); `360ee39`
+  (`fix(cases): localize relationship form labels`).
+- **Deviations or blockers:** Same-court membership is a cross-table invariant and therefore is
+  enforced by model validation and case-scoped form re-querying rather than a PostgreSQL row check.
+  No blocker remains.
+
+## CP-CASE-B — Checkpoint closure
+
+- **Completion date:** 2026-09-08
+- **Status:** Local implementation and verification complete; `CASE-003`, `CASE-004`, and
+  `CASE-005` are complete. Work stopped before `CASE-006`.
+- **Checkpoint evidence:** Exact Ruff lint/format, mypy, Django system check, and migration-drift
+  commands passed. The full ordinary coverage command passed `333` tests with two intentional
+  PostgreSQL-profile skips and 95.64% branch coverage. The separate PostgreSQL 18.6 profile passed
+  all 140 cases/integration tests with no skip. Vietnamese messages extracted and compiled with no
+  fuzzy or untranslated application entry.
+- **PostgreSQL verification:** A database at the committed CP-CASE-A `cases.0001` schema upgraded
+  linearly through `0002`, `0003`, and `0004`. A second empty UTF-8 PostgreSQL database applied all
+  project migrations through `cases.0004`. Reviewed SQL contains the expected UUIDs, protected
+  foreign keys, check/partial-unique constraints, query indexes, dates, and aware timestamps;
+  direct database tests rejected every expressible invalid state.
+- **Security/privacy review:** Relational IDs are constructor-scoped and re-queried; cross-case and
+  cross-court links are rejected; lifecycle/actor metadata is excluded from submitted fields;
+  removals preserve history. Searches found no `cases` import of `documents`, JSON business field,
+  signal workflow, hard-delete path, sensitive logging, secrets, real personal/legal data, debug
+  output, new skipped tests, or weakening suppressions. Admin and string representations avoid
+  unnecessary personal/legal values, and Unicode spelling is preserved without normalization.
+- **Commits:** `ab5abb3` (`CASE-003`); `da032f3` (`CASE-004`); `8e85d7b` (`CASE-005`);
+  `360ee39` (localized relationship form labels).
+- **Deviations or blockers:** Cross-row case/court equality cannot be represented by ordinary
+  PostgreSQL check constraints and is enforced at model/form boundaries pending the authorized
+  transactional workflow in `CASE-011`. Service-owned revision/archive transitions remain in
+  `CASE-007`/`CASE-008`. No CP-CASE-B blocker remains. `.codegraph/` is a pre-existing unrelated
+  untracked directory and was not modified or committed. The next eligible tasks are `CASE-006`
+  and `CASE-007` under `CP-CASE-C`; neither was started.
