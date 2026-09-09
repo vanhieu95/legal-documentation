@@ -8,6 +8,16 @@ urlpatterns = [
     path("cases/", views.case_list, name="list"),
     path("cases/new/", views.case_create, name="create"),
     path("cases/<uuid:case_id>/", views.case_detail, name="detail"),
+    path(
+        "cases/<uuid:case_id>/relationships/",
+        views.case_relationship_edit,
+        name="relationships-edit",
+    ),
+    path(
+        "cases/<uuid:case_id>/relationships/<str:category>/",
+        views.case_relationship_edit,
+        name="relationship-edit",
+    ),
     path("cases/<uuid:case_id>/edit/", views.case_edit, name="edit"),
     path("cases/<uuid:case_id>/archive/", views.case_archive, name="archive"),
     path("cases/<uuid:case_id>/restore/", views.case_restore, name="restore"),

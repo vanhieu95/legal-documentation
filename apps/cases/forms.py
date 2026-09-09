@@ -19,6 +19,7 @@ from apps.cases.models import (
 )
 
 FIELD_CONTROL = "field-control"
+ChoiceList = tuple[tuple[str, str], ...]
 
 
 CASE_SORT_CHOICES = (
@@ -367,6 +368,10 @@ class CaseRestoreForm(CaseTransitionForm):
     pass
 
 
+class CaseRelationshipRevisionForm(CaseTransitionForm):
+    """Server-owned optimistic revision contract for relationship submissions."""
+
+
 class CaseParticipantForm(ReferenceModelForm):
     class Meta:
         model = CaseParticipant
@@ -397,14 +402,19 @@ class CaseParticipantForm(ReferenceModelForm):
             "effective_to": _("Effective to"),
         }
 
-    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        case: CaseRecord,
+        entity_choices: ChoiceList | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.case = case
         super().__init__(*args, **kwargs)
-        queryset = Entity.objects.filter(is_active=True)
-        if self.instance.pk and self.instance.entity_id:
-            queryset = Entity.objects.filter(Q(is_active=True) | Q(pk=self.instance.entity_id))
         entity_field = cast("forms.ModelChoiceField[Entity]", self.fields["entity"])
-        entity_field.queryset = queryset.order_by("legal_name")
+        entity_field.queryset = Entity.objects.filter(is_active=True).order_by("legal_name")
+        if entity_choices is not None:
+            entity_field.widget.choices = (("", entity_field.empty_label or ""), *entity_choices)
 
 
 class RepresentationForm(ReferenceModelForm):
@@ -431,18 +441,20 @@ class RepresentationForm(ReferenceModelForm):
             "description": _("Description"),
         }
 
-    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        case: CaseRecord,
+        entity_choices: ChoiceList | None = None,
+        participant_choices: ChoiceList | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.case = case
         super().__init__(*args, **kwargs)
         entity_queryset = Entity.objects.filter(is_active=True)
-        participant_queryset = CaseParticipant.objects.filter(case=case, is_active=True)
-        if self.instance.pk:
-            entity_queryset = Entity.objects.filter(
-                Q(is_active=True) | Q(pk=self.instance.representative_entity_id)
-            )
-            participant_queryset = CaseParticipant.objects.filter(
-                Q(case=case, is_active=True) | Q(pk=self.instance.represented_participant_id)
-            )
+        participant_queryset = CaseParticipant.objects.filter(
+            case=case, is_active=True, entity__is_active=True
+        )
         representative_field = cast(
             "forms.ModelChoiceField[Entity]", self.fields["representative_entity"]
         )
@@ -451,18 +463,63 @@ class RepresentationForm(ReferenceModelForm):
         )
         representative_field.queryset = entity_queryset.order_by("legal_name")
         participant_field.queryset = participant_queryset.order_by("ordering", "id")
+        if entity_choices is not None:
+            representative_field.widget.choices = (
+                ("", representative_field.empty_label or ""),
+                *entity_choices,
+            )
+        if participant_choices is not None:
+            participant_field.widget.choices = (
+                ("", participant_field.empty_label or ""),
+                *participant_choices,
+            )
+
+
+def _validate_scoped_initial_rows(formset: forms.BaseModelFormSet[Any, Any]) -> None:
+    allowed_ids = {str(value) for value in formset.get_queryset().values_list("pk", flat=True)}
+    for index in range(formset.initial_form_count()):
+        posted_id = formset.data.get(f"{formset.prefix}-{index}-id")
+        if not posted_id or str(posted_id) not in allowed_ids:
+            raise forms.ValidationError(
+                _("A submitted relationship row does not belong to this case.")
+            )
+
+
+def _validate_unique_rows(
+    formset: forms.BaseModelFormSet[Any, Any], fields: tuple[str, ...]
+) -> None:
+    seen: set[tuple[object, ...]] = set()
+    for form in formset.forms:
+        if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+            continue
+        values = tuple(form.cleaned_data.get(field) for field in fields)
+        if any(value is None for value in values):
+            continue
+        if values in seen:
+            raise forms.ValidationError(_("Duplicate active relationship rows are not allowed."))
+        seen.add(values)
 
 
 class ScopedParticipantFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
+        self.entity_choices: ChoiceList = tuple(
+            (str(entity.pk), str(entity))
+            for entity in Entity.objects.filter(is_active=True).order_by("legal_name")
+        )
         kwargs["queryset"] = CaseParticipant.objects.filter(case=case, is_active=True)
         super().__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
         kwargs = super().get_form_kwargs(index)
         kwargs["case"] = self.case
+        kwargs["entity_choices"] = self.entity_choices
         return kwargs
+
+    def clean(self) -> None:
+        super().clean()
+        _validate_scoped_initial_rows(self)
+        _validate_unique_rows(self, ("entity", "role"))
 
     def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> CaseParticipant:
         form.instance.case = self.case
@@ -477,13 +534,42 @@ class ScopedParticipantFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg
 class ScopedRepresentationFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
+        self.entity_choices: ChoiceList = tuple(
+            (str(entity.pk), str(entity))
+            for entity in Entity.objects.filter(is_active=True).order_by("legal_name")
+        )
+        self.participant_choices: ChoiceList = tuple(
+            (
+                str(participant.pk),
+                f"{participant.entity} — {participant.get_role_display()}",
+            )
+            for participant in CaseParticipant.objects.filter(
+                case=case, is_active=True, entity__is_active=True
+            )
+            .select_related("entity")
+            .order_by("ordering", "id")
+        )
         kwargs["queryset"] = Representation.objects.filter(case=case, is_active=True)
         super().__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
         kwargs = super().get_form_kwargs(index)
         kwargs["case"] = self.case
+        kwargs["entity_choices"] = self.entity_choices
+        kwargs["participant_choices"] = self.participant_choices
         return kwargs
+
+    def clean(self) -> None:
+        super().clean()
+        _validate_scoped_initial_rows(self)
+        _validate_unique_rows(
+            self,
+            (
+                "representative_entity",
+                "represented_participant",
+                "representation_type",
+            ),
+        )
 
     def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> Representation:
         form.instance.case = self.case
@@ -511,9 +597,7 @@ RepresentationFormSet = forms.modelformset_factory(
 )
 
 
-def participant_formset(
-    *, case: CaseRecord, data: dict[str, str] | None = None
-) -> ScopedParticipantFormSet:
+def participant_formset(*, case: CaseRecord, data: Any | None = None) -> ScopedParticipantFormSet:
     return cast(
         ScopedParticipantFormSet,
         ParticipantFormSet(data=data, case=case, prefix="participants"),
@@ -521,7 +605,7 @@ def participant_formset(
 
 
 def representation_formset(
-    *, case: CaseRecord, data: dict[str, str] | None = None
+    *, case: CaseRecord, data: Any | None = None
 ) -> ScopedRepresentationFormSet:
     return cast(
         ScopedRepresentationFormSet,
@@ -545,16 +629,24 @@ class CaseOfficialAssignmentForm(ReferenceModelForm):
             "effective_to": _("Effective to"),
         }
 
-    def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        *args: Any,
+        case: CaseRecord,
+        official_choices: ChoiceList | None = None,
+        **kwargs: Any,
+    ) -> None:
         self.case = case
         super().__init__(*args, **kwargs)
-        queryset = Official.objects.filter(home_court=case.court, is_active=True)
-        if self.instance.pk and self.instance.official_id:
-            queryset = Official.objects.filter(
-                Q(home_court=case.court, is_active=True) | Q(pk=self.instance.official_id)
-            )
         official_field = cast("forms.ModelChoiceField[Official]", self.fields["official"])
-        official_field.queryset = queryset.order_by("entity__legal_name")
+        official_field.queryset = Official.objects.filter(
+            home_court=case.court, is_active=True, entity__is_active=True
+        ).order_by("entity__legal_name")
+        if official_choices is not None:
+            official_field.widget.choices = (
+                ("", official_field.empty_label or ""),
+                *official_choices,
+            )
 
 
 class HearingForm(ReferenceModelForm):
@@ -577,13 +669,27 @@ class HearingForm(ReferenceModelForm):
 class ScopedAssignmentFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
+        self.official_choices: ChoiceList = tuple(
+            (str(official.pk), f"{official.entity} — {official.title}")
+            for official in Official.objects.filter(
+                home_court=case.court, is_active=True, entity__is_active=True
+            )
+            .select_related("entity")
+            .order_by("entity__legal_name")
+        )
         kwargs["queryset"] = CaseOfficialAssignment.objects.filter(case=case, is_active=True)
         super().__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
         kwargs = super().get_form_kwargs(index)
         kwargs["case"] = self.case
+        kwargs["official_choices"] = self.official_choices
         return kwargs
+
+    def clean(self) -> None:
+        super().clean()
+        _validate_scoped_initial_rows(self)
+        _validate_unique_rows(self, ("official", "role"))
 
     def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> CaseOfficialAssignment:
         form.instance.case = self.case
@@ -598,13 +704,19 @@ class ScopedAssignmentFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
 class ScopedHearingFormSet(forms.BaseModelFormSet):  # type: ignore[type-arg]
     def __init__(self, *args: Any, case: CaseRecord, **kwargs: Any) -> None:
         self.case = case
-        kwargs["queryset"] = Hearing.objects.filter(case=case)
+        kwargs["queryset"] = Hearing.objects.filter(case=case).exclude(
+            status=Hearing.Status.CANCELLED
+        )
         super().__init__(*args, **kwargs)
 
     def get_form_kwargs(self, index: int | None) -> dict[str, Any]:
         kwargs = super().get_form_kwargs(index)
         kwargs["case"] = self.case
         return kwargs
+
+    def clean(self) -> None:
+        super().clean()
+        _validate_scoped_initial_rows(self)
 
     def save_new(self, form: forms.ModelForm[Any], commit: bool = True) -> Hearing:
         form.instance.case = self.case
@@ -632,18 +744,14 @@ HearingFormSet = forms.modelformset_factory(
 )
 
 
-def assignment_formset(
-    *, case: CaseRecord, data: dict[str, str] | None = None
-) -> ScopedAssignmentFormSet:
+def assignment_formset(*, case: CaseRecord, data: Any | None = None) -> ScopedAssignmentFormSet:
     return cast(
         ScopedAssignmentFormSet,
         AssignmentFormSet(data=data, case=case, prefix="assignments"),
     )
 
 
-def hearing_formset(
-    *, case: CaseRecord, data: dict[str, str] | None = None
-) -> ScopedHearingFormSet:
+def hearing_formset(*, case: CaseRecord, data: Any | None = None) -> ScopedHearingFormSet:
     return cast(
         ScopedHearingFormSet,
         HearingFormSet(data=data, case=case, prefix="hearings"),

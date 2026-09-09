@@ -32,6 +32,7 @@ class AuditAction(StrEnum):
     CASE_UPDATED = "case.updated"
     CASE_ARCHIVED = "case.archived"
     CASE_RESTORED = "case.restored"
+    CASE_RELATIONSHIPS_UPDATED = "case.relationships_updated"
 
 
 class AuditOutcome(StrEnum):

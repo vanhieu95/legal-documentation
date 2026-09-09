@@ -184,6 +184,9 @@
   });
   document.addEventListener("htmx:afterSwap", (event) => {
     const target = event.detail.target;
+    if (target?.id === "case-section") {
+      document.getElementById("case-section-heading")?.focus();
+    }
     if (target?.id === "reference-dialog-content") {
       const dialog = document.getElementById("reference-dialog");
       if (dialog instanceof HTMLDialogElement) {
@@ -196,9 +199,51 @@
       summary.focus();
       return;
     }
+    const relationshipSuccess = document.querySelector("#relationship-form .alert-success");
+    if (relationshipSuccess instanceof HTMLElement) {
+      relationshipSuccess.focus();
+      return;
+    }
     const referenceFormHeading = document.querySelector("[data-reference-form-heading]");
     if (referenceFormHeading instanceof HTMLElement) {
       referenceFormHeading.focus();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    const addButton = event.target.closest("[data-formset-add]");
+    if (addButton instanceof HTMLButtonElement) {
+      const fieldset = addButton.closest("[data-formset]");
+      const template = fieldset?.querySelector("[data-formset-template]");
+      const rows = fieldset?.querySelector("[data-formset-rows]");
+      const totalInput = fieldset?.querySelector('input[name$="-TOTAL_FORMS"]');
+      if (
+        template instanceof HTMLTemplateElement &&
+        rows instanceof HTMLElement &&
+        totalInput instanceof HTMLInputElement
+      ) {
+        const index = Number.parseInt(totalInput.value, 10);
+        const wrapper = document.createElement("div");
+        wrapper.append(template.content.cloneNode(true));
+        wrapper.innerHTML = wrapper.innerHTML.replaceAll("__prefix__", String(index));
+        const row = wrapper.firstElementChild;
+        if (row) {
+          rows.append(row);
+          totalInput.value = String(index + 1);
+          row.querySelector('input:not([type="hidden"]), select, textarea')?.focus();
+        }
+      }
+      return;
+    }
+    const removeButton = event.target.closest("[data-formset-remove]");
+    if (removeButton instanceof HTMLButtonElement) {
+      const row = removeButton.closest("[data-formset-row]");
+      const deleteInput = row?.querySelector('input[name$="-DELETE"]');
+      if (row instanceof HTMLElement && deleteInput instanceof HTMLInputElement) {
+        deleteInput.checked = true;
+        row.hidden = true;
+        row.closest("[data-formset]")?.querySelector("[data-formset-add]")?.focus();
+      }
     }
   });
   document.getElementById("reference-dialog")?.addEventListener("close", () => {

@@ -15,30 +15,7 @@
         {% if can_restore %}<a class="button button-secondary" href="{% url 'cases:restore' case.pk %}" hx-get="{% url 'cases:restore' case.pk %}" hx-target="#case-transition-dialog-content" hx-swap="innerHTML" data-case-dialog-trigger>{% translate "Restore case" %}</a>{% endif %}
       </div>
     </header>
-    <section class="surface" aria-labelledby="case-summary-heading">
-      <h2 id="case-summary-heading" class="surface-title">{% translate "Overview" %}</h2>
-      <dl class="case-details">
-        <div><dt>{% translate "Court" %}</dt><dd>{{ case.court.full_name }}</dd></div>
-        <div><dt>{% translate "Matter type" %}</dt><dd>{{ case.matter_type }}</dd></div>
-        <div><dt>{% translate "Procedural stage" %}</dt><dd>{{ case.get_procedural_stage_display }}</dd></div>
-        <div><dt>{% translate "Status" %}</dt><dd>{{ case.get_status_display }}</dd></div>
-        <div><dt>{% translate "Revision" %}</dt><dd>{{ case.revision }}</dd></div>
-        {% if case.acceptance_date %}
-          <div><dt>{% translate "Acceptance number" %}</dt><dd>{{ case.acceptance_number }}/{{ case.acceptance_year }}/{{ case.acceptance_type_code }}</dd></div>
-          <div><dt>{% translate "Acceptance date" %}</dt><dd>{{ case.acceptance_date }}</dd></div>
-        {% endif %}
-      </dl>
-    </section>
-    <section class="surface" aria-labelledby="related-summary-heading">
-      <h2 id="related-summary-heading" class="surface-title">{% translate "Related records" %}</h2>
-      <dl class="case-details">
-        <div><dt>{% translate "Participants" %}</dt><dd>{{ case.participants.all|length }}</dd></div>
-        <div><dt>{% translate "Representations" %}</dt><dd>{{ case.representations.all|length }}</dd></div>
-        <div><dt>{% translate "Official assignments" %}</dt><dd>{{ case.official_assignments.all|length }}</dd></div>
-        <div><dt>{% translate "Hearings" %}</dt><dd>{{ case.hearings.all|length }}</dd></div>
-      </dl>
-      <p class="field-help">{% translate "Related-record editing will be available in a later workflow." %}</p>
-    </section>
+    {% include "cases/_case_section.html" %}
     <dialog id="case-transition-dialog" class="dialog" aria-labelledby="case-transition-title">
       <div id="case-transition-dialog-content" class="dialog-content"></div>
     </dialog>

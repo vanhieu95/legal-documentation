@@ -32,6 +32,7 @@ from apps.cases.forms import (
     CaseListQueryForm,
     CaseRecordEditForm,
     CaseRecordForm,
+    CaseRelationshipRevisionForm,
     CaseRestoreForm,
     CourtForm,
     EntityAddressForm,
@@ -51,7 +52,9 @@ from apps.cases.selectors import (
 )
 from apps.cases.services import (
     CaseRevisionConflict,
+    RelationshipValidationError,
     archive_case,
+    build_relationship_formsets,
     create_address,
     create_case,
     create_court,
@@ -64,6 +67,11 @@ from apps.cases.services import (
     restore_case,
     update_address,
     update_case,
+    update_case_assignments,
+    update_case_hearings,
+    update_case_participants,
+    update_case_relationships,
+    update_case_representations,
     update_court,
     update_entity,
     update_official,
@@ -141,6 +149,26 @@ REFERENCE_CONFIGS = {
     ),
 }
 
+CASE_DETAIL_SECTIONS = (
+    "overview",
+    "participants",
+    "representatives",
+    "assignments",
+    "hearings",
+)
+RELATIONSHIP_CATEGORY_LABELS = {
+    "participants": _("Participants"),
+    "representations": _("Representatives"),
+    "assignments": _("Officials and assignments"),
+    "hearings": _("Hearings"),
+}
+RELATIONSHIP_SECTION_CATEGORIES = {
+    "participants": "participants",
+    "representatives": "representations",
+    "assignments": "assignments",
+    "hearings": "hearings",
+}
+
 
 def _config(reference_type: str) -> ReferenceConfig:
     try:
@@ -172,6 +200,63 @@ def _case_object(
         object_policy=case_object_policy,
         pk=case_id,
     )
+
+
+def _relationship_edit_url(case: CaseRecord, section: str) -> str:
+    category = RELATIONSHIP_SECTION_CATEGORIES.get(section)
+    if category:
+        return reverse(
+            "cases:relationship-edit",
+            kwargs={"case_id": case.pk, "category": category},
+        )
+    return reverse("cases:relationships-edit", kwargs={"case_id": case.pk})
+
+
+def _render_relationship_form(
+    request: HttpRequest,
+    *,
+    case: CaseRecord,
+    categories: tuple[str, ...],
+    formsets: dict[str, forms.BaseModelFormSet[Any]],
+    revision_form: CaseRelationshipRevisionForm,
+    conflict: bool = False,
+    success: bool = False,
+    status: int = 200,
+) -> HttpResponse:
+    form_action = (
+        reverse("cases:relationships-edit", kwargs={"case_id": case.pk})
+        if len(categories) > 1
+        else reverse(
+            "cases:relationship-edit",
+            kwargs={"case_id": case.pk, "category": categories[0]},
+        )
+    )
+    section = next(
+        (
+            section_name
+            for section_name, category in RELATIONSHIP_SECTION_CATEGORIES.items()
+            if category == categories[0]
+        ),
+        "overview",
+    )
+    context = {
+        "case": case,
+        "categories": categories,
+        "formset_entries": tuple(
+            (category, RELATIONSHIP_CATEGORY_LABELS[category], formsets[category])
+            for category in categories
+        ),
+        "revision_form": revision_form,
+        "has_relationship_errors": bool(revision_form.errors)
+        or any(formset.errors or formset.non_form_errors() for formset in formsets.values()),
+        "form_action": form_action,
+        "cancel_url": (f"{reverse('cases:detail', kwargs={'case_id': case.pk})}?section={section}"),
+        "page_title": gettext("Edit case relationships"),
+        "conflict": conflict,
+        "success": success,
+    }
+    template = "cases/_relationship_form.html" if _is_htmx(request) else "cases/relationships.html"
+    return _vary(render(request, template, context, status=status))
 
 
 def _render_case_form(
@@ -394,27 +479,140 @@ def case_create(request: HttpRequest) -> HttpResponse:
 @application_permission_required(ApplicationPermission.VIEW_CASES)
 def case_detail(request: HttpRequest, case_id: uuid.UUID) -> HttpResponse:
     case = _case_object(request, case_id, ApplicationPermission.VIEW_CASES)
-    return _vary(
-        render(
+    section = request.GET.get("section", "overview")
+    if section not in CASE_DETAIL_SECTIONS:
+        raise Http404("Requested content was not found.")
+    detail_url = reverse("cases:detail", kwargs={"case_id": case.pk})
+    context = {
+        "case": case,
+        "section": section,
+        "section_links": tuple(
+            (key, f"{detail_url}?section={key}") for key in CASE_DETAIL_SECTIONS
+        ),
+        "page_title": gettext("Case details"),
+        "can_edit": can_edit_case(case)
+        and application_access_policy.has_permission(
+            _user(request), ApplicationPermission.CHANGE_CASES
+        ),
+        "can_archive": can_edit_case(case)
+        and application_access_policy.has_permission(
+            _user(request), ApplicationPermission.ARCHIVE_CASES
+        ),
+        "can_restore": not can_edit_case(case)
+        and application_access_policy.has_permission(
+            _user(request), ApplicationPermission.RESTORE_CASES
+        ),
+        "relationship_edit_url": _relationship_edit_url(case, section),
+    }
+    template = "cases/_case_section.html" if _is_htmx(request) else "cases/detail.html"
+    return _vary(render(request, template, context))
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.CHANGE_CASES)
+def case_relationship_edit(
+    request: HttpRequest,
+    case_id: uuid.UUID,
+    category: str | None = None,
+) -> HttpResponse:
+    if category is not None and category not in RELATIONSHIP_CATEGORY_LABELS:
+        raise Http404("Requested content was not found.")
+    case = _case_object(request, case_id, ApplicationPermission.CHANGE_CASES)
+    if not can_edit_case(case):
+        raise PermissionDenied
+    categories = (category,) if category else tuple(RELATIONSHIP_CATEGORY_LABELS)
+    data = request.POST if request.method == "POST" else None
+    selected_formsets = build_relationship_formsets(case=case, data=data, categories=categories)
+    revision_form = CaseRelationshipRevisionForm(data=data)
+    if request.method == "GET":
+        revision_form = CaseRelationshipRevisionForm(initial={"expected_revision": case.revision})
+        return _render_relationship_form(
             request,
-            "cases/detail.html",
-            {
-                "case": case,
-                "page_title": gettext("Case overview"),
-                "can_edit": can_edit_case(case)
-                and application_access_policy.has_permission(
-                    _user(request), ApplicationPermission.CHANGE_CASES
-                ),
-                "can_archive": can_edit_case(case)
-                and application_access_policy.has_permission(
-                    _user(request), ApplicationPermission.ARCHIVE_CASES
-                ),
-                "can_restore": not can_edit_case(case)
-                and application_access_policy.has_permission(
-                    _user(request), ApplicationPermission.RESTORE_CASES
-                ),
-            },
+            case=case,
+            categories=categories,
+            formsets=selected_formsets,
+            revision_form=revision_form,
         )
+
+    if not revision_form.is_valid():
+        record_case_failure(
+            actor=_user(request),
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case.pk),
+            correlation_id=get_request_correlation_id(request),
+            reason_code="validation_error",
+            relationship_categories=categories,
+        )
+        return _render_relationship_form(
+            request,
+            case=case,
+            categories=categories,
+            formsets=selected_formsets,
+            revision_form=revision_form,
+            status=422 if _is_htmx(request) else 200,
+        )
+    service = (
+        update_case_relationships
+        if category is None
+        else {
+            "participants": update_case_participants,
+            "representations": update_case_representations,
+            "assignments": update_case_assignments,
+            "hearings": update_case_hearings,
+        }[category]
+    )
+    try:
+        updated_case = service(
+            actor=_user(request),
+            case_id=case.pk,
+            expected_revision=revision_form.cleaned_data["expected_revision"],
+            data=request.POST,
+            correlation_id=get_request_correlation_id(request),
+        )
+    except RelationshipValidationError as error:
+        return _render_relationship_form(
+            request,
+            case=case,
+            categories=categories,
+            formsets=error.formsets,
+            revision_form=revision_form,
+            status=422 if _is_htmx(request) else 200,
+        )
+    except CaseRevisionConflict:
+        case.refresh_from_db()
+        return _render_relationship_form(
+            request,
+            case=case,
+            categories=categories,
+            formsets=selected_formsets,
+            revision_form=revision_form,
+            conflict=True,
+            status=409,
+        )
+
+    if not _is_htmx(request):
+        messages.success(request, gettext("Case relationships updated."))
+        detail_url = reverse("cases:detail", kwargs={"case_id": updated_case.pk})
+        destination_section = next(
+            (
+                section_name
+                for section_name, relationship_category in RELATIONSHIP_SECTION_CATEGORIES.items()
+                if relationship_category == category
+            ),
+            "overview",
+        )
+        return _vary(redirect(f"{detail_url}?section={destination_section}"))
+    fresh_formsets = build_relationship_formsets(case=updated_case, categories=categories)
+    return _render_relationship_form(
+        request,
+        case=updated_case,
+        categories=categories,
+        formsets={key: fresh_formsets[key] for key in categories},
+        revision_form=CaseRelationshipRevisionForm(
+            initial={"expected_revision": updated_case.revision}
+        ),
+        success=True,
     )
 
 

@@ -248,4 +248,22 @@ def case_overview_queryset() -> QuerySet[CaseRecord]:
     """Load overview relations with a fixed number of queries."""
     return CaseRecord.objects.select_related(
         "court", "created_by", "last_edited_by"
-    ).prefetch_related("participants", "representations", "official_assignments", "hearings")
+    ).prefetch_related(
+        Prefetch(
+            "participants",
+            queryset=CaseParticipant.objects.select_related("entity").order_by("ordering", "id"),
+        ),
+        Prefetch(
+            "representations",
+            queryset=Representation.objects.select_related(
+                "representative_entity", "represented_participant__entity"
+            ).order_by("id"),
+        ),
+        Prefetch(
+            "official_assignments",
+            queryset=CaseOfficialAssignment.objects.select_related("official__entity").order_by(
+                "ordering", "id"
+            ),
+        ),
+        Prefetch("hearings", queryset=Hearing.objects.order_by("scheduled_at", "id")),
+    )

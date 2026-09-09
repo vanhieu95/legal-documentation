@@ -128,6 +128,10 @@ def test_application_javascript_disables_sensitive_browser_state() -> None:
     assert "destination.origin !== window.location.origin" in javascript
     assert "event.detail.shouldSwap = false" in javascript
     assert "window.location.assign" in javascript
+    assert 'target?.id === "case-section"' in javascript
+    assert 'event.target.closest("[data-formset-add]")' in javascript
+    assert 'input[name$="-TOTAL_FORMS"]' in javascript
+    assert 'input[name$="-DELETE"]' in javascript
 
 
 def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> None:

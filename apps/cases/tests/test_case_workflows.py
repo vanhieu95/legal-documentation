@@ -10,12 +10,22 @@ from django.contrib.auth.models import Group, Permission, User
 from django.core.exceptions import PermissionDenied
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 from pytest_django.fixtures import DjangoAssertNumQueries
 
 from apps.accounts.permissions import ADMINISTRATOR_GROUP_NAME
 from apps.audit.models import AuditEvent
 from apps.cases.forms import CaseRecordForm
-from apps.cases.models import CaseRecord, Court
+from apps.cases.models import (
+    CaseOfficialAssignment,
+    CaseParticipant,
+    CaseRecord,
+    Court,
+    Entity,
+    Hearing,
+    Official,
+    Representation,
+)
 from apps.cases.selectors import case_overview_queryset
 from apps.cases.services import create_case
 
@@ -355,15 +365,39 @@ def test_case_detail_authorization_matrix(
 def test_case_overview_selector_has_a_fixed_related_query_count(
     django_assert_num_queries: DjangoAssertNumQueries,
     case_factory: Callable[..., CaseRecord],
+    entity_factory: Callable[..., Entity],
+    official_factory: Callable[..., Official],
 ) -> None:
     record = case_factory()
+    participant = CaseParticipant.objects.create(
+        case=record, entity=entity_factory(), role=CaseParticipant.Role.REQUESTER
+    )
+    Representation.objects.create(
+        case=record,
+        representative_entity=entity_factory(),
+        represented_participant=participant,
+        representation_type=Representation.Type.LEGAL,
+    )
+    CaseOfficialAssignment.objects.create(
+        case=record,
+        official=official_factory(home_court=record.court),
+        role=CaseOfficialAssignment.Role.JUDGE,
+        effective_from=timezone.localdate(),
+    )
+    Hearing.objects.create(
+        case=record,
+        instance_level=Hearing.InstanceLevel.FIRST_INSTANCE,
+        scheduled_at=timezone.now(),
+        location="Synthetic room",
+    )
 
     with django_assert_num_queries(5):
         selected = case_overview_queryset().get(pk=record.pk)
-        list(selected.participants.all())
-        list(selected.representations.all())
-        list(selected.official_assignments.all())
-        list(selected.hearings.all())
+        assert selected.participants.all()[0].entity.legal_name
+        assert selected.representations.all()[0].representative_entity.legal_name
+        assert selected.representations.all()[0].represented_participant.entity.legal_name
+        assert selected.official_assignments.all()[0].official.entity.legal_name
+        assert selected.hearings.all()[0].location
 
 
 @pytest.mark.django_db

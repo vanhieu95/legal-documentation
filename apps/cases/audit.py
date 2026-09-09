@@ -72,10 +72,13 @@ def record_case_failure(
     reason_code: str,
     target_id: str = "",
     reason_supplied: bool | None = None,
+    relationship_categories: Sequence[str] = (),
 ) -> None:
     metadata: dict[str, object] = {"reason_code": reason_code}
     if reason_supplied is not None:
         metadata["reason_supplied"] = reason_supplied
+    if relationship_categories:
+        metadata["relationship_categories"] = sorted(relationship_categories)
     record_audit_event(
         action=action,
         outcome=AuditOutcome.FAILURE,

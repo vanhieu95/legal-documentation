@@ -455,7 +455,7 @@ test("named shell navigation updates its active state and remains server-protect
   await page.getByRole("link", { name: "Hồ sơ việc dân sự" }).click();
 
   await expect(page).toHaveURL(/\/cases\/$/);
-  await expect(page.getByRole("link", { name: "Hồ sơ việc dân sự" })).toHaveAttribute(
+  await expect(page.getByRole("link", { name: "Hồ sơ việc dân sự", exact: true })).toHaveAttribute(
     "aria-current",
     "page",
   );
@@ -627,6 +627,107 @@ test("case-list filtering and ordinary links work without JavaScript", async ({ 
   await expect(page.locator("html")).toHaveClass("no-js");
   await page.getByRole("link", { name: "Xem hồ sơ" }).first().click();
   await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`case sections use canonical HTMX navigation at the ${viewport.name} viewport`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const detailUrl = await createSyntheticCase(page, `SECTIONS-${viewport.name}`);
+    const participants = page.locator('a[href$="?section=participants"]');
+    await participants.focus();
+    await page.keyboard.press("Enter");
+
+    await expect(page).toHaveURL(`${detailUrl}?section=participants`);
+    await expect(page.locator("#case-section-heading")).toBeFocused();
+    await expect(page.getByText("Chưa có người tham gia tố tụng")).toBeVisible();
+    if (viewport.name === "compact") {
+      await page.evaluate(() => {
+        document.documentElement.style.zoom = "2";
+      });
+    }
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("relationship formsets add, remove, validate, announce success, and preserve conflicts", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "RELATIONSHIPS");
+  await page.goto(`${detailUrl}?section=participants`);
+  await page.locator('a[href*="/relationships/participants/"]').click();
+  await expect(page).toHaveURL(/\/relationships\/participants\/$/);
+
+  const addButton = page.locator("[data-formset-add]");
+  await addButton.click();
+  await expect(page.locator('[name="participants-1-entity"]')).toBeFocused();
+  await page.locator('[data-formset-row]').last().locator("[data-formset-remove]").click();
+  await expect(addButton).toBeFocused();
+
+  await page.locator('[name="participants-0-role"]').selectOption("requester");
+  await page.locator('[name="participants-0-ordering"]').fill("0");
+  await page.getByRole("button", { name: "Lưu quan hệ" }).click();
+  await expect(page.locator("[data-error-summary]")).toBeFocused();
+
+  await page.locator('[name="participants-0-entity"]').selectOption({
+    label: "Người tham gia thử nghiệm",
+  });
+  const secondTab = await page.context().newPage();
+  await secondTab.goto(page.url());
+  await page.getByRole("button", { name: "Lưu quan hệ" }).click();
+  const success = page.locator("#relationship-form .alert-success");
+  await expect(success).toBeFocused();
+
+  await secondTab.locator('[name="participants-0-entity"]').selectOption({
+    label: "Người tham gia thử nghiệm",
+  });
+  await secondTab.locator('[name="participants-0-role"]').selectOption("witness");
+  await secondTab.locator('[name="participants-0-ordering"]').fill("1");
+  await secondTab.getByRole("button", { name: "Lưu quan hệ" }).click();
+  await expect(secondTab.locator("[data-conflict-summary]")).toBeFocused();
+  await expect(secondTab.locator('[name="participants-0-role"]')).toHaveValue("witness");
+  await secondTab.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
+  await expectNoPageOverflow(secondTab);
+  await secondTab.getByRole("link", { name: "Tải lại quan hệ hiện tại" }).click();
+  await expect(secondTab.locator('[name="expected_revision"]')).toHaveValue("2");
+  await secondTab.close();
+});
+
+test("case section navigation and relationship submission work without JavaScript", async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "RELATIONSHIPS-NOJS");
+  await page.locator('a[href$="?section=participants"]').click();
+  await expect(page).toHaveURL(`${detailUrl}?section=participants`);
+  await page.locator('a[href*="/relationships/participants/"]').click();
+  await page.locator('[name="participants-0-entity"]').selectOption({
+    label: "Người tham gia thử nghiệm",
+  });
+  await page.locator('[name="participants-0-role"]').selectOption("requester");
+  await page.locator('[name="participants-0-ordering"]').fill("0");
+  await page.getByRole("button", { name: "Lưu quan hệ" }).click();
+
+  await expect(page).toHaveURL(/\?section=participants$/);
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expect(page.getByText("Người tham gia thử nghiệm trình duyệt")).toBeVisible();
   await expectNoPageOverflow(page);
   await context.close();
 });

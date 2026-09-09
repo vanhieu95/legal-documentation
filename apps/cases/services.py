@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import cast
 
+from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import F, QuerySet
 from django.utils import timezone
 
@@ -25,6 +28,10 @@ from apps.cases.forms import (
     EntityAddressForm,
     EntityForm,
     OfficialForm,
+    assignment_formset,
+    hearing_formset,
+    participant_formset,
+    representation_formset,
 )
 from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_object_policy
@@ -32,6 +39,223 @@ from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_objec
 
 class CaseRevisionConflict(Exception):
     """The submitted case revision no longer matches durable state."""
+
+
+type RelationshipFormSet = forms.BaseModelFormSet[models.Model, forms.ModelForm[models.Model]]
+RELATIONSHIP_CATEGORIES = ("participants", "representations", "assignments", "hearings")
+
+
+@dataclass(frozen=True)
+class RelationshipValidationError(Exception):
+    """Carry every bound formset back to the HTTP adapter without losing rows."""
+
+    formsets: dict[str, RelationshipFormSet]
+
+
+def build_relationship_formsets(
+    *,
+    case: CaseRecord,
+    data: Mapping[str, object] | None = None,
+    categories: Sequence[str] = RELATIONSHIP_CATEGORIES,
+) -> dict[str, RelationshipFormSet]:
+    builders = {
+        "participants": participant_formset,
+        "representations": representation_formset,
+        "assignments": assignment_formset,
+        "hearings": hearing_formset,
+    }
+    if any(category not in builders for category in categories):
+        raise ValueError("Unsupported relationship category.")
+    return {category: builders[category](case=case, data=data) for category in categories}
+
+
+def _relationship_case(*, actor: User, case_id: uuid.UUID) -> CaseRecord:
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_CASES,
+        queryset=CaseRecord.objects.select_related("court").select_for_update(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    if not can_edit_case(case):
+        raise PermissionDenied
+    return case
+
+
+def _update_case_relationships(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    categories: Sequence[str],
+    correlation_id: str,
+) -> CaseRecord:
+    selected_categories = tuple(dict.fromkeys(categories))
+    if not selected_categories or any(
+        category not in RELATIONSHIP_CATEGORIES for category in selected_categories
+    ):
+        raise ValueError("Unsupported relationship category.")
+    with transaction.atomic():
+        case = _relationship_case(actor=actor, case_id=case_id)
+        if case.revision != expected_revision:
+            raise CaseRevisionConflict
+        selected_formsets = build_relationship_formsets(
+            case=case, data=data, categories=selected_categories
+        )
+        validity = [formset.is_valid() for formset in selected_formsets.values()]
+        if not all(validity):
+            raise RelationshipValidationError(selected_formsets)
+        for formset in selected_formsets.values():
+            formset.save()
+        case.revision += 1
+        case.last_edited_by = actor
+        case.updated_at = timezone.now()
+        case.save(update_fields=["revision", "last_edited_by", "updated_at"])
+        record_case_success(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case.pk),
+            correlation_id=correlation_id,
+            changed_fields=selected_categories,
+            metadata={"relationship_categories": sorted(selected_categories)},
+        )
+        return case
+
+
+def _invoke_relationship_update(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    categories: Sequence[str],
+    correlation_id: str,
+) -> CaseRecord:
+    try:
+        return _update_case_relationships(
+            actor=actor,
+            case_id=case_id,
+            expected_revision=expected_revision,
+            data=data,
+            categories=categories,
+            correlation_id=correlation_id,
+        )
+    except RelationshipValidationError:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="validation_error",
+            relationship_categories=categories,
+        )
+        raise
+    except CaseRevisionConflict:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="revision_conflict",
+            relationship_categories=categories,
+        )
+        raise
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_relationships(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=RELATIONSHIP_CATEGORIES,
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_participants(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("participants",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_representations(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("representations",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_assignments(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("assignments",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_hearings(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("hearings",),
+        correlation_id=correlation_id,
+    )
 
 
 def _changed_fields(form: CourtForm | EntityForm | EntityAddressForm | OfficialForm) -> list[str]:
