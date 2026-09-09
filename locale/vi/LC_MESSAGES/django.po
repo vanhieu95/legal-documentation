@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 15:34+0700\n"
+"POT-Creation-Date: 2026-09-09 15:51+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -806,59 +806,59 @@ msgstr "Đã tạo hồ sơ việc dân sự."
 msgid "Case details"
 msgstr "Chi tiết hồ sơ"
 
-#: apps/cases/views.py:597 templates/cases/_relationship_form.html:4
+#: apps/cases/views.py:595 templates/cases/_relationship_form.html:4
 msgid "Case relationships updated."
 msgstr "Đã cập nhật quan hệ hồ sơ."
 
-#: apps/cases/views.py:649
+#: apps/cases/views.py:645
 msgid "Case updated."
 msgstr "Đã cập nhật hồ sơ việc dân sự."
 
-#: apps/cases/views.py:686 templates/cases/detail.html:14
+#: apps/cases/views.py:682 templates/cases/detail.html:14
 msgid "Archive case"
 msgstr "Lưu trữ hồ sơ"
 
-#: apps/cases/views.py:686 templates/cases/detail.html:15
+#: apps/cases/views.py:682 templates/cases/detail.html:15
 msgid "Restore case"
 msgstr "Khôi phục hồ sơ"
 
-#: apps/cases/views.py:687
+#: apps/cases/views.py:683
 msgid "Confirm archive"
 msgstr "Xác nhận lưu trữ"
 
-#: apps/cases/views.py:687
+#: apps/cases/views.py:683
 msgid "Confirm restore"
 msgstr "Xác nhận khôi phục"
 
-#: apps/cases/views.py:688
+#: apps/cases/views.py:684
 msgid "Archiving…"
 msgstr "Đang lưu trữ…"
 
-#: apps/cases/views.py:688
+#: apps/cases/views.py:684
 msgid "Restoring…"
 msgstr "Đang khôi phục…"
 
-#: apps/cases/views.py:736
+#: apps/cases/views.py:732
 msgid "Case archived."
 msgstr "Đã lưu trữ hồ sơ việc dân sự."
 
-#: apps/cases/views.py:736
+#: apps/cases/views.py:732
 msgid "Case restored."
 msgstr "Đã khôi phục hồ sơ việc dân sự."
 
-#: apps/cases/views.py:838
+#: apps/cases/views.py:834
 msgid "Reference record created."
 msgstr "Đã tạo dữ liệu tham chiếu."
 
-#: apps/cases/views.py:879
+#: apps/cases/views.py:875
 msgid "Reference record updated."
 msgstr "Đã cập nhật dữ liệu tham chiếu."
 
-#: apps/cases/views.py:920
+#: apps/cases/views.py:916
 msgid "Reference record deactivated."
 msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 
-#: apps/cases/views.py:928
+#: apps/cases/views.py:924
 #, python-format
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"

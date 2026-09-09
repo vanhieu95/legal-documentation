@@ -46,6 +46,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-B` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-C` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -405,7 +406,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Correct deterministic results and initial query budget are documented with no N+1 or sort injection.
 - **Size:** L. **Blockers/skills:** Target hardware deferred; use `performance-optimization`, **Security skill**, `code-review-and-quality`.
 
-### [ ] CASE-010 — Deliver the responsive canonical case list with HTMX
+### [x] CASE-010 — Deliver the responsive canonical case list with HTMX
 
 - **Outcome:** Case list controls encode state in the URL, work as ordinary forms/links, and enhance to narrow HTMX table/card updates with accessible states.
 - **SPEC:** §§5.2, 6.2, 13–15; `DESIGN.md` §§4–7; **FR:** `FR-CASE-01`–`FR-CASE-05`; **AC:** `AC-02`, `AC-06`, `AC-08`, `AC-09`, `AC-27`.
@@ -421,7 +422,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `AC-06` is demonstrable in JS and no-JS modes without unintended horizontal page scroll.
 - **Size:** M. **Blockers/skills:** `frontend-ui-engineering`, `browser-testing-with-devtools`, `code-review-and-quality`.
 
-### [ ] CASE-011 — Deliver case relationships and sectioned detail editing
+### [x] CASE-011 — Deliver case relationships and sectioned detail editing
 
 - **Outcome:** Case detail exposes server-addressable overview, participants/representatives, officials and hearings; authorized formsets update relationships atomically with accessible validation.
 - **SPEC:** §§5.2, 6.2, 14–15, 17.1; **FR:** `FR-CASE-06`, `FR-CASE-07`; **AC:** `AC-03`, `AC-05`, `AC-08`, `AC-09`.

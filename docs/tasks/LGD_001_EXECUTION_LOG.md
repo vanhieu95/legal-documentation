@@ -886,3 +886,101 @@ credentials, generated-document content, or other sensitive payloads.
   evidence and is explicitly isolated/documented. `.codegraph/` remains a pre-existing unrelated
   untracked directory and was not modified or committed. No CP-CASE-D blocker remains. The next
   eligible tasks are `CASE-010` and `CASE-011` under `CP-CASE-E`; neither was started.
+
+## CASE-010 — Deliver the responsive canonical case list with HTMX
+
+- **Completion date:** 2026-09-09
+- **Outcome:** The stable named `/cases/` route now renders the complete canonical list page for
+  ordinary requests and the narrow results fragment for HTMX, with `Vary: HX-Request`. The URL is
+  the source of truth for search, all approved filters, allowlisted sort direction, page size,
+  pagination, and individual/all clearing. The view delegates validation and data retrieval to the
+  CASE-009 query form and policy-scoped selector rather than duplicating query logic.
+- **Important files changed:** Case list view/URL context, full and fragment templates, responsive
+  styles, HTMX response/focus handling, Vietnamese catalog, focused view/frontend tests, and live
+  Chromium workflows.
+- **Migrations:** None; no index was added because CASE-009's PostgreSQL plan evidence and existing
+  indexes remain the approved contract.
+- **Verification:** Focused list, selector, authorization, locale, query-state, HTMX, and frontend
+  tests passed. Full-page and HTMX results are behaviorally consistent; the baseline GET form and
+  links work without JavaScript. Chromium verified debounce/synchronization, loading/busy state,
+  reload/deep links/back/forward, keyboard operation and focus, compact/tablet/wide rendering,
+  200% zoom/reflow, empty/error/forbidden states, and no page-level horizontal overflow.
+- **Performance, authorization, and privacy:** The complete list view remains fixed at 18 queries
+  for 25 rows and the CASE-009 selector boundary remains capped at seven, with no N+1. View
+  permission and object policy are enforced, routine GETs emit no audit event, and the query
+  contract excludes identity values, addresses, and relationship payloads. HTMX history snapshots
+  are disabled and no filter state is stored in browser storage.
+- **Commit:** `8c1c1e6` (`feat(cases): deliver canonical responsive case list`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable, so the repository's pinned real
+  Chromium runner supplied browser-runtime evidence. No implementation blocker remains.
+
+## CASE-011 — Deliver case relationships and sectioned detail editing
+
+- **Completion date:** 2026-09-09
+- **Outcome:** Case detail now exposes server-addressable overview, participants, representatives,
+  officials/assignments, and hearings through canonical section query state. Ordinary requests get
+  full-page fallbacks; HTMX gets a narrow section fragment with `Vary: HX-Request`. Accessible
+  formsets support stable rows, ordering, progressive add/remove, linked error summaries, success
+  announcements, and preserved validation/conflict submissions.
+- **Relationship services:** Explicit participant, representation, assignment, hearing, and
+  combined services recheck change permission and object policy, lock and compare the server case
+  revision, re-query active case-scoped posted UUIDs, reject cross-case/inactive choices, preserve
+  removal history, and commit all selected formsets atomically. Any invalid formset or stale
+  revision writes nothing and does not increment revision; successful combined updates increment
+  it once and record editor/time.
+- **Important files changed:** `apps/cases/{forms,selectors,services,views,urls,audit}.py`, the audit
+  action allowlist, case section/relationship templates, responsive styles and formset JavaScript,
+  Vietnamese catalog, browser seed script, and focused service/view/section/frontend/browser tests.
+- **Migrations:** None.
+- **Focused and PostgreSQL evidence:** The final focused relationship/section/frontend run passed
+  49 tests with one expected SQLite skip. The genuine two-connection PostgreSQL stale-revision race
+  passed. The complete ICU-collated PostgreSQL cases profile passed 330 tests with only the explicit
+  opt-in 100,000-row scale fixture skipped. An empty PostgreSQL 18.6 database applied all 24
+  migrations; a database staged at `cases.0002` upgraded through the current graph successfully.
+- **HTTP, authorization, CSRF, and audit:** Full-page and HTMX section/editor responses, `422`
+  validation fragments, `409` conflicts, session-expired recovery, ordinary no-JavaScript
+  submission, anonymous/inactive/non-Administrator/missing-permission/Administrator/superuser
+  behavior, archived denial, direct-service denial, all unsafe normal/HTMX CSRF checks, management
+  tampering, and cross-case injection passed. GETs produce no audit event; mutation audits contain
+  bounded relationship categories/field names and never personal values.
+- **Performance and accessibility:** Overview relationship reads remain fixed at five selector
+  queries. Participant editor rendering uses the same query count for zero and 12 rows and stays
+  within five queries, preventing N+1. Chromium verified keyboard section navigation and row
+  controls, focus restoration, error/conflict/success announcements, long Vietnamese labels,
+  compact/tablet/wide layouts, 200% zoom/reflow, no unintended page scroll, and no-JavaScript
+  navigation/submission.
+- **Commit:** `03c9336` (`feat(cases): deliver sectioned relationship editing`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable; pinned Playwright Chromium was
+  used as the real-browser fallback. No implementation blocker remains.
+
+## CP-CASE-E — Checkpoint closure
+
+- **Completion date:** 2026-09-09
+- **Status:** Local implementation and verification complete; `CASE-010` and `CASE-011` are
+  complete. Work stopped before `CASE-012`.
+- **Checkpoint evidence:** Ruff lint/format, mypy, Django system and migration-drift checks,
+  Tailwind build, message extraction/compilation, frontend asset verification, sensitive-module
+  coverage, and diff checks passed. The mandated ordinary coverage command passed 516 tests with
+  11 intentional PostgreSQL-profile skips at 95.15% branch coverage. The complete ICU PostgreSQL
+  cases profile passed 330 tests with one opt-in scale skip. The complete pinned-Chromium suite
+  passed all 61 tests.
+- **Functional and transaction verification:** Canonical list and section state survive ordinary
+  navigation and enhanced swaps; full-page, HTMX, and no-JavaScript paths agree. `422` and `409`
+  targets swap correctly. Multi-formset invalid submissions and stale revisions roll back every
+  related write, while successful submissions commit once. Existing identity, audit, reference,
+  case model, creation, editing, archive/restore, selector, permission, and CSRF suites remain
+  green.
+- **Security, privacy, and dependency review:** Both view and write-service boundaries enforce
+  permission and object policy; related UUIDs are re-queried and case-scoped; archived cases cannot
+  use relationship mutations. No unsafe GET, read-audit spam, hard deletion, raw query error,
+  browser-owned authorization/validation/revision truth, sensitive URL/storage/log/audit content,
+  real personal/legal fixture data, secret, debug output, weakened assertion, unrelated cleanup,
+  or new index exists. The `cases` app imports no `documents` code.
+- **Commits:** `8c1c1e6` (`CASE-010`); `03c9336` (`CASE-011`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** The host provides only a C locale, so the complete PostgreSQL cases
+  verification used a disposable ICU `vi` database to exercise production-equivalent Vietnamese
+  case folding. Chrome DevTools MCP was unavailable and pinned Chromium supplied the required
+  browser evidence. `.codegraph/` remains a pre-existing unrelated untracked directory and was not
+  modified or committed. No CP-CASE-E blocker remains. The next eligible task is `CASE-012` under
+  `CP-CASE-F`; it was not started.
