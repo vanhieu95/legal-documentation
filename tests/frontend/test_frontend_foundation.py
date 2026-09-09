@@ -108,7 +108,7 @@ def test_essential_token_pairs_meet_wcag_contrast() -> None:
 def test_application_javascript_disables_sensitive_browser_state() -> None:
     javascript = (PROJECT_ROOT / "static_src" / "js" / "app.js").read_text(encoding="utf-8")
 
-    assert "historyEnabled: false" in javascript
+    assert "historyEnabled: true" in javascript
     assert "historyCacheSize: 0" in javascript
     assert "allowEval: false" in javascript
     assert "allowScriptTags: false" in javascript

@@ -29,6 +29,7 @@ from apps.audit.actions import AuditAction
 from apps.cases.audit import record_case_failure, record_reference_validation_failure
 from apps.cases.forms import (
     CaseArchiveForm,
+    CaseListQueryForm,
     CaseRecordEditForm,
     CaseRecordForm,
     CaseRestoreForm,
@@ -41,9 +42,11 @@ from apps.cases.forms import (
 from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
 from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_object_policy
 from apps.cases.selectors import (
+    CaseListPage,
     ReferenceListPage,
     ReferenceType,
     case_overview_queryset,
+    list_cases,
     list_references,
 )
 from apps.cases.services import (
@@ -276,15 +279,90 @@ def _render_form(
 @never_cache
 @require_GET
 @application_permission_required(ApplicationPermission.VIEW_CASES)
-def case_list_placeholder(request: HttpRequest) -> HttpResponse:
-    return render(
-        request,
-        "placeholders/domain.html",
-        {
-            "page_title": gettext("Cases"),
-            "state_message": gettext("Case management is not available yet."),
-        },
+def case_list(request: HttpRequest) -> HttpResponse:
+    form_data = request.GET.copy()
+    form_data.setdefault("archive_state", "all")
+    form_data.setdefault("sort", "-updated")
+    form_data.setdefault("page_size", "25")
+    form = CaseListQueryForm(form_data)
+    validation_errors: list[str] = []
+    case_page = CaseListPage((), 1, 25, 0, 0, False, False)
+    unavailable = False
+    if form.is_valid():
+        try:
+            case_page = list_cases(actor=_user(request), form=form)
+        except DatabaseError:
+            unavailable = True
+    else:
+        validation_errors = [gettext("Enter a valid value for each highlighted filter.")]
+
+    def query_url(**changes: object) -> str:
+        query = request.GET.copy()
+        for key, value in changes.items():
+            if value in {None, ""}:
+                query.pop(key, None)
+            else:
+                query[key] = str(value)
+        encoded = query.urlencode()
+        return f"{reverse('cases:list')}?{encoded}" if encoded else reverse("cases:list")
+
+    active_filter_names = (
+        "q",
+        "court",
+        "status",
+        "procedural_stage",
+        "acceptance_type_code",
+        "acceptance_year",
+        "acceptance_date_from",
+        "acceptance_date_to",
+        "archive_state",
     )
+    active_filters = []
+    for name in active_filter_names:
+        value = request.GET.get(name)
+        if value and not (name == "archive_state" and value == "all"):
+            active_filters.append(
+                {
+                    "name": name,
+                    "label": form.fields[name].label,
+                    "clear_url": query_url(page=None, **{name: None}),
+                }
+            )
+
+    current_sort = form.cleaned_data.get("sort", "-updated") if form.is_valid() else "-updated"
+    sortable_columns = {}
+    for name in ("updated", "court", "matter_type"):
+        is_descending = current_sort == f"-{name}"
+        is_current = current_sort in {name, f"-{name}"}
+        sortable_columns[name] = {
+            "url": query_url(page=None, sort=name if is_descending else f"-{name}"),
+            "aria_sort": (
+                "descending"
+                if is_current and is_descending
+                else "ascending"
+                if is_current
+                else "none"
+            ),
+        }
+
+    context = {
+        "form": form,
+        "case_page": case_page,
+        "validation_errors": validation_errors,
+        "unavailable": unavailable,
+        "has_active_filters": bool(active_filters),
+        "active_filters": active_filters,
+        "sortable_columns": sortable_columns,
+        "previous_url": query_url(page=case_page.page - 1) if case_page.has_previous else "",
+        "next_url": query_url(page=case_page.page + 1) if case_page.has_next else "",
+        "page_size_urls": [
+            (size, query_url(page=None, page_size=size)) for size in (10, 25, 50, 100)
+        ],
+        "clear_url": reverse("cases:list"),
+    }
+    template = "cases/_case_results.html" if _is_htmx(request) else "cases/list.html"
+    status = 503 if unavailable else (422 if validation_errors and _is_htmx(request) else 200)
+    return _vary(render(request, template, context, status=status))
 
 
 @never_cache

@@ -169,7 +169,7 @@ def test_shell_marks_sensitive_htmx_history_as_disabled(
     html = _authenticated_response(client, administrator).content.decode()
 
     assert 'hx-history="false"' in html
-    assert 'historyEnabled":false' in html
+    assert 'historyEnabled":true' in html
     assert "localStorage" not in html
     assert "sessionStorage" not in html
 

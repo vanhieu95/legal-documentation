@@ -1,0 +1,68 @@
+{% load i18n %}
+<div id="case-results" class="case-results" aria-live="polite" aria-busy="false" hx-history="false" data-network-error-message="{% translate 'The case results could not be updated. Check the connection and try again.' %}">
+  <div id="case-results-loading" class="case-results-loading htmx-indicator" role="status">
+    {% translate "Loading case results…" %}
+  </div>
+  {% if validation_errors %}
+    <div class="alert alert-danger" role="alert" tabindex="-1" data-error-summary>
+      <p class="alert-title">{% translate "Check the case-list filters" %}</p>
+      <ul class="alert-list">{% for error in validation_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      <a href="{{ clear_url }}">{% translate "Clear all filters" %}</a>
+    </div>
+  {% elif unavailable %}
+    <div class="alert alert-danger" role="alert">
+      <p class="alert-title">{% translate "Case results are temporarily unavailable" %}</p>
+      <p>{% translate "Try again. Your filters remain in the address bar." %}</p>
+      <a href="{{ request.get_full_path }}">{% translate "Try again" %}</a>
+    </div>
+  {% elif not case_page.items %}
+    <div class="surface empty-state" role="status">
+      {% if has_active_filters %}
+        <h2>{% translate "No cases match these filters" %}</h2>
+        <p>{% translate "Change or clear the filters to broaden the results." %}</p>
+        <a class="button button-secondary" href="{{ clear_url }}">{% translate "Clear all filters" %}</a>
+      {% else %}
+        <h2>{% translate "No cases yet" %}</h2>
+        <p>{% translate "Create the first case to begin case administration." %}</p>
+        <a class="button button-primary" href="{% url 'cases:create' %}">{% translate "Create case" %}</a>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="case-results-summary">
+      <p>{% blocktranslate count counter=case_page.total_count %}{{ counter }} case{% plural %}{{ counter }} cases{% endblocktranslate %}</p>
+      <div class="active-filter-list" aria-label="{% translate 'Active filters' %}">
+        {% for filter in active_filters %}<a class="active-filter" href="{{ filter.clear_url }}">{% blocktranslate with label=filter.label %}Clear {{ label }}{% endblocktranslate %}</a>{% endfor %}
+        {% if active_filters %}<a href="{{ clear_url }}">{% translate "Clear all filters" %}</a>{% endif %}
+      </div>
+    </div>
+    <div class="case-page-sizes" aria-label="{% translate 'Rows per page' %}">
+      <span>{% translate "Rows per page" %}:</span>
+      {% for size, url in page_size_urls %}{% if size == case_page.page_size %}<strong aria-current="true">{{ size }}</strong>{% else %}<a href="{{ url }}" hx-get="{{ url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{{ size }}</a>{% endif %}{% endfor %}
+    </div>
+    <div class="case-table-region" role="region" aria-label="{% translate 'Case results' %}" tabindex="0">
+      <table class="data-table case-table">
+        <thead><tr>
+          <th scope="col" aria-sort="{{ sortable_columns.updated.aria_sort }}"><a href="{{ sortable_columns.updated.url }}" hx-get="{{ sortable_columns.updated.url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{% translate "Case reference" %}<span class="visually-hidden"> — {% translate "sort by last updated" %}</span></a></th>
+          <th scope="col" aria-sort="{{ sortable_columns.court.aria_sort }}"><a href="{{ sortable_columns.court.url }}" hx-get="{{ sortable_columns.court.url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{% translate "Court" %}</a></th>
+          <th scope="col" aria-sort="{{ sortable_columns.matter_type.aria_sort }}"><a href="{{ sortable_columns.matter_type.url }}" hx-get="{{ sortable_columns.matter_type.url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{% translate "Matter type" %}</a></th>
+          <th scope="col">{% translate "Procedural stage" %}</th>
+          <th scope="col">{% translate "Status" %}</th>
+          <th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th>
+        </tr></thead>
+        <tbody>{% for case in case_page.items %}<tr data-case-id="{{ case.pk }}">
+          <th scope="row" data-label="{% translate 'Case reference' %}">{{ case.internal_reference }}</th>
+          <td data-label="{% translate 'Court' %}">{{ case.court.short_name }}</td>
+          <td data-label="{% translate 'Matter type' %}">{{ case.matter_type }}</td>
+          <td data-label="{% translate 'Procedural stage' %}">{{ case.get_procedural_stage_display }}</td>
+          <td data-label="{% translate 'Status' %}">{{ case.get_status_display }}</td>
+          <td data-label="{% translate 'Actions' %}"><a class="button button-quiet" href="{% url 'cases:detail' case.pk %}">{% translate "View case" %}</a></td>
+        </tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    <nav class="pagination" aria-label="{% translate 'Case result pages' %}">
+      {% if previous_url %}<a class="button button-quiet" href="{{ previous_url }}" hx-get="{{ previous_url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{% translate "Previous" %}</a>{% else %}<span class="button button-quiet" aria-disabled="true">{% translate "Previous" %}</span>{% endif %}
+      <span>{% blocktranslate with page=case_page.page pages=case_page.page_count %}Page {{ page }} of {{ pages }}{% endblocktranslate %}</span>
+      {% if next_url %}<a class="button button-quiet" href="{{ next_url }}" hx-get="{{ next_url }}" hx-target="#case-results" hx-swap="outerHTML show:none" hx-push-url="true">{% translate "Next" %}</a>{% else %}<span class="button button-quiet" aria-disabled="true">{% translate "Next" %}</span>{% endif %}
+    </nav>
+  {% endif %}
+</div>

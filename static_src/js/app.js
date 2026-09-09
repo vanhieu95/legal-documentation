@@ -100,7 +100,7 @@
   }
 
   const htmxSecurityDefaults = {
-    historyEnabled: false,
+    historyEnabled: true,
     historyCacheSize: 0,
     allowEval: false,
     allowScriptTags: false,
@@ -152,6 +152,7 @@
     if (mainContent) {
       mainContent.setAttribute("aria-busy", String(isBusy));
     }
+    document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
@@ -160,6 +161,14 @@
   document.addEventListener("htmx:afterRequest", () => {
     activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
     updateBusyPresentation();
+  });
+  document.addEventListener("htmx:sendError", () => {
+    const caseResults = document.getElementById("case-results");
+    const errorRegion = document.getElementById("global-error");
+    if (caseResults && errorRegion) {
+      caseResults.setAttribute("aria-busy", "false");
+      errorRegion.textContent = caseResults.dataset.networkErrorMessage || "";
+    }
   });
 
   let referenceDialogTrigger = null;

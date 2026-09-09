@@ -41,38 +41,80 @@ CASE_PAGE_SIZE_CHOICES = ((10, "10"), (25, "25"), (50, "50"), (100, "100"))
 class CaseListQueryForm(forms.Form):
     """Canonical, bounded contract for read-only case discovery."""
 
-    q = forms.CharField(required=False, max_length=100, strip=True, label=_("Search"))
+    q = forms.CharField(
+        required=False,
+        max_length=100,
+        strip=True,
+        label=_("Search"),
+        widget=forms.SearchInput(
+            attrs={"class": FIELD_CONTROL, "autocomplete": "off", "placeholder": _("Search cases")}
+        ),
+    )
     court = forms.ModelChoiceField(
         required=False,
         queryset=Court.objects.order_by("full_name", "code"),
         label=_("Court"),
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
     )
     status = forms.ChoiceField(
         required=False,
         choices=(("", _("All statuses")), *CaseRecord.Status.choices),
         label=_("Case status"),
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
     )
     procedural_stage = forms.ChoiceField(
         required=False,
         choices=(("", _("All procedural stages")), *CaseRecord.ProceduralStage.choices),
         label=_("Procedural stage"),
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
     )
-    acceptance_type_code = forms.CharField(required=False, max_length=32, strip=True)
-    acceptance_year = forms.IntegerField(required=False, min_value=1900, max_value=9999)
-    acceptance_date_from = forms.DateField(required=False)
-    acceptance_date_to = forms.DateField(required=False)
+    acceptance_type_code = forms.CharField(
+        required=False,
+        max_length=32,
+        strip=True,
+        label=_("Acceptance type code"),
+        widget=forms.TextInput(attrs={"class": FIELD_CONTROL}),
+    )
+    acceptance_year = forms.IntegerField(
+        required=False,
+        min_value=1900,
+        max_value=9999,
+        label=_("Acceptance year"),
+        widget=forms.NumberInput(attrs={"class": FIELD_CONTROL}),
+    )
+    acceptance_date_from = forms.DateField(
+        required=False,
+        label=_("Acceptance date from"),
+        widget=forms.DateInput(attrs={"class": FIELD_CONTROL, "type": "date"}),
+    )
+    acceptance_date_to = forms.DateField(
+        required=False,
+        label=_("Acceptance date to"),
+        widget=forms.DateInput(attrs={"class": FIELD_CONTROL, "type": "date"}),
+    )
     archive_state = forms.ChoiceField(
         required=False,
         choices=(("all", _("All archive states")), *CaseRecord.Status.choices),
         label=_("Archive state"),
+        initial="all",
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
     )
-    sort = forms.ChoiceField(required=False, choices=CASE_SORT_CHOICES)
+    sort = forms.ChoiceField(
+        required=False,
+        choices=CASE_SORT_CHOICES,
+        label=_("Sort order"),
+        initial="-updated",
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
+    )
     page = forms.IntegerField(required=False, min_value=1)
     page_size = forms.TypedChoiceField(
         required=False,
         choices=CASE_PAGE_SIZE_CHOICES,
         coerce=int,
         empty_value=None,
+        label=_("Rows per page"),
+        initial=25,
+        widget=forms.Select(attrs={"class": FIELD_CONTROL}),
     )
 
     def clean_archive_state(self) -> str:

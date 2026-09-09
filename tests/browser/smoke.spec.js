@@ -193,7 +193,7 @@ test("HTMX and Alpine load locally with sensitive history disabled", async ({ pa
   expect(runtime).toEqual({
     alpine: "object",
     htmx: "object",
-    historyEnabled: false,
+    historyEnabled: true,
     historyCacheSize: 0,
     allowEval: false,
     allowScriptTags: false,
@@ -537,6 +537,96 @@ test("case creation and detail remain usable without JavaScript", async ({ brows
   await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
   await expect(page.locator("html")).toHaveClass("no-js");
   await expect(page.getByText("Yêu cầu không JavaScript")).toBeVisible();
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
+test("case-list search is debounced, cancels obsolete work, and restores URL history", async ({
+  page,
+}) => {
+  await signInAsAdministrator(page);
+  await createSyntheticCase(page, "LIST-HISTORY");
+  await page.goto("/cases/");
+  const search = page.getByLabel("Tìm kiếm", { exact: true });
+  const observedQueries = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === "/cases/" && url.searchParams.has("q")) {
+      observedQueries.push(url.searchParams.get("q"));
+    }
+  });
+
+  await search.pressSequentially("SYN-LIST-HISTORY", { delay: 25 });
+  await expect(page).toHaveURL(/q=SYN-LIST-HISTORY/);
+  await expect(page.getByRole("link", { name: "Xem hồ sơ" }).first()).toBeVisible();
+  expect(observedQueries.length).toBeLessThanOrEqual(2);
+  expect(observedQueries.at(-1)).toBe("SYN-LIST-HISTORY");
+  await expect(page.locator("#case-results")).toHaveAttribute("aria-busy", "false");
+
+  await search.fill("SYN-NO-BROWSER-MATCH");
+  await expect(page).toHaveURL(/q=SYN-NO-BROWSER-MATCH/);
+  await expect(page.getByRole("heading", { name: "Không có hồ sơ nào khớp" })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/q=SYN-LIST-HISTORY/);
+  await page.goForward();
+  await expect(page).toHaveURL(/q=SYN-NO-BROWSER-MATCH/);
+  await page.reload();
+  await expect(search).toHaveValue("SYN-NO-BROWSER-MATCH");
+  expect(await page.evaluate(() => Object.keys(window.sessionStorage))).toEqual([]);
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`case list keeps identifiers, status, actions, and keyboard sorting at the ${viewport.name} viewport`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    await createSyntheticCase(page, `LIST-${viewport.name}`);
+    await page.goto("/cases/?sort=court&page_size=10");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Hồ sơ việc dân sự" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Xem hồ sơ" }).first()).toBeVisible();
+    await expect(page.locator("[data-case-id]").first().getByText("Đang hoạt động")).toBeVisible();
+    if (viewport.name === "compact") {
+      const sortControl = page.getByLabel("Thứ tự sắp xếp");
+      await sortControl.focus();
+      await expect(sortControl).toBeFocused();
+      await sortControl.selectOption("-court");
+    } else {
+      const courtSort = page.getByRole("link", { name: "Tòa án", exact: true }).last();
+      await courtSort.focus();
+      await expect(courtSort).toBeFocused();
+      await page.keyboard.press("Enter");
+    }
+    await expect(page).toHaveURL(/sort=-court/);
+    if (viewport.name === "compact") {
+      await page.evaluate(() => {
+        document.documentElement.style.zoom = "2";
+      });
+    }
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("case-list filtering and ordinary links work without JavaScript", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 640, height: 900 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/cases/");
+  await page.getByLabel("Tìm kiếm", { exact: true }).fill("SYN-BROWSER");
+  await page.getByRole("button", { name: "Áp dụng bộ lọc" }).click();
+
+  await expect(page).toHaveURL(/q=SYN-BROWSER/);
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await page.getByRole("link", { name: "Xem hồ sơ" }).first().click();
+  await expect(page).toHaveURL(/\/cases\/[0-9a-f-]+\/$/);
   await expectNoPageOverflow(page);
   await context.close();
 });

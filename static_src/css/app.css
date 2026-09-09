@@ -1111,6 +1111,63 @@ a {
   color: var(--color-text-strong);
 }
 
+.case-list-page,
+.case-results {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.case-list-header,
+.case-results-summary,
+.case-page-sizes,
+.pagination,
+.active-filter-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.case-list-header,
+.case-results-summary {
+  justify-content: space-between;
+}
+
+.case-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-4);
+}
+
+.case-filter-search {
+  grid-column: 1 / -1;
+}
+
+.case-results-loading {
+  min-height: 24px;
+  color: var(--color-text-muted);
+}
+
+.case-table-region {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-surface);
+}
+
+.active-filter {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.pagination {
+  justify-content: center;
+}
+
 @media (max-width: 639px) {
   .reference-table-view {
     display: none;
@@ -1118,5 +1175,51 @@ a {
 
   .reference-card-view {
     display: grid;
+  }
+
+  .case-list-header > .button,
+  .case-filter-form .reference-actions .button {
+    width: 100%;
+  }
+
+  .case-table-region {
+    overflow: visible;
+    border: 0;
+  }
+
+  .case-table,
+  .case-table tbody,
+  .case-table tr,
+  .case-table th,
+  .case-table td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .case-table thead {
+    display: none;
+  }
+
+  .case-table tr {
+    margin-bottom: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-surface);
+    background: var(--color-surface);
+  }
+
+  .case-table th,
+  .case-table td {
+    padding: var(--space-2) 0;
+    border: 0;
+    background: transparent;
+    overflow-wrap: anywhere;
+  }
+
+  .case-table [data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--color-text-muted);
+    font-weight: 600;
   }
 }
