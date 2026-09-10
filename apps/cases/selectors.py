@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime
+from enum import StrEnum
 from typing import Literal, cast
+from uuid import UUID
 
 from django.contrib.auth.models import User
 from django.core.paginator import EmptyPage, Page, Paginator
-from django.db.models import Prefetch, Q, QuerySet
+from django.db.models import Count, Prefetch, Q, QuerySet
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.accounts.policies import ApplicationPermission, application_access_policy
@@ -27,6 +30,7 @@ from apps.cases.policies import case_object_policy
 ReferenceType = Literal["courts", "entities", "addresses", "officials"]
 ReferenceRecord = Court | Entity | EntityAddress | Official
 REFERENCE_PAGE_SIZE = 25
+DASHBOARD_RECENT_CASE_LIMIT = 5
 CASE_SORT_FIELDS = {
     "updated": "updated_at",
     "created": "created_at",
@@ -58,6 +62,73 @@ class CaseListPage:
     has_next: bool
 
 
+@dataclass(frozen=True, slots=True)
+class CaseActivityCounts:
+    active: int
+    archived: int
+
+
+class CaseActivityCategory(StrEnum):
+    UPDATED = "updated"
+    ARCHIVED = "archived"
+
+
+@dataclass(frozen=True, slots=True)
+class CaseActivity:
+    case_id: UUID
+    reference: str
+    status: str
+    occurred_at: datetime
+    category: CaseActivityCategory
+    detail_url: str
+
+
+def policy_scoped_case_queryset(
+    *, actor: User, queryset: QuerySet[CaseRecord] | None = None
+) -> QuerySet[CaseRecord]:
+    """Apply the canonical case-view permission and object-policy boundary."""
+    application_access_policy.require_permission(actor, ApplicationPermission.VIEW_CASES)
+    base_queryset = queryset if queryset is not None else CaseRecord.objects.all()
+    return case_object_policy.scope_queryset(actor, base_queryset)
+
+
+def case_activity_counts(*, actor: User) -> CaseActivityCounts:
+    """Return active and archived totals within the principal's case scope."""
+    totals = policy_scoped_case_queryset(actor=actor).aggregate(
+        active=Count("id", filter=Q(status=CaseRecord.Status.ACTIVE)),
+        archived=Count("id", filter=Q(status=CaseRecord.Status.ARCHIVED)),
+    )
+    return CaseActivityCounts(active=totals["active"], archived=totals["archived"])
+
+
+def recent_case_activity(
+    *, actor: User, limit: int = DASHBOARD_RECENT_CASE_LIMIT
+) -> tuple[CaseActivity, ...]:
+    """Return bounded display-safe case activity in deterministic newest-first order."""
+    if limit < 1 or limit > DASHBOARD_RECENT_CASE_LIMIT:
+        raise ValueError(f"limit must be between 1 and {DASHBOARD_RECENT_CASE_LIMIT}")
+    rows = (
+        policy_scoped_case_queryset(actor=actor)
+        .values("id", "internal_reference", "status", "updated_at")
+        .order_by("-updated_at", "id")[:limit]
+    )
+    return tuple(
+        CaseActivity(
+            case_id=row["id"],
+            reference=row["internal_reference"],
+            status=row["status"],
+            occurred_at=row["updated_at"],
+            category=(
+                CaseActivityCategory.ARCHIVED
+                if row["status"] == CaseRecord.Status.ARCHIVED
+                else CaseActivityCategory.UPDATED
+            ),
+            detail_url=reverse("cases:detail", kwargs={"case_id": row["id"]}),
+        )
+        for row in rows
+    )
+
+
 def _search_cases(queryset: QuerySet[CaseRecord], query: str) -> QuerySet[CaseRecord]:
     if not query:
         return queryset
@@ -83,13 +154,12 @@ def _search_cases(queryset: QuerySet[CaseRecord], query: str) -> QuerySet[CaseRe
 
 def case_search_queryset(*, actor: User, form: CaseListQueryForm) -> QuerySet[CaseRecord]:
     """Return a permission- and object-policy-scoped case discovery queryset."""
-    application_access_policy.require_permission(actor, ApplicationPermission.VIEW_CASES)
     if not form.is_valid():
         raise ValueError("A valid case list query form is required.")
     filters = form.cleaned_data
-    queryset = case_object_policy.scope_queryset(
-        actor,
-        CaseRecord.objects.select_related("court").prefetch_related(
+    queryset = policy_scoped_case_queryset(
+        actor=actor,
+        queryset=CaseRecord.objects.select_related("court").prefetch_related(
             Prefetch(
                 "participants",
                 queryset=CaseParticipant.objects.select_related("entity").order_by(

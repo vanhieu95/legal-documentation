@@ -153,22 +153,31 @@
       mainContent.setAttribute("aria-busy", String(isBusy));
     }
     document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
     updateBusyPresentation();
   });
-  document.addEventListener("htmx:afterRequest", () => {
+  const announceHtmxNetworkError = (requestElement) => {
+    const errorRegion = document.getElementById("global-error");
+    const caseResults = requestElement?.closest("#case-results");
+    const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
+    const affectedRegion = caseResults || dashboardActivity;
+    if (affectedRegion && errorRegion) {
+      affectedRegion.setAttribute("aria-busy", "false");
+      errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
+    }
+  };
+  document.addEventListener("htmx:afterRequest", (event) => {
     activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
     updateBusyPresentation();
-  });
-  document.addEventListener("htmx:sendError", () => {
-    const caseResults = document.getElementById("case-results");
-    const errorRegion = document.getElementById("global-error");
-    if (caseResults && errorRegion) {
-      caseResults.setAttribute("aria-busy", "false");
-      errorRegion.textContent = caseResults.dataset.networkErrorMessage || "";
+    if (event.detail.successful === false) {
+      announceHtmxNetworkError(event.detail.elt);
     }
+  });
+  document.addEventListener("htmx:sendError", (event) => {
+    announceHtmxNetworkError(event.detail.elt);
   });
 
   let referenceDialogTrigger = null;

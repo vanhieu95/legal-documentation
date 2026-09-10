@@ -1,0 +1,27 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Dashboard" %} · VDS{% endblock %}
+{% block page_context %}{% translate "Dashboard" %}{% endblock %}
+
+{% block main_content %}
+  <div class="dashboard-page">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">{% translate "Civil matters" %}</p>
+        <h1 id="dashboard-heading" class="gallery-title">{% translate "Dashboard" %}</h1>
+        <p class="gallery-description">{% translate "Review current case activity and continue case administration." %}</p>
+      </div>
+    </header>
+
+    {% include "accounts/_dashboard_case_activity.html" %}
+
+    <section class="surface dashboard-unavailable" aria-labelledby="document-dashboard-heading">
+      <h2 id="document-dashboard-heading" class="surface-title">{% translate "Documents" %}</h2>
+      <div class="state" role="status">
+        <p class="state-title">{% translate "Document features are not yet available" %}</p>
+        <p class="state-message">{% translate "Generation results and template coverage will appear after the document platform is available." %}</p>
+      </div>
+    </section>
+  </div>
+{% endblock %}

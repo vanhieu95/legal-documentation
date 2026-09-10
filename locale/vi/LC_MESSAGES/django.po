@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-09 15:51+0700\n"
+"POT-Creation-Date: 2026-09-10 21:17+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -16,8 +16,9 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: apps/accounts/context_processors.py:25
-#: templates/accounts/dashboard_placeholder.html:6
-#: templates/accounts/dashboard_placeholder.html:10
+#: templates/accounts/_dashboard_case_activity.html:8
+#: templates/accounts/dashboard.html:4 templates/accounts/dashboard.html:5
+#: templates/accounts/dashboard.html:12
 msgid "Dashboard"
 msgstr "Bảng điều khiển"
 
@@ -269,6 +270,7 @@ msgid "State"
 msgstr "Trạng thái"
 
 #: apps/cases/forms.py:155 apps/cases/models.py:247
+#: templates/accounts/_dashboard_case_activity.html:65
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
@@ -594,7 +596,7 @@ msgstr "Phiên họp"
 msgid "Resolved"
 msgstr "Đã giải quyết"
 
-#: apps/cases/models.py:248
+#: apps/cases/models.py:248 templates/accounts/_dashboard_case_activity.html:65
 msgid "Archived"
 msgstr "Đã lưu trữ"
 
@@ -763,6 +765,7 @@ msgid "Edit case relationships"
 msgstr "Chỉnh sửa quan hệ hồ sơ"
 
 #: apps/cases/views.py:271 apps/cases/views.py:274
+#: templates/accounts/_dashboard_case_activity.html:77
 #: templates/cases/_case_results.html:27 templates/cases/list.html:11
 msgid "Create case"
 msgstr "Tạo hồ sơ việc dân sự"
@@ -867,13 +870,111 @@ msgstr "Ngừng sử dụng %(type)s"
 msgid "Template management is not available yet."
 msgstr "Chức năng quản lý biểu mẫu chưa khả dụng."
 
-#: templates/accounts/dashboard_placeholder.html:4
-msgid "Home"
-msgstr "Trang chủ"
+#: templates/accounts/_dashboard_case_activity.html:9
+msgid ""
+"Case activity could not be refreshed. Check the connection and try again."
+msgstr "Không thể làm mới hoạt động hồ sơ. Kiểm tra kết nối rồi thử lại."
 
-#: templates/accounts/dashboard_placeholder.html:12
-msgid "Business information will be provided in later phases."
-msgstr "Thông tin nghiệp vụ sẽ được cung cấp trong các giai đoạn sau."
+#: templates/accounts/_dashboard_case_activity.html:12
+msgid "Loading case activity…"
+msgstr "Đang tải hoạt động hồ sơ…"
+
+#: templates/accounts/_dashboard_case_activity.html:17
+msgid "Case activity is temporarily unavailable"
+msgstr "Hoạt động hồ sơ tạm thời không khả dụng"
+
+#: templates/accounts/_dashboard_case_activity.html:18
+msgid "Try refreshing this section. No case details were displayed."
+msgstr "Hãy thử làm mới mục này. Không có chi tiết hồ sơ nào được hiển thị."
+
+#: templates/accounts/_dashboard_case_activity.html:26
+#: templates/accounts/_dashboard_case_activity.html:39
+msgid "Refresh case activity"
+msgstr "Làm mới hoạt động hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:31
+msgid "Case summary"
+msgstr "Tổng quan hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:42
+#, python-format
+msgid "View %(count)s active cases"
+msgstr "Xem %(count)s hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:43
+msgid "Active cases"
+msgstr "Hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:45
+#, python-format
+msgid "%(counter)s active case"
+msgid_plural "%(counter)s active cases"
+msgstr[0] "%(counter)s hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:47
+#, python-format
+msgid "View %(count)s archived cases"
+msgstr "Xem %(count)s hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:48
+msgid "Archived cases"
+msgstr "Hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:50
+#, python-format
+msgid "%(counter)s archived case"
+msgid_plural "%(counter)s archived cases"
+msgstr[0] "%(counter)s hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:56
+msgid "Recent case activity"
+msgstr "Hoạt động hồ sơ gần đây"
+
+#: templates/accounts/_dashboard_case_activity.html:64
+msgid "Case archived"
+msgstr "Hồ sơ đã được lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:64
+msgid "Case updated"
+msgstr "Hồ sơ đã được cập nhật"
+
+#: templates/accounts/_dashboard_case_activity.html:69
+#: templates/cases/_case_results.html:58
+msgid "View case"
+msgstr "Xem hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:75
+msgid "No recent case activity"
+msgstr "Chưa có hoạt động hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:76
+msgid "Case activity will appear here after a case is created or updated."
+msgstr ""
+"Hoạt động hồ sơ sẽ xuất hiện tại đây sau khi hồ sơ được tạo hoặc cập nhật."
+
+#: templates/accounts/dashboard.html:11 templates/cases/list.html:10
+msgid "Civil matters"
+msgstr "Các việc dân sự"
+
+#: templates/accounts/dashboard.html:13
+msgid "Review current case activity and continue case administration."
+msgstr "Xem hoạt động hồ sơ hiện tại và tiếp tục công việc quản lý hồ sơ."
+
+#: templates/accounts/dashboard.html:20
+msgid "Documents"
+msgstr "Tài liệu"
+
+#: templates/accounts/dashboard.html:22
+msgid "Document features are not yet available"
+msgstr "Chức năng tài liệu chưa khả dụng"
+
+#: templates/accounts/dashboard.html:23
+msgid ""
+"Generation results and template coverage will appear after the document "
+"platform is available."
+msgstr ""
+"Kết quả tạo tài liệu và phạm vi biểu mẫu sẽ xuất hiện sau khi nền tảng tài "
+"liệu khả dụng."
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:48
 msgid "Sign in"
@@ -1177,10 +1278,6 @@ msgstr "sắp xếp theo lần cập nhật gần nhất"
 msgid "Actions"
 msgstr "Thao tác"
 
-#: templates/cases/_case_results.html:58
-msgid "View case"
-msgstr "Xem hồ sơ"
-
 #: templates/cases/_case_results.html:62
 msgid "Case result pages"
 msgstr "Các trang kết quả hồ sơ"
@@ -1286,10 +1383,6 @@ msgstr "Xóa dòng"
 #: templates/cases/detail.html:11
 msgid "Civil matter"
 msgstr "Việc dân sự"
-
-#: templates/cases/list.html:10
-msgid "Civil matters"
-msgstr "Các việc dân sự"
 
 #: templates/cases/references/_deactivate_form.html:5
 msgid ""

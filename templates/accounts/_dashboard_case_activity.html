@@ -1,0 +1,82 @@
+{% load i18n tz %}
+<div
+  id="dashboard-case-activity"
+  class="dashboard-case-activity"
+  aria-live="polite"
+  aria-busy="false"
+  hx-history="false"
+  data-page-context="{% translate 'Dashboard' %}"
+  data-network-error-message="{% translate 'Case activity could not be refreshed. Check the connection and try again.' %}"
+>
+  <div id="dashboard-case-activity-loading" class="dashboard-loading htmx-indicator" role="status" aria-live="polite">
+    <span class="loading-indicator" aria-hidden="true"></span>{% translate "Loading case activity…" %}
+  </div>
+
+  {% if dashboard_unavailable %}
+    <div class="alert alert-error" role="alert">
+      <p class="alert-title">{% translate "Case activity is temporarily unavailable" %}</p>
+      <p class="alert-message">{% translate "Try refreshing this section. No case details were displayed." %}</p>
+      <a
+        class="button button-secondary dashboard-refresh"
+        href="{% url 'accounts:dashboard' %}"
+        hx-get="{% url 'accounts:dashboard' %}"
+        hx-target="#dashboard-case-activity"
+        hx-swap="outerHTML"
+        hx-indicator="#dashboard-case-activity-loading"
+      >{% translate "Refresh case activity" %}</a>
+    </div>
+  {% else %}
+    <section aria-labelledby="case-summary-heading">
+      <div class="dashboard-section-heading">
+        <h2 id="case-summary-heading" class="surface-title">{% translate "Case summary" %}</h2>
+        <a
+          class="button button-quiet dashboard-refresh"
+          href="{% url 'accounts:dashboard' %}"
+          hx-get="{% url 'accounts:dashboard' %}"
+          hx-target="#dashboard-case-activity"
+          hx-swap="outerHTML"
+          hx-indicator="#dashboard-case-activity-loading"
+        >{% translate "Refresh case activity" %}</a>
+      </div>
+      <div class="dashboard-metric-grid">
+        <a class="surface dashboard-metric-card" href="{{ active_cases_url }}" aria-label="{% blocktranslate with count=case_counts.active %}View {{ count }} active cases{% endblocktranslate %}">
+          <span class="dashboard-metric-label">{% translate "Active cases" %}</span>
+          <strong class="dashboard-metric-value" aria-hidden="true">{{ case_counts.active }}</strong>
+          <span class="dashboard-metric-context">{% blocktranslate count counter=case_counts.active %}{{ counter }} active case{% plural %}{{ counter }} active cases{% endblocktranslate %}</span>
+        </a>
+        <a class="surface dashboard-metric-card" href="{{ archived_cases_url }}" aria-label="{% blocktranslate with count=case_counts.archived %}View {{ count }} archived cases{% endblocktranslate %}">
+          <span class="dashboard-metric-label">{% translate "Archived cases" %}</span>
+          <strong class="dashboard-metric-value" aria-hidden="true">{{ case_counts.archived }}</strong>
+          <span class="dashboard-metric-context">{% blocktranslate count counter=case_counts.archived %}{{ counter }} archived case{% plural %}{{ counter }} archived cases{% endblocktranslate %}</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="surface dashboard-activity-panel" aria-labelledby="recent-case-activity-heading">
+      <h2 id="recent-case-activity-heading" class="surface-title">{% translate "Recent case activity" %}</h2>
+      {% if recent_activity %}
+        <ol class="dashboard-activity-list">
+          {% for item in recent_activity %}
+            <li>
+              <div class="dashboard-activity-copy">
+                <a class="dashboard-activity-reference" href="{{ item.detail_url }}">{{ item.reference }}</a>
+                <span class="dashboard-activity-category">
+                  {% if item.category == "archived" %}{% translate "Case archived" %}{% else %}{% translate "Case updated" %}{% endif %}
+                  · {% if item.status == "archived" %}{% translate "Archived" %}{% else %}{% translate "Active" %}{% endif %}
+                </span>
+              </div>
+              <time datetime="{{ item.occurred_at|date:'c' }}">{{ item.occurred_at|localtime|date:"DATETIME_FORMAT" }}</time>
+              <a class="button button-quiet" href="{{ item.detail_url }}">{% translate "View case" %}<span class="visually-hidden">: {{ item.reference }}</span></a>
+            </li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <div class="state" role="status">
+          <p class="state-title">{% translate "No recent case activity" %}</p>
+          <p class="state-message">{% translate "Case activity will appear here after a case is created or updated." %}</p>
+          <a class="button button-primary" href="{% url 'cases:create' %}">{% translate "Create case" %}</a>
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+</div>

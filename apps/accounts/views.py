@@ -9,9 +9,11 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import DatabaseError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.cache import patch_vary_headers
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -29,6 +31,12 @@ from apps.accounts.forms import (
 from apps.accounts.policies import ApplicationPermission, application_permission_required
 from apps.accounts.sessions import establish_session_timestamps, safe_local_destination
 from apps.audit.actions import AuditOutcome
+from apps.cases.selectors import (
+    CaseActivity,
+    CaseActivityCounts,
+    case_activity_counts,
+    recent_case_activity,
+)
 
 
 @never_cache
@@ -84,9 +92,30 @@ def logout(request: HttpRequest) -> HttpResponse:
 
 
 @never_cache
+@require_GET
 @application_permission_required(ApplicationPermission.VIEW_CASES)
 def dashboard(request: HttpRequest) -> HttpResponse:
-    return render(request, "accounts/dashboard_placeholder.html")
+    unavailable = False
+    counts = CaseActivityCounts(active=0, archived=0)
+    recent_activity: tuple[CaseActivity, ...] = ()
+    try:
+        counts = case_activity_counts(actor=cast(User, request.user))
+        recent_activity = recent_case_activity(actor=cast(User, request.user))
+    except DatabaseError:
+        unavailable = True
+
+    context = {
+        "case_counts": counts,
+        "recent_activity": recent_activity,
+        "dashboard_unavailable": unavailable,
+        "active_cases_url": f"{reverse('cases:list')}?archive_state=active",
+        "archived_cases_url": f"{reverse('cases:list')}?archive_state=archived",
+    }
+    is_htmx = request.headers.get("HX-Request") == "true"
+    template = "accounts/_dashboard_case_activity.html" if is_htmx else "accounts/dashboard.html"
+    response = render(request, template, context, status=503 if unavailable else 200)
+    patch_vary_headers(response, ("HX-Request",))
+    return response
 
 
 @never_cache

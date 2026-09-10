@@ -44,6 +44,118 @@ async function expectNoPageOverflow(page) {
   expect(overflow.scrollWidth, JSON.stringify(overflow)).toBeLessThanOrEqual(overflow.clientWidth);
 }
 
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`case dashboard reflows at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+
+    await expect(page.getByRole("heading", { level: 1, name: "Bảng điều khiển" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Xem \d+ hồ sơ đang hoạt động/ })).toHaveAttribute(
+      "href",
+      "/cases/?archive_state=active",
+    );
+    await expect(page.getByRole("link", { name: /Xem \d+ hồ sơ đã lưu trữ/ })).toHaveAttribute(
+      "href",
+      "/cases/?archive_state=archived",
+    );
+    await expect(page.getByRole("heading", { name: "Hoạt động hồ sơ gần đây" })).toBeVisible();
+    await expect(page.getByText("Chức năng tài liệu chưa khả dụng")).toBeVisible();
+    await expectNoPageOverflow(page);
+
+    const activeCard = page.getByRole("link", { name: /Xem \d+ hồ sơ đang hoạt động/ });
+    await activeCard.focus();
+    await expect(activeCard).toBeFocused();
+    await expect(activeCard).toHaveCSS("outline-style", "solid");
+  });
+}
+
+test("dashboard case activity refreshes as a narrow HTMX fragment", async ({ page }) => {
+  await signInAsAdministrator(page);
+  let releaseRequest;
+  const requestReleased = new Promise((resolve) => {
+    releaseRequest = resolve;
+  });
+  let observeRequest;
+  const requestObserved = new Promise((resolve) => {
+    observeRequest = resolve;
+  });
+  await page.route("**/dashboard/", async (route) => {
+    observeRequest();
+    await requestReleased;
+    await route.continue();
+  });
+  const fragmentResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/dashboard/") &&
+      response.request().headers()["hx-request"] === "true",
+  );
+  const click = page.getByRole("link", { name: "Làm mới hoạt động hồ sơ" }).click();
+  await requestObserved;
+  await expect(page.locator("#dashboard-case-activity")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator("#dashboard-case-activity-loading")).toBeVisible();
+  releaseRequest();
+  await click;
+  const response = await fragmentResponse;
+
+  expect(response.status()).toBe(200);
+  expect(response.headers().vary).toContain("HX-Request");
+  await expect(page.locator("#dashboard-case-activity")).toHaveCount(1);
+  await expect(page.locator("#dashboard-case-activity")).toHaveAttribute("aria-busy", "false");
+  await expect(page).toHaveURL(/\/dashboard\/$/);
+  const browserStorage = await page.evaluate(() => ({
+    local: { ...window.localStorage },
+    session: { ...window.sessionStorage },
+  }));
+  expect(browserStorage.session).toEqual({});
+  expect(JSON.stringify(browserStorage)).not.toContain("SYN-");
+});
+
+test("dashboard announces a case-activity network error without exposing case data", async ({ page }) => {
+  await signInAsAdministrator(page);
+  await page.route("**/dashboard/", (route) => route.abort("failed"));
+
+  await page.getByRole("link", { name: "Làm mới hoạt động hồ sơ" }).click();
+
+  await expect(page.locator("#global-error")).toHaveText(
+    "Không thể làm mới hoạt động hồ sơ. Kiểm tra kết nối rồi thử lại.",
+  );
+  await expect(page.locator("#dashboard-case-activity")).toHaveAttribute("aria-busy", "false");
+});
+
+test("dashboard recent activity opens the authorized case detail", async ({ page }) => {
+  await signInAsAdministrator(page);
+  const detailUrl = await createSyntheticCase(page, "DASHBOARD-ACTIVITY");
+  const reference = await page.getByRole("heading", { level: 1 }).textContent();
+  await page.goto("/dashboard/");
+
+  const activityItem = page.locator(".dashboard-activity-list li").filter({ hasText: reference });
+  await expect(activityItem).toContainText("Hồ sơ đã được cập nhật");
+  await expect(activityItem.getByRole("link", { name: reference, exact: true })).toHaveAttribute(
+    "href",
+    new URL(detailUrl).pathname,
+  );
+});
+
+test("dashboard case links work without JavaScript and store no case state", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 375, height: 812 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+
+  await page.getByRole("link", { name: /Xem \d+ hồ sơ đang hoạt động/ }).click();
+
+  await expect(page).toHaveURL(/\/cases\/\?archive_state=active$/);
+  await expect(page.locator('select[name="archive_state"]')).toHaveValue("active");
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
 test("Django serves the content-free liveness contract", async ({ request }) => {
   const response = await request.get("/health/live/");
 
