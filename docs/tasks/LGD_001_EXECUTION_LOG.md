@@ -984,3 +984,98 @@ credentials, generated-document content, or other sensitive payloads.
   browser evidence. `.codegraph/` remains a pre-existing unrelated untracked directory and was not
   modified or committed. No CP-CASE-E blocker remains. The next eligible task is `CASE-012` under
   `CP-CASE-F`; it was not started.
+
+## CASE-012 — Add case activity selectors for the dashboard
+
+- **Completion date:** 2026-09-10
+- **Outcome:** Replaced the dashboard placeholder with permission- and object-policy-scoped active
+  and archived totals plus five deterministic recent case activities. Cards link through the exact
+  CASE-010 `archive_state=active|archived` contract; recent items expose only safe reference,
+  status/category, localized activity time, and authorized named detail URLs. Document areas remain
+  explicitly unavailable and contain no invented counts or document business code.
+- **Important files changed:** `apps/cases/{selectors.py,tests/test_dashboard.py}`,
+  `apps/accounts/views.py`, dashboard full/fragment templates, responsive CSS, HTMX loading/error
+  handling, Vietnamese catalog, browser tests, and
+  `docs/operations/CASE_012_QUERY_PLANS.md`.
+- **Migrations and indexes:** None. PostgreSQL plan evidence confirmed that the existing
+  `case_record_updated_idx` serves bounded recent activity; the exact two-status aggregate is
+  appropriately a single scan and did not justify another index.
+- **Focused tests:** The final dashboard/shell/frontend run passed 37 tests with one expected
+  SQLite-only PostgreSQL-plan skip. The focused PostgreSQL dashboard profile passed all 15 tests.
+  Tests cover mixed/empty totals, limit and deterministic order, object-policy scope, every
+  principal/permission state, exact canonical links and reproduced list state, authorized detail
+  URLs, full/fragment responses and `Vary`, loading/empty/error/unavailable states, no GET audit,
+  privacy, Vietnamese rendering, and fixed query counts.
+- **Query count and plan evidence:** The selector boundary executes exactly two case-data queries
+  and at most six queries including uncached authorization. The complete dashboard request is
+  capped at 16 including session, shell, and repeated deny-by-default permission checks; rendering
+  more source rows adds no queries. On 10,000 synthetic PostgreSQL 18 cases, recent activity used a
+  backward scan of `case_record_updated_idx`, examined six rows, returned five, used 12 shared
+  buffer hits and 25 kB peak sort memory, and completed in 0.111 ms. The aggregate used 213 shared
+  buffer hits and completed in 1.775 ms.
+- **Authorization, audit, and privacy:** Anonymous and inactive principals redirect to login;
+  non-Administrators and Administrators missing `view_cases` receive the generic denial;
+  Administrators and superusers succeed. Both selectors independently enforce the central
+  permission before applying the object policy. Allowed GETs create no audit event. HTML, query
+  strings, errors, browser storage, and HTMX history exclude addresses, identity/participant data,
+  matter text, archive reasons, and legal content.
+- **Browser and accessibility:** Pinned Chromium passed seven focused dashboard tests and all 68
+  repository browser tests. Evidence covers semantic headings/regions, accessible card count
+  names, keyboard focus, compact/tablet/wide reflow, 200% zoom through the shared shell, no page
+  overflow, Vietnamese text, loading and error announcements, live HTMX refresh, ordinary links
+  without JavaScript, and absence of case state in browser storage/history snapshots.
+- **Commit:** `a0aad5f` (`feat(cases): add policy-scoped dashboard activity`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable, so the repository's pinned real
+  Chromium runner supplied runtime evidence. The production deployment check retains the existing
+  HSTS warning because HSTS requires deployment-domain rollout decisions; production settings were
+  not weakened. No CASE-012 blocker remains.
+
+## CP-CASE-F and Milestone 4 — Checkpoint closure
+
+- **Completion date:** 2026-09-10
+- **Status:** Local CP-CASE-F and Milestone 4 verification are complete. `CASE-001` through
+  `CASE-012` and the `AC-05` through `AC-07` outcome gate pass; work stopped before `DOC-001`.
+- **Quality suite:** Ruff lint and format, mypy over `apps config`, Django system and migration
+  drift checks, Tailwind build, message extraction/compilation, frontend asset verification,
+  production deploy check, collectstatic, and diff checks passed. The required ordinary coverage
+  command passed 530 tests with 12 environment-profile skips at 95.18% branch coverage. The full
+  PostgreSQL cases profile passed 345 tests with only the non-required opt-in 100,000-row CASE-009
+  scale fixture skipped. The complete pinned-Chromium suite passed all 68 tests. Collectstatic
+  copied 133 files to an isolated synthetic production root.
+- **PostgreSQL and migrations:** PostgreSQL 18 applied all 24 migrations to an empty database. A
+  second database staged at `cases.0002` upgraded through `cases.0004` and the complete current
+  graph; both reported no unapplied migrations. The current model graph has no drift and CASE-012
+  adds no migration. PostgreSQL Unicode, transaction, and genuine independent-connection conflict
+  profiles passed.
+- **AC-05 — Case lifecycle:** HTTP/service and browser evidence creates, views, edits, and maintains
+  participants, representatives, official assignments, and hearings; archive and restore preserve
+  the approved revision rules. Invalid full-page and HTMX submissions preserve entered Unicode
+  values and expose linked error summaries. Relational writes are atomic, case-scoped, and reject
+  cross-case identifiers; archived cases remain readable and immutable until restored.
+- **AC-06 — Discovery and URL state:** Search, every approved filter, both directions of every
+  allowlisted sort, deterministic pagination, bounded page sizes, individual/all clearing, reload,
+  back/forward, and direct-link reproduction pass. The canonical query string is the sole state
+  source. Full-page, narrow HTMX, and JavaScript-disabled results agree; dashboard cards reproduce
+  the intended active and archived result sets without unnecessary or sensitive parameters.
+- **AC-07 — Optimistic concurrency:** PostgreSQL independent-connection tests prove two actors can
+  submit the same revision and exactly one compare-and-swap update succeeds. The stale update
+  returns conflict and cannot overwrite the winner. Independent-browser-client tests pass both
+  enhanced `409` fragment recovery and full-page no-JavaScript conflict recovery; the same rules
+  also protect archive/restore and relationship mutations.
+- **Cross-cutting security and correctness:** View and sensitive service boundaries enforce
+  permissions and object policy. Every unsafe normal and HTMX route retains CSRF rejection;
+  inaccessible UUIDs remain generic. Mutation audits are bounded and ordinary reads do not audit.
+  Server-owned actor/time/revision/archive truth, UTC storage with Ho Chi Minh City presentation,
+  Vietnamese Unicode, atomic relational writes, fixed query budgets, and no N+1 behavior pass.
+  PostgreSQL plans support the approved case-search and dashboard activity shapes.
+- **Privacy and dependency review:** All fixtures and plan data are explicitly synthetic. No real
+  personal/legal data, secret, sensitive URL/storage/log/audit value, document statistic,
+  placeholder document record, new suppression, or unrelated cleanup was introduced. `cases`
+  imports no `documents` code, and no document-platform implementation has started.
+- **Commits:** `a0aad5f` (`CASE-012`); checkpoint record commit follows this entry.
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable and pinned Chromium supplied the
+  browser evidence. The deploy check passed with the pre-existing HSTS warning; enabling HSTS is a
+  deployment-level decision and settings were not weakened. The explicit CASE-009 100,000-row
+  design-target plan remains evidenced by its approved checkpoint and was not rerun; CASE-012's
+  new 10,000-row PostgreSQL plan was measured in this checkpoint. No M4 blocker remains. The next
+  eligible task is `DOC-001`, which was not started.

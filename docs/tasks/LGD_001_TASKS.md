@@ -47,6 +47,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-C` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
+- [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -438,7 +439,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Administrator can maintain the relational case graph without partial writes or inaccessible choices.
 - **Size:** L. **Blockers/skills:** `incremental-implementation`, **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-012 — Add case activity selectors for the dashboard
+### [x] CASE-012 — Add case activity selectors for the dashboard
 
 - **Outcome:** Dashboard shows active/archived counts and recent case activity with canonical links, initially leaving document panels in an explicit unavailable state.
 - **SPEC:** §§6.1, 14; **FR:** `FR-DASH-01`, `FR-DASH-02`; **AC:** `AC-06`, `AC-08`, `AC-09`.
@@ -456,8 +457,8 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ### Checkpoint M4
 
-- [ ] `AC-05`–`AC-07` pass end to end; permissions, CSRF, audit and accessibility are part of the evidence.
-- [ ] Case selectors meet the initial query budget and preserve all canonical URL state with/full without HTMX.
+- [x] `AC-05`–`AC-07` pass end to end; permissions, CSRF, audit and accessibility are part of the evidence.
+- [x] Case selectors meet the initial query budget and preserve all canonical URL state with/full without HTMX.
 
 ## Milestone 5 — Document-platform vertical slice
 
