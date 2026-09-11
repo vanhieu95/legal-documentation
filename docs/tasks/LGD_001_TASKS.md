@@ -42,6 +42,12 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 | CP-HARD-A…F | `SEC-002`, `OPS-002`, `I18N-002`, `PERF-001`, `OPS-003`, `REL-001` |
 
 - [x] `CP-FND-B` — Local checkpoint gates passed on 2026-09-01; remote GitHub Actions observation is recorded as pending.
+- [x] `CP-CASE-A` — Approved; local checkpoint gates passed on 2026-09-07.
+- [x] `CP-CASE-B` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-C` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
+- [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
+- [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -257,7 +263,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 4 — Case-management vertical slice
 
-### [ ] CASE-001 — Model courts, entities, addresses, and officials
+### [x] CASE-001 — Model courts, entities, addresses, and officials
 
 - **Outcome:** Reusable reference entities have UUID identity, validation, active state, durable uniqueness, history-friendly addresses, and query indexes.
 - **SPEC:** §§6.2, 7.1–7.2, 10.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`.
@@ -273,7 +279,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Reference models enforce invariants and contain no document dependency or unvalidated JSON.
 - **Size:** M. **Blockers/skills:** `test-driven-development`, `code-review-and-quality`.
 
-### [ ] CASE-002 — Deliver reference-entity maintenance workflows
+### [x] CASE-002 — Deliver reference-entity maintenance workflows
 
 - **Outcome:** Administrators can create/edit/deactivate courts, entities and officials through validated services/forms and responsive full/HTMX pages.
 - **SPEC:** §§4.2, 6.2, 13–16, 17.1; **FR:** `FR-CASE-07`; **AC:** `AC-02`, `AC-03`, `AC-05`, `AC-08`, `AC-09`.
@@ -289,7 +295,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Reference maintenance is usable, authorized, audited, progressively enhanced and value-preserving on errors.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-003 — Model civil cases, acceptance rules, revisions, and archive metadata
+### [x] CASE-003 — Model civil cases, acceptance rules, revisions, and archive metadata
 
 - **Outcome:** `CaseRecord` supports incomplete pre-acceptance data, all-or-together accepted identifiers, metadata, monotonic revisions, archive state and scale indexes.
 - **SPEC:** §§6.2, 7.1–7.2, 10.1, 15.1; **FR:** `FR-CASE-06`, `FR-CASE-08`, `FR-CASE-09`; **AC:** `AC-05`, `AC-07`.
@@ -305,7 +311,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Database and form invariants reject inconsistent acceptance/archive/revision state.
 - **Size:** M. **Blockers/skills:** `test-driven-development`, `code-review-and-quality`.
 
-### [ ] CASE-004 — Model participants and representation contracts
+### [x] CASE-004 — Model participants and representation contracts
 
 - **Outcome:** Cases relate reusable entities through ordered role-specific participant records and legally necessary representations without duplicate accidental roles.
 - **SPEC:** §§6.2, 10.1, 15.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`, `AC-11`.
@@ -321,7 +327,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Relational participant/representation data is validated, indexed, case-scoped, and ready for prefill transfer values.
 - **Size:** M. **Blockers/skills:** Exact template-specific roles wait for contracts; core role list is locked.
 
-### [ ] CASE-005 — Model assignments and hearings
+### [x] CASE-005 — Model assignments and hearings
 
 - **Outcome:** Officials can be assigned to cases by procedural role/effective dates and cases can hold validated, timezone-aware hearing records.
 - **SPEC:** §§6.2, 10.1, 15.1; **FR:** `FR-CASE-07`; **AC:** `AC-05`, `AC-11`.
@@ -337,7 +343,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Assignment/hearing contracts are normalized and safe for case detail and document prefill.
 - **Size:** M. **Blockers/skills:** None.
 
-### [ ] CASE-006 — Deliver case creation and overview detail
+### [x] CASE-006 — Deliver case creation and overview detail
 
 - **Outcome:** Administrators create a validated case and view its overview through full-page or HTMX form responses with correct metadata and audit.
 - **SPEC:** §§5.2, 6.2, 13–16, 17.1; **FR:** `FR-CASE-06`, `FR-CASE-08`, `FR-CASE-09`; **AC:** `AC-02`, `AC-03`, `AC-05`, `AC-08`, `AC-09`.
@@ -353,7 +359,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A synthetic case can be created and viewed end to end with correct metadata, authorization, audit, accessibility and errors.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-007 — Deliver optimistic case editing and conflict recovery
+### [x] CASE-007 — Deliver optimistic case editing and conflict recovery
 
 - **Outcome:** Case edits compare submitted revision atomically, increment once on success, and return recoverable `409` conflicts without overwriting newer data.
 - **SPEC:** §§5.2, 6.2, 12, 13.1, 15.3; **FR:** `FR-CASE-06`, `FR-CASE-09`; **AC:** `AC-03`, `AC-05`, `AC-07`.
@@ -369,7 +375,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A stale write cannot win and the administrator has a tested recovery path.
 - **Size:** M. **Blockers/skills:** **Security skill**, `debugging-and-error-recovery`, `code-review-and-quality`.
 
-### [ ] CASE-008 — Deliver confirmed archive and restore
+### [x] CASE-008 — Deliver confirmed archive and restore
 
 - **Outcome:** Administrators confirm archive/restore, record actor/time/reason and revision, and archived cases remain readable but immutable/unavailable for new generation.
 - **SPEC:** §§4.3, 5.2, 6.2, 14–17; **FR:** `FR-CASE-06`, `FR-CASE-09`; **AC:** `AC-03`, `AC-05`.
@@ -385,7 +391,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Archive lifecycle is explicit, reversible, revisioned, audited, and enforced server-side.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-009 — Build indexed case search, filter, sort, and pagination selectors
+### [x] CASE-009 — Build indexed case search, filter, sort, and pagination selectors
 
 - **Outcome:** A read-only selector returns correct URL-driven results for all required fields, filter combinations, allowlisted sorts, and page sizes at target scale.
 - **SPEC:** §§6.2, 7.1–7.2, 13.1, 14; **FR:** `FR-CASE-01`–`FR-CASE-05`; **AC:** `AC-06`, `AC-26`.
@@ -401,7 +407,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Correct deterministic results and initial query budget are documented with no N+1 or sort injection.
 - **Size:** L. **Blockers/skills:** Target hardware deferred; use `performance-optimization`, **Security skill**, `code-review-and-quality`.
 
-### [ ] CASE-010 — Deliver the responsive canonical case list with HTMX
+### [x] CASE-010 — Deliver the responsive canonical case list with HTMX
 
 - **Outcome:** Case list controls encode state in the URL, work as ordinary forms/links, and enhance to narrow HTMX table/card updates with accessible states.
 - **SPEC:** §§5.2, 6.2, 13–15; `DESIGN.md` §§4–7; **FR:** `FR-CASE-01`–`FR-CASE-05`; **AC:** `AC-02`, `AC-06`, `AC-08`, `AC-09`, `AC-27`.
@@ -417,7 +423,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `AC-06` is demonstrable in JS and no-JS modes without unintended horizontal page scroll.
 - **Size:** M. **Blockers/skills:** `frontend-ui-engineering`, `browser-testing-with-devtools`, `code-review-and-quality`.
 
-### [ ] CASE-011 — Deliver case relationships and sectioned detail editing
+### [x] CASE-011 — Deliver case relationships and sectioned detail editing
 
 - **Outcome:** Case detail exposes server-addressable overview, participants/representatives, officials and hearings; authorized formsets update relationships atomically with accessible validation.
 - **SPEC:** §§5.2, 6.2, 14–15, 17.1; **FR:** `FR-CASE-06`, `FR-CASE-07`; **AC:** `AC-03`, `AC-05`, `AC-08`, `AC-09`.
@@ -433,7 +439,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Administrator can maintain the relational case graph without partial writes or inaccessible choices.
 - **Size:** L. **Blockers/skills:** `incremental-implementation`, **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] CASE-012 — Add case activity selectors for the dashboard
+### [x] CASE-012 — Add case activity selectors for the dashboard
 
 - **Outcome:** Dashboard shows active/archived counts and recent case activity with canonical links, initially leaving document panels in an explicit unavailable state.
 - **SPEC:** §§6.1, 14; **FR:** `FR-DASH-01`, `FR-DASH-02`; **AC:** `AC-06`, `AC-08`, `AC-09`.
@@ -451,8 +457,8 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ### Checkpoint M4
 
-- [ ] `AC-05`–`AC-07` pass end to end; permissions, CSRF, audit and accessibility are part of the evidence.
-- [ ] Case selectors meet the initial query budget and preserve all canonical URL state with/full without HTMX.
+- [x] `AC-05`–`AC-07` pass end to end; permissions, CSRF, audit and accessibility are part of the evidence.
+- [x] Case selectors meet the initial query budget and preserve all canonical URL state with/full without HTMX.
 
 ## Milestone 5 — Document-platform vertical slice
 

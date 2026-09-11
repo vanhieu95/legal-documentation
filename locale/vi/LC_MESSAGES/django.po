@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 19:32+0700\n"
+"POT-Creation-Date: 2026-09-10 21:17+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -16,12 +16,16 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: apps/accounts/context_processors.py:25
-#: templates/accounts/dashboard_placeholder.html:6
-#: templates/accounts/dashboard_placeholder.html:10
+#: templates/accounts/_dashboard_case_activity.html:8
+#: templates/accounts/dashboard.html:4 templates/accounts/dashboard.html:5
+#: templates/accounts/dashboard.html:12
 msgid "Dashboard"
 msgstr "Bảng điều khiển"
 
-#: apps/accounts/context_processors.py:26 apps/cases/views.py:16
+#: apps/accounts/context_processors.py:26 templates/cases/detail.html:5
+#: templates/cases/form.html:5 templates/cases/list.html:4
+#: templates/cases/list.html:5 templates/cases/list.html:10
+#: templates/cases/relationships.html:5 templates/cases/transition.html:5
 msgid "Cases"
 msgstr "Hồ sơ việc dân sự"
 
@@ -47,116 +51,930 @@ msgstr "Tên đăng nhập"
 msgid "Password"
 msgstr "Mật khẩu"
 
-#: apps/audit/forms.py:28 templates/audit/_audit_results.html:32
+#: apps/audit/forms.py:29 templates/audit/_audit_results.html:32
 msgid "Action"
 msgstr "Hành động"
 
-#: apps/audit/forms.py:30
+#: apps/audit/forms.py:31
 msgid "All actions"
 msgstr "Tất cả hành động"
 
-#: apps/audit/forms.py:33 templates/audit/_audit_results.html:33
+#: apps/audit/forms.py:34 templates/audit/_audit_results.html:33
 #: templates/audit/_audit_results.html:98
 msgid "Outcome"
 msgstr "Kết quả"
 
-#: apps/audit/forms.py:35
+#: apps/audit/forms.py:36
 msgid "All outcomes"
 msgstr "Tất cả kết quả"
 
-#: apps/audit/forms.py:38 templates/audit/_audit_results.html:34
+#: apps/audit/forms.py:39 templates/audit/_audit_results.html:34
 #: templates/audit/_audit_results.html:102
 msgid "Actor"
 msgstr "Người thực hiện"
 
-#: apps/audit/forms.py:43
+#: apps/audit/forms.py:44
 msgid "Target type"
 msgstr "Loại đối tượng"
 
-#: apps/audit/forms.py:45
+#: apps/audit/forms.py:46
 msgid "All target types"
 msgstr "Tất cả loại đối tượng"
 
-#: apps/audit/forms.py:48
+#: apps/audit/forms.py:49
 msgid "Target identifier"
 msgstr "Mã định danh đối tượng"
 
-#: apps/audit/forms.py:53 templates/audit/_audit_results.html:36
+#: apps/audit/forms.py:54 templates/audit/_audit_results.html:36
 #: templates/audit/_audit_results.html:118
 msgid "Correlation ID"
 msgstr "Mã tương quan"
 
-#: apps/audit/forms.py:58
+#: apps/audit/forms.py:59
 msgid "From"
 msgstr "Từ"
 
-#: apps/audit/forms.py:69
+#: apps/audit/forms.py:70
 msgid "To"
 msgstr "Đến"
 
-#: apps/audit/forms.py:80
+#: apps/audit/forms.py:81
 msgid "Sort"
 msgstr "Sắp xếp"
 
-#: apps/audit/forms.py:83
+#: apps/audit/forms.py:84
 msgid "Newest first"
 msgstr "Mới nhất trước"
 
-#: apps/audit/forms.py:84
+#: apps/audit/forms.py:85
 msgid "Oldest first"
 msgstr "Cũ nhất trước"
 
-#: apps/audit/forms.py:85
+#: apps/audit/forms.py:86
 msgid "Action (A–Z)"
 msgstr "Hành động (A–Z)"
 
-#: apps/audit/forms.py:86
+#: apps/audit/forms.py:87
 msgid "Action (Z–A)"
 msgstr "Hành động (Z–A)"
 
-#: apps/audit/forms.py:87
+#: apps/audit/forms.py:88
 msgid "Outcome (A–Z)"
 msgstr "Kết quả (A–Z)"
 
-#: apps/audit/forms.py:88
+#: apps/audit/forms.py:89
 msgid "Outcome (Z–A)"
 msgstr "Kết quả (Z–A)"
 
-#: apps/audit/forms.py:89
+#: apps/audit/forms.py:90
 msgid "Target type (A–Z)"
 msgstr "Loại đối tượng (A–Z)"
 
-#: apps/audit/forms.py:90
+#: apps/audit/forms.py:91
 msgid "Target type (Z–A)"
 msgstr "Loại đối tượng (Z–A)"
 
-#: apps/audit/forms.py:91
+#: apps/audit/forms.py:92
 msgid "Correlation ID (A–Z)"
 msgstr "Mã tương quan (A–Z)"
 
-#: apps/audit/forms.py:92
+#: apps/audit/forms.py:93
 msgid "Correlation ID (Z–A)"
 msgstr "Mã tương quan (Z–A)"
 
-#: apps/audit/forms.py:97
+#: apps/audit/forms.py:98
 msgid "Page size"
 msgstr "Kích thước trang"
 
-#: apps/cases/views.py:17
-msgid "Case management is not available yet."
-msgstr "Chức năng quản lý hồ sơ việc dân sự chưa khả dụng."
+#: apps/cases/forms.py:26
+msgid "Last updated (ascending)"
+msgstr "Cập nhật gần nhất (tăng dần)"
+
+#: apps/cases/forms.py:27
+msgid "Last updated (descending)"
+msgstr "Cập nhật gần nhất (giảm dần)"
+
+#: apps/cases/forms.py:28
+msgid "Created date (ascending)"
+msgstr "Ngày tạo (tăng dần)"
+
+#: apps/cases/forms.py:29
+msgid "Created date (descending)"
+msgstr "Ngày tạo (giảm dần)"
+
+#: apps/cases/forms.py:30
+msgid "Acceptance date (ascending)"
+msgstr "Ngày thụ lý (tăng dần)"
+
+#: apps/cases/forms.py:31
+msgid "Acceptance date (descending)"
+msgstr "Ngày thụ lý (giảm dần)"
+
+#: apps/cases/forms.py:32
+msgid "Acceptance number (ascending)"
+msgstr "Số thụ lý (tăng dần)"
+
+#: apps/cases/forms.py:33
+msgid "Acceptance number (descending)"
+msgstr "Số thụ lý (giảm dần)"
+
+#: apps/cases/forms.py:34
+msgid "Court (ascending)"
+msgstr "Tòa án (tăng dần)"
+
+#: apps/cases/forms.py:35
+msgid "Court (descending)"
+msgstr "Tòa án (giảm dần)"
+
+#: apps/cases/forms.py:36
+msgid "Matter type (ascending)"
+msgstr "Loại việc dân sự (tăng dần)"
+
+#: apps/cases/forms.py:37
+msgid "Matter type (descending)"
+msgstr "Loại việc dân sự (giảm dần)"
+
+#: apps/cases/forms.py:49 apps/cases/forms.py:147
+msgid "Search"
+msgstr "Tìm kiếm"
+
+#: apps/cases/forms.py:51
+msgid "Search cases"
+msgstr "Tìm kiếm hồ sơ"
+
+#: apps/cases/forms.py:57 apps/cases/forms.py:319 apps/cases/views.py:100
+#: templates/cases/_case_results.html:46 templates/cases/_case_results.html:54
+#: templates/cases/_case_section.html:23
+msgid "Court"
+msgstr "Tòa án"
+
+#: apps/cases/forms.py:62
+msgid "All statuses"
+msgstr "Tất cả trạng thái"
+
+#: apps/cases/forms.py:63
+msgid "Case status"
+msgstr "Trạng thái hồ sơ"
+
+#: apps/cases/forms.py:68
+msgid "All procedural stages"
+msgstr "Tất cả giai đoạn tố tụng"
+
+#: apps/cases/forms.py:69 apps/cases/forms.py:321
+#: templates/cases/_case_results.html:48 templates/cases/_case_results.html:56
+#: templates/cases/_case_section.html:25
+msgid "Procedural stage"
+msgstr "Giai đoạn tố tụng"
+
+#: apps/cases/forms.py:76 apps/cases/forms.py:325
+msgid "Acceptance type code"
+msgstr "Mã loại thụ lý"
+
+#: apps/cases/forms.py:83 apps/cases/forms.py:323
+msgid "Acceptance year"
+msgstr "Năm thụ lý"
+
+#: apps/cases/forms.py:88
+msgid "Acceptance date from"
+msgstr "Ngày thụ lý từ"
+
+#: apps/cases/forms.py:93
+msgid "Acceptance date to"
+msgstr "Ngày thụ lý đến"
+
+#: apps/cases/forms.py:98
+msgid "All archive states"
+msgstr "Tất cả trạng thái lưu trữ"
+
+#: apps/cases/forms.py:99
+msgid "Archive state"
+msgstr "Trạng thái lưu trữ"
+
+#: apps/cases/forms.py:106
+msgid "Sort order"
+msgstr "Thứ tự sắp xếp"
+
+#: apps/cases/forms.py:116 templates/cases/_case_results.html:38
+#: templates/cases/_case_results.html:39
+msgid "Rows per page"
+msgstr "Số hàng mỗi trang"
+
+#: apps/cases/forms.py:140 apps/cases/models.py:196 apps/cases/models.py:481
+#: apps/cases/models.py:609
+msgid "The end date cannot be before the start date."
+msgstr "Ngày kết thúc không được trước ngày bắt đầu."
+
+#: apps/cases/forms.py:153
+#: templates/cases/references/_reference_results.html:28
+msgid "State"
+msgstr "Trạng thái"
+
+#: apps/cases/forms.py:155 apps/cases/models.py:247
+#: templates/accounts/_dashboard_case_activity.html:65
+#: templates/cases/references/_reference_results.html:38
+#: templates/cases/references/_reference_results.html:52
+msgid "Active"
+msgstr "Đang hoạt động"
+
+#: apps/cases/forms.py:155 templates/cases/_case_section.html:35
+#: templates/cases/_case_section.html:38 templates/cases/_case_section.html:41
+#: templates/cases/references/_reference_results.html:38
+#: templates/cases/references/_reference_results.html:52
+msgid "Inactive"
+msgstr "Ngừng hoạt động"
+
+#: apps/cases/forms.py:155
+msgid "All"
+msgstr "Tất cả"
+
+#: apps/cases/forms.py:189
+msgid "Court code"
+msgstr "Mã tòa án"
+
+#: apps/cases/forms.py:190
+msgid "Full court name"
+msgstr "Tên đầy đủ của tòa án"
+
+#: apps/cases/forms.py:191
+msgid "Short court name"
+msgstr "Tên viết tắt của tòa án"
+
+#: apps/cases/forms.py:192
+msgid "Court level"
+msgstr "Cấp tòa án"
+
+#: apps/cases/forms.py:193
+msgid "Court address"
+msgstr "Địa chỉ tòa án"
+
+#: apps/cases/forms.py:194
+msgid "Superior court"
+msgstr "Tòa án cấp trên"
+
+#: apps/cases/forms.py:228
+msgid "Entity kind"
+msgstr "Loại chủ thể"
+
+#: apps/cases/forms.py:229
+msgid "Authoritative legal name"
+msgstr "Tên pháp lý chính thức"
+
+#: apps/cases/forms.py:230 templates/components/form_fields.html:6
+msgid "Display name"
+msgstr "Tên hiển thị"
+
+#: apps/cases/forms.py:231
+msgid "Identity document number"
+msgstr "Số giấy tờ tùy thân"
+
+#: apps/cases/forms.py:232
+msgid "Registration number"
+msgstr "Số đăng ký"
+
+#: apps/cases/forms.py:233
+msgid "Date of birth"
+msgstr "Ngày sinh"
+
+#: apps/cases/forms.py:234
+msgid "Organization type"
+msgstr "Loại hình tổ chức"
+
+#: apps/cases/forms.py:256 apps/cases/forms.py:395 apps/cases/views.py:113
+msgid "Entity"
+msgstr "Chủ thể"
+
+#: apps/cases/forms.py:257
+msgid "Address kind"
+msgstr "Loại địa chỉ"
+
+#: apps/cases/forms.py:258
+msgid "Full legal address"
+msgstr "Địa chỉ pháp lý đầy đủ"
+
+#: apps/cases/forms.py:259
+msgid "Province or municipality"
+msgstr "Tỉnh hoặc thành phố trực thuộc trung ương"
+
+#: apps/cases/forms.py:260
+msgid "District"
+msgstr "Quận hoặc huyện"
+
+#: apps/cases/forms.py:261
+msgid "Ward or commune"
+msgstr "Phường hoặc xã"
+
+#: apps/cases/forms.py:262
+msgid "Valid from"
+msgstr "Có hiệu lực từ"
+
+#: apps/cases/forms.py:263
+msgid "Valid to"
+msgstr "Có hiệu lực đến"
+
+#: apps/cases/forms.py:280 apps/cases/models.py:61
+msgid "Individual"
+msgstr "Cá nhân"
+
+#: apps/cases/forms.py:281
+msgid "Home court"
+msgstr "Tòa án công tác"
+
+#: apps/cases/forms.py:282
+msgid "Title"
+msgstr "Chức danh"
+
+#: apps/cases/forms.py:283
+msgid "Position"
+msgstr "Vị trí công tác"
+
+#: apps/cases/forms.py:318
+msgid "Internal reference"
+msgstr "Mã tham chiếu nội bộ"
+
+#: apps/cases/forms.py:320 templates/cases/_case_results.html:47
+#: templates/cases/_case_results.html:55 templates/cases/_case_section.html:24
+msgid "Matter type"
+msgstr "Loại việc dân sự"
+
+#: apps/cases/forms.py:322 templates/cases/_case_section.html:29
+msgid "Acceptance number"
+msgstr "Số thụ lý"
+
+#: apps/cases/forms.py:324 templates/cases/_case_section.html:30
+msgid "Acceptance date"
+msgstr "Ngày thụ lý"
+
+#: apps/cases/forms.py:341 apps/cases/forms.py:354
+msgid "Expected revision"
+msgstr "Phiên bản dự kiến"
+
+#: apps/cases/forms.py:362
+msgid "Archive reason"
+msgstr "Lý do lưu trữ"
+
+#: apps/cases/forms.py:396
+msgid "Participant role"
+msgstr "Vai trò tham gia tố tụng"
+
+#: apps/cases/forms.py:397
+msgid "Case-specific address"
+msgstr "Địa chỉ theo vụ việc"
+
+#: apps/cases/forms.py:398
+msgid "Case-specific workplace"
+msgstr "Nơi làm việc theo vụ việc"
+
+#: apps/cases/forms.py:399
+msgid "Case-specific contact"
+msgstr "Thông tin liên hệ theo vụ việc"
+
+#: apps/cases/forms.py:400 apps/cases/forms.py:627
+msgid "Ordering"
+msgstr "Thứ tự"
+
+#: apps/cases/forms.py:401 apps/cases/forms.py:628
+msgid "Effective from"
+msgstr "Có hiệu lực từ"
+
+#: apps/cases/forms.py:402 apps/cases/forms.py:629
+msgid "Effective to"
+msgstr "Có hiệu lực đến"
+
+#: apps/cases/forms.py:436
+msgid "Representative"
+msgstr "Người đại diện"
+
+#: apps/cases/forms.py:437
+msgid "Represented participant"
+msgstr "Người tham gia tố tụng được đại diện"
+
+#: apps/cases/forms.py:438
+msgid "Representation type"
+msgstr "Loại đại diện"
+
+#: apps/cases/forms.py:439
+msgid "Authority reference"
+msgstr "Căn cứ đại diện"
+
+#: apps/cases/forms.py:440
+msgid "Authority date"
+msgstr "Ngày xác lập quyền đại diện"
+
+#: apps/cases/forms.py:441
+msgid "Description"
+msgstr "Mô tả"
+
+#: apps/cases/forms.py:484
+msgid "A submitted relationship row does not belong to this case."
+msgstr "Một dòng quan hệ đã gửi không thuộc hồ sơ này."
+
+#: apps/cases/forms.py:499
+msgid "Duplicate active relationship rows are not allowed."
+msgstr "Không được có các dòng quan hệ đang hoạt động trùng nhau."
+
+#: apps/cases/forms.py:625 apps/cases/views.py:139
+msgid "Official"
+msgstr "Người tiến hành tố tụng"
+
+#: apps/cases/forms.py:626
+msgid "Procedural role"
+msgstr "Vai trò tố tụng"
+
+#: apps/cases/forms.py:658
+msgid "Instance level"
+msgstr "Cấp xét xử"
+
+#: apps/cases/forms.py:659
+msgid "Scheduled date and time"
+msgstr "Ngày giờ dự kiến"
+
+#: apps/cases/forms.py:660
+msgid "Location"
+msgstr "Địa điểm"
+
+#: apps/cases/forms.py:661 templates/cases/_case_results.html:49
+#: templates/cases/_case_results.html:57 templates/cases/_case_section.html:26
+#: templates/components/table.html:10
+msgid "Status"
+msgstr "Trạng thái"
+
+#: apps/cases/models.py:18
+msgid "District-level court"
+msgstr "Tòa án cấp huyện"
+
+#: apps/cases/models.py:19
+msgid "Provincial-level court"
+msgstr "Tòa án cấp tỉnh"
+
+#: apps/cases/models.py:20
+msgid "High People's Court"
+msgstr "Tòa án nhân dân cấp cao"
+
+#: apps/cases/models.py:21
+msgid "Supreme People's Court"
+msgstr "Tòa án nhân dân tối cao"
+
+#: apps/cases/models.py:56
+msgid "A court cannot be its own superior."
+msgstr "Tòa án không thể là tòa án cấp trên của chính mình."
+
+#: apps/cases/models.py:62
+msgid "Organization"
+msgstr "Tổ chức"
+
+#: apps/cases/models.py:120
+msgid "An identity document number is required for an individual."
+msgstr "Cá nhân phải có số giấy tờ tùy thân."
+
+#: apps/cases/models.py:125
+msgid "A registration number is only valid for an organization."
+msgstr "Số đăng ký chỉ áp dụng cho tổ chức."
+
+#: apps/cases/models.py:130
+msgid "Organization type is only valid for an organization."
+msgstr "Loại hình tổ chức chỉ áp dụng cho tổ chức."
+
+#: apps/cases/models.py:136
+msgid "A registration number is required for an organization."
+msgstr "Tổ chức phải có số đăng ký."
+
+#: apps/cases/models.py:141
+msgid "An identity document number is only valid for an individual."
+msgstr "Số giấy tờ tùy thân chỉ áp dụng cho cá nhân."
+
+#: apps/cases/models.py:146
+msgid "Date of birth is only valid for an individual."
+msgstr "Ngày sinh chỉ áp dụng cho cá nhân."
+
+#: apps/cases/models.py:155
+msgid "Permanent address"
+msgstr "Địa chỉ thường trú"
+
+#: apps/cases/models.py:156
+msgid "Current address"
+msgstr "Địa chỉ hiện tại"
+
+#: apps/cases/models.py:157
+msgid "Registered office"
+msgstr "Trụ sở đăng ký"
+
+#: apps/cases/models.py:158
+msgid "Contact address"
+msgstr "Địa chỉ liên hệ"
+
+#: apps/cases/models.py:224
+msgid "An official must reference an individual."
+msgstr "Người tiến hành tố tụng phải tham chiếu đến một cá nhân."
+
+#: apps/cases/models.py:228
+msgid "An active official requires an active individual."
+msgstr ""
+"Người tiến hành tố tụng đang hoạt động phải gắn với cá nhân đang hoạt động."
+
+#: apps/cases/models.py:232
+msgid "An active official requires an active home court."
+msgstr ""
+"Người tiến hành tố tụng đang hoạt động phải thuộc tòa án đang hoạt động."
+
+#: apps/cases/models.py:240
+msgid "Pre-acceptance"
+msgstr "Chưa thụ lý"
+
+#: apps/cases/models.py:241
+msgid "Accepted"
+msgstr "Đã thụ lý"
+
+#: apps/cases/models.py:242
+msgid "Preparation"
+msgstr "Chuẩn bị xét đơn"
+
+#: apps/cases/models.py:243
+msgid "Hearing"
+msgstr "Phiên họp"
+
+#: apps/cases/models.py:244
+msgid "Resolved"
+msgstr "Đã giải quyết"
+
+#: apps/cases/models.py:248 templates/accounts/_dashboard_case_activity.html:65
+msgid "Archived"
+msgstr "Đã lưu trữ"
+
+#: apps/cases/models.py:384
+msgid "Acceptance details must be completed together after acceptance."
+msgstr "Thông tin thụ lý phải được điền đầy đủ cùng nhau sau khi thụ lý."
+
+#: apps/cases/models.py:391
+msgid "Active cases cannot contain archive metadata."
+msgstr "Hồ sơ đang hoạt động không được chứa thông tin lưu trữ."
+
+#: apps/cases/models.py:395
+msgid "Archived cases require complete archive metadata."
+msgstr "Hồ sơ đã lưu trữ phải có đầy đủ thông tin lưu trữ."
+
+#: apps/cases/models.py:403
+msgid "Requester"
+msgstr "Người yêu cầu"
+
+#: apps/cases/models.py:404
+msgid "Respondent"
+msgstr "Người bị yêu cầu"
+
+#: apps/cases/models.py:405
+msgid "Related party"
+msgstr "Người có quyền lợi, nghĩa vụ liên quan"
+
+#: apps/cases/models.py:406
+msgid "Witness"
+msgstr "Người làm chứng"
+
+#: apps/cases/models.py:407
+msgid "Expert"
+msgstr "Người giám định"
+
+#: apps/cases/models.py:408
+msgid "Interpreter"
+msgstr "Người phiên dịch"
+
+#: apps/cases/models.py:409
+msgid "Rights protector"
+msgstr "Người bảo vệ quyền và lợi ích hợp pháp"
+
+#: apps/cases/models.py:410
+msgid "Other"
+msgstr "Khác"
+
+#: apps/cases/models.py:487
+msgid "Legal representative"
+msgstr "Người đại diện theo pháp luật"
+
+#: apps/cases/models.py:488
+msgid "Authorized representative"
+msgstr "Người đại diện theo ủy quyền"
+
+#: apps/cases/models.py:546
+msgid "The represented participant must belong to the selected case."
+msgstr "Người được đại diện phải thuộc vụ việc đã chọn."
+
+#: apps/cases/models.py:554
+msgid "Judge"
+msgstr "Thẩm phán"
+
+#: apps/cases/models.py:555
+msgid "Presiding judge"
+msgstr "Thẩm phán chủ tọa"
+
+#: apps/cases/models.py:556
+msgid "Court clerk"
+msgstr "Thư ký Tòa án"
+
+#: apps/cases/models.py:557
+msgid "Prosecutor"
+msgstr "Kiểm sát viên"
+
+#: apps/cases/models.py:612
+msgid "The selected official is inactive."
+msgstr "Người tiến hành tố tụng đã chọn không hoạt động."
+
+#: apps/cases/models.py:619
+msgid "The selected official must belong to the case court."
+msgstr "Người tiến hành tố tụng đã chọn phải thuộc Tòa án giải quyết vụ việc."
+
+#: apps/cases/models.py:627
+msgid "First-instance"
+msgstr "Sơ thẩm"
+
+#: apps/cases/models.py:628
+msgid "Appellate"
+msgstr "Phúc thẩm"
+
+#: apps/cases/models.py:631
+msgid "Scheduled"
+msgstr "Đã lên lịch"
+
+#: apps/cases/models.py:632
+msgid "Postponed"
+msgstr "Đã hoãn"
+
+#: apps/cases/models.py:633
+msgid "Completed"
+msgstr "Đã hoàn thành"
+
+#: apps/cases/models.py:634
+msgid "Cancelled"
+msgstr "Đã hủy"
+
+#: apps/cases/models.py:672
+msgid "The scheduled datetime must include a timezone."
+msgstr "Ngày giờ dự kiến phải bao gồm múi giờ."
+
+#: apps/cases/tests/test_case_list.py:165 templates/cases/_case_results.html:25
+msgid "No cases yet"
+msgstr "Chưa có hồ sơ"
+
+#: apps/cases/tests/test_case_list.py:166 templates/cases/_case_results.html:21
+msgid "No cases match these filters"
+msgstr "Không có hồ sơ nào khớp với các bộ lọc này"
+
+#: apps/cases/tests/test_case_list.py:168 templates/cases/_case_results.html:8
+msgid "Check the case-list filters"
+msgstr "Kiểm tra bộ lọc danh sách hồ sơ"
+
+#: apps/cases/views.py:101
+msgid "Courts"
+msgstr "Tòa án"
+
+#: apps/cases/views.py:114
+msgid "Entities"
+msgstr "Chủ thể"
+
+#: apps/cases/views.py:126
+msgid "Address"
+msgstr "Địa chỉ"
+
+#: apps/cases/views.py:127
+msgid "Addresses"
+msgstr "Địa chỉ"
+
+#: apps/cases/views.py:140
+msgid "Officials"
+msgstr "Người tiến hành tố tụng"
+
+#: apps/cases/views.py:160 templates/cases/_case_section.html:10
+#: templates/cases/_case_section.html:34
+msgid "Participants"
+msgstr "Người tham gia tố tụng"
+
+#: apps/cases/views.py:161 templates/cases/_case_section.html:11
+#: templates/cases/_case_section.html:37
+msgid "Representatives"
+msgstr "Người đại diện tố tụng"
+
+#: apps/cases/views.py:162 templates/cases/_case_section.html:12
+#: templates/cases/_case_section.html:40
+msgid "Officials and assignments"
+msgstr "Người tiến hành tố tụng và phân công"
+
+#: apps/cases/views.py:163 templates/cases/_case_section.html:13
+#: templates/cases/_case_section.html:43
+msgid "Hearings"
+msgstr "Phiên họp"
+
+#: apps/cases/views.py:254
+msgid "Edit case relationships"
+msgstr "Chỉnh sửa quan hệ hồ sơ"
+
+#: apps/cases/views.py:271 apps/cases/views.py:274
+#: templates/accounts/_dashboard_case_activity.html:77
+#: templates/cases/_case_results.html:27 templates/cases/list.html:11
+msgid "Create case"
+msgstr "Tạo hồ sơ việc dân sự"
+
+#: apps/cases/views.py:276 templates/cases/detail.html:13
+msgid "Edit case"
+msgstr "Chỉnh sửa hồ sơ"
+
+#: apps/cases/views.py:279
+msgid "Save case"
+msgstr "Lưu hồ sơ"
+
+#: apps/cases/views.py:313
+#, python-format
+msgid "%(kind)s for %(entity)s"
+msgstr "%(kind)s của %(entity)s"
+
+#: apps/cases/views.py:319
+msgid "Reference record"
+msgstr "Dữ liệu tham chiếu"
+
+#: apps/cases/views.py:345
+#, python-format
+msgid "Create %(type)s"
+msgstr "Tạo %(type)s"
+
+#: apps/cases/views.py:345
+#, python-format
+msgid "Edit %(type)s"
+msgstr "Chỉnh sửa %(type)s"
+
+#: apps/cases/views.py:382
+msgid "Enter a valid value for each highlighted filter."
+msgstr "Nhập giá trị hợp lệ cho từng bộ lọc được đánh dấu."
+
+#: apps/cases/views.py:462
+msgid "Case created."
+msgstr "Đã tạo hồ sơ việc dân sự."
+
+#: apps/cases/views.py:492
+msgid "Case details"
+msgstr "Chi tiết hồ sơ"
+
+#: apps/cases/views.py:595 templates/cases/_relationship_form.html:4
+msgid "Case relationships updated."
+msgstr "Đã cập nhật quan hệ hồ sơ."
+
+#: apps/cases/views.py:645
+msgid "Case updated."
+msgstr "Đã cập nhật hồ sơ việc dân sự."
+
+#: apps/cases/views.py:682 templates/cases/detail.html:14
+msgid "Archive case"
+msgstr "Lưu trữ hồ sơ"
+
+#: apps/cases/views.py:682 templates/cases/detail.html:15
+msgid "Restore case"
+msgstr "Khôi phục hồ sơ"
+
+#: apps/cases/views.py:683
+msgid "Confirm archive"
+msgstr "Xác nhận lưu trữ"
+
+#: apps/cases/views.py:683
+msgid "Confirm restore"
+msgstr "Xác nhận khôi phục"
+
+#: apps/cases/views.py:684
+msgid "Archiving…"
+msgstr "Đang lưu trữ…"
+
+#: apps/cases/views.py:684
+msgid "Restoring…"
+msgstr "Đang khôi phục…"
+
+#: apps/cases/views.py:732
+msgid "Case archived."
+msgstr "Đã lưu trữ hồ sơ việc dân sự."
+
+#: apps/cases/views.py:732
+msgid "Case restored."
+msgstr "Đã khôi phục hồ sơ việc dân sự."
+
+#: apps/cases/views.py:834
+msgid "Reference record created."
+msgstr "Đã tạo dữ liệu tham chiếu."
+
+#: apps/cases/views.py:875
+msgid "Reference record updated."
+msgstr "Đã cập nhật dữ liệu tham chiếu."
+
+#: apps/cases/views.py:916
+msgid "Reference record deactivated."
+msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
+
+#: apps/cases/views.py:924
+#, python-format
+msgid "Deactivate %(type)s"
+msgstr "Ngừng sử dụng %(type)s"
 
 #: apps/documents/views.py:17
 msgid "Template management is not available yet."
 msgstr "Chức năng quản lý biểu mẫu chưa khả dụng."
 
-#: templates/accounts/dashboard_placeholder.html:4
-msgid "Home"
-msgstr "Trang chủ"
+#: templates/accounts/_dashboard_case_activity.html:9
+msgid ""
+"Case activity could not be refreshed. Check the connection and try again."
+msgstr "Không thể làm mới hoạt động hồ sơ. Kiểm tra kết nối rồi thử lại."
 
-#: templates/accounts/dashboard_placeholder.html:12
-msgid "Business information will be provided in later phases."
-msgstr "Thông tin nghiệp vụ sẽ được cung cấp trong các giai đoạn sau."
+#: templates/accounts/_dashboard_case_activity.html:12
+msgid "Loading case activity…"
+msgstr "Đang tải hoạt động hồ sơ…"
+
+#: templates/accounts/_dashboard_case_activity.html:17
+msgid "Case activity is temporarily unavailable"
+msgstr "Hoạt động hồ sơ tạm thời không khả dụng"
+
+#: templates/accounts/_dashboard_case_activity.html:18
+msgid "Try refreshing this section. No case details were displayed."
+msgstr "Hãy thử làm mới mục này. Không có chi tiết hồ sơ nào được hiển thị."
+
+#: templates/accounts/_dashboard_case_activity.html:26
+#: templates/accounts/_dashboard_case_activity.html:39
+msgid "Refresh case activity"
+msgstr "Làm mới hoạt động hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:31
+msgid "Case summary"
+msgstr "Tổng quan hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:42
+#, python-format
+msgid "View %(count)s active cases"
+msgstr "Xem %(count)s hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:43
+msgid "Active cases"
+msgstr "Hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:45
+#, python-format
+msgid "%(counter)s active case"
+msgid_plural "%(counter)s active cases"
+msgstr[0] "%(counter)s hồ sơ đang hoạt động"
+
+#: templates/accounts/_dashboard_case_activity.html:47
+#, python-format
+msgid "View %(count)s archived cases"
+msgstr "Xem %(count)s hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:48
+msgid "Archived cases"
+msgstr "Hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:50
+#, python-format
+msgid "%(counter)s archived case"
+msgid_plural "%(counter)s archived cases"
+msgstr[0] "%(counter)s hồ sơ đã lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:56
+msgid "Recent case activity"
+msgstr "Hoạt động hồ sơ gần đây"
+
+#: templates/accounts/_dashboard_case_activity.html:64
+msgid "Case archived"
+msgstr "Hồ sơ đã được lưu trữ"
+
+#: templates/accounts/_dashboard_case_activity.html:64
+msgid "Case updated"
+msgstr "Hồ sơ đã được cập nhật"
+
+#: templates/accounts/_dashboard_case_activity.html:69
+#: templates/cases/_case_results.html:58
+msgid "View case"
+msgstr "Xem hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:75
+msgid "No recent case activity"
+msgstr "Chưa có hoạt động hồ sơ"
+
+#: templates/accounts/_dashboard_case_activity.html:76
+msgid "Case activity will appear here after a case is created or updated."
+msgstr ""
+"Hoạt động hồ sơ sẽ xuất hiện tại đây sau khi hồ sơ được tạo hoặc cập nhật."
+
+#: templates/accounts/dashboard.html:11 templates/cases/list.html:10
+msgid "Civil matters"
+msgstr "Các việc dân sự"
+
+#: templates/accounts/dashboard.html:13
+msgid "Review current case activity and continue case administration."
+msgstr "Xem hoạt động hồ sơ hiện tại và tiếp tục công việc quản lý hồ sơ."
+
+#: templates/accounts/dashboard.html:20
+msgid "Documents"
+msgstr "Tài liệu"
+
+#: templates/accounts/dashboard.html:22
+msgid "Document features are not yet available"
+msgstr "Chức năng tài liệu chưa khả dụng"
+
+#: templates/accounts/dashboard.html:23
+msgid ""
+"Generation results and template coverage will appear after the document "
+"platform is available."
+msgstr ""
+"Kết quả tạo tài liệu và phạm vi biểu mẫu sẽ xuất hiện sau khi nền tảng tài "
+"liệu khả dụng."
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:48
 msgid "Sign in"
@@ -196,6 +1014,7 @@ msgid "Sign in again"
 msgstr "Đăng nhập lại"
 
 #: templates/audit/_audit_filters.html:15
+#: templates/cases/references/_reference_results.html:5
 msgid "Filter error"
 msgstr "Lỗi bộ lọc"
 
@@ -203,11 +1022,13 @@ msgstr "Lỗi bộ lọc"
 msgid "Enter an actor user identifier."
 msgstr "Nhập mã định danh người dùng thực hiện."
 
-#: templates/audit/_audit_filters.html:71
+#: templates/audit/_audit_filters.html:71 templates/cases/list.html:35
+#: templates/cases/references/list.html:55
 msgid "Apply filters"
 msgstr "Áp dụng bộ lọc"
 
 #: templates/audit/_audit_filters.html:72
+#: templates/cases/references/list.html:57
 msgid "Clear filters"
 msgstr "Xóa bộ lọc"
 
@@ -225,7 +1046,8 @@ msgstr "Thử điều chỉnh hoặc xóa bộ lọc để xem thêm kết quả
 
 #: templates/audit/_audit_results.html:15
 msgid "Identity and workflow events will appear here after they are recorded."
-msgstr "Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
+msgstr ""
+"Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
 
 #: templates/audit/_audit_results.html:21
 #, python-format
@@ -283,6 +1105,8 @@ msgid "Audit pagination"
 msgstr "Phân trang nhật ký kiểm tra"
 
 #: templates/audit/_audit_results.html:144
+#: templates/cases/_case_results.html:63
+#: templates/cases/references/_reference_results.html:62
 msgid "Previous"
 msgstr "Trước"
 
@@ -298,14 +1122,16 @@ msgstr ""
 "          "
 
 #: templates/audit/_audit_results.html:154
+#: templates/cases/_case_results.html:65
+#: templates/cases/references/_reference_results.html:64
 msgid "Next"
 msgstr "Sau"
 
 #: templates/audit/list.html:13
 msgid "Browse bounded audit metadata. Sensitive payloads are never shown here."
 msgstr ""
-"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ "
-"hiển thị tại đây."
+"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ hiển "
+"thị tại đây."
 
 #: templates/audit/list.html:28
 msgid "Loading audit results…"
@@ -346,6 +1172,310 @@ msgstr "Điều hướng chính"
 #: templates/base_authenticated.html:84
 msgid "Loading…"
 msgstr "Đang tải…"
+
+#: templates/cases/_case_form.html:6
+msgid "This case was changed in another session."
+msgstr "Hồ sơ này đã được thay đổi trong một phiên làm việc khác."
+
+#: templates/cases/_case_form.html:7
+msgid ""
+"Your submitted values remain below for comparison. Reload the latest case "
+"before applying the change again."
+msgstr ""
+"Các giá trị bạn đã gửi vẫn được giữ lại bên dưới để đối chiếu. Hãy tải lại "
+"hồ sơ mới nhất trước khi áp dụng lại thay đổi."
+
+#: templates/cases/_case_form.html:8
+msgid "Reload the latest case"
+msgstr "Tải lại hồ sơ mới nhất"
+
+#: templates/cases/_case_form.html:13
+#: templates/cases/_case_transition_form.html:12
+#: templates/cases/references/_reference_form.html:6
+msgid "Correct the highlighted fields"
+msgstr "Vui lòng sửa các trường được đánh dấu"
+
+#: templates/cases/_case_form.html:33
+#: templates/cases/references/_reference_form.html:24
+msgid "Saving…"
+msgstr "Đang lưu…"
+
+#: templates/cases/_case_form.html:34
+#: templates/cases/_case_transition_form.html:37
+#: templates/cases/_case_transition_form.html:38
+#: templates/cases/_relationship_form.html:40
+#: templates/cases/references/_deactivate_form.html:10
+#: templates/cases/references/_deactivate_form.html:11
+#: templates/cases/references/_reference_form.html:25
+#: templates/components/buttons.html:7
+msgid "Cancel"
+msgstr "Hủy"
+
+#: templates/cases/_case_results.html:2
+msgid ""
+"The case results could not be updated. Check the connection and try again."
+msgstr "Không thể cập nhật kết quả hồ sơ. Kiểm tra kết nối rồi thử lại."
+
+#: templates/cases/_case_results.html:4
+msgid "Loading case results…"
+msgstr "Đang tải kết quả hồ sơ…"
+
+#: templates/cases/_case_results.html:10 templates/cases/_case_results.html:23
+#: templates/cases/_case_results.html:35 templates/cases/list.html:36
+msgid "Clear all filters"
+msgstr "Xóa tất cả bộ lọc"
+
+#: templates/cases/_case_results.html:14
+msgid "Case results are temporarily unavailable"
+msgstr "Kết quả hồ sơ tạm thời không khả dụng"
+
+#: templates/cases/_case_results.html:15
+msgid "Try again. Your filters remain in the address bar."
+msgstr "Hãy thử lại. Các bộ lọc vẫn được giữ trên thanh địa chỉ."
+
+#: templates/cases/_case_results.html:16
+msgid "Try again"
+msgstr "Thử lại"
+
+#: templates/cases/_case_results.html:22
+msgid "Change or clear the filters to broaden the results."
+msgstr "Thay đổi hoặc xóa bộ lọc để mở rộng kết quả."
+
+#: templates/cases/_case_results.html:26
+msgid "Create the first case to begin case administration."
+msgstr "Tạo hồ sơ đầu tiên để bắt đầu quản lý hồ sơ."
+
+#: templates/cases/_case_results.html:32
+#, python-format
+msgid "%(counter)s case"
+msgid_plural "%(counter)s cases"
+msgstr[0] "%(counter)s hồ sơ"
+
+#: templates/cases/_case_results.html:33
+msgid "Active filters"
+msgstr "Bộ lọc đang áp dụng"
+
+#: templates/cases/_case_results.html:34
+#, python-format
+msgid "Clear %(label)s"
+msgstr "Xóa %(label)s"
+
+#: templates/cases/_case_results.html:42
+msgid "Case results"
+msgstr "Kết quả hồ sơ"
+
+#: templates/cases/_case_results.html:45 templates/cases/_case_results.html:53
+msgid "Case reference"
+msgstr "Mã hồ sơ"
+
+#: templates/cases/_case_results.html:45
+msgid "sort by last updated"
+msgstr "sắp xếp theo lần cập nhật gần nhất"
+
+#: templates/cases/_case_results.html:50 templates/cases/_case_results.html:58
+#: templates/cases/references/_reference_results.html:28
+#: templates/components/table.html:12
+msgid "Actions"
+msgstr "Thao tác"
+
+#: templates/cases/_case_results.html:62
+msgid "Case result pages"
+msgstr "Các trang kết quả hồ sơ"
+
+#: templates/cases/_case_results.html:64
+#: templates/cases/references/_reference_results.html:63
+#, python-format
+msgid "Page %(page)s of %(pages)s"
+msgstr "Trang %(page)s / %(pages)s"
+
+#: templates/cases/_case_section.html:4
+msgid "Loading case section…"
+msgstr "Đang tải mục hồ sơ…"
+
+#: templates/cases/_case_section.html:6
+msgid "Case sections"
+msgstr "Các mục hồ sơ"
+
+#: templates/cases/_case_section.html:9 templates/cases/_case_section.html:21
+msgid "Overview"
+msgstr "Tổng quan"
+
+#: templates/cases/_case_section.html:19
+msgid "Edit this section"
+msgstr "Chỉnh sửa mục này"
+
+#: templates/cases/_case_section.html:27
+msgid "Revision"
+msgstr "Phiên bản"
+
+#: templates/cases/_case_section.html:35
+msgid "No participants"
+msgstr "Chưa có người tham gia tố tụng"
+
+#: templates/cases/_case_section.html:38
+msgid "No representatives"
+msgstr "Chưa có người đại diện tố tụng"
+
+#: templates/cases/_case_section.html:41
+msgid "No official assignments"
+msgstr "Chưa có phân công người tiến hành tố tụng"
+
+#: templates/cases/_case_section.html:44
+msgid "No hearings"
+msgstr "Chưa có phiên họp"
+
+#: templates/cases/_case_transition_form.html:6
+msgid "This case changed before the action could be completed."
+msgstr "Hồ sơ đã thay đổi trước khi thao tác có thể hoàn tất."
+
+#: templates/cases/_case_transition_form.html:7
+msgid "Reload the case and confirm the action again."
+msgstr "Hãy tải lại hồ sơ và xác nhận lại thao tác."
+
+#: templates/cases/_case_transition_form.html:21
+msgid ""
+"The case will remain viewable, but editing and new document generation will "
+"be unavailable until it is restored."
+msgstr ""
+"Hồ sơ vẫn có thể xem, nhưng không thể chỉnh sửa hoặc tạo văn bản mới cho đến "
+"khi được khôi phục."
+
+#: templates/cases/_case_transition_form.html:23
+msgid ""
+"The case will return to active editing and document-generation eligibility."
+msgstr "Hồ sơ sẽ có thể được chỉnh sửa và dùng để tạo văn bản trở lại."
+
+#: templates/cases/_relationship_form.html:3
+msgid "Case relationships"
+msgstr "Quan hệ hồ sơ"
+
+#: templates/cases/_relationship_form.html:7
+msgid "This case was updated by someone else."
+msgstr "Hồ sơ này đã được người khác cập nhật."
+
+#: templates/cases/_relationship_form.html:8
+msgid ""
+"Review your submitted values against the current case, then reload and try "
+"again."
+msgstr ""
+"Đối chiếu các giá trị đã gửi với hồ sơ hiện tại, sau đó tải lại và thử lại."
+
+#: templates/cases/_relationship_form.html:9
+msgid "Reload current relationships"
+msgstr "Tải lại quan hệ hiện tại"
+
+#: templates/cases/_relationship_form.html:14
+msgid "Correct the errors below."
+msgstr "Hãy sửa các lỗi bên dưới."
+
+#: templates/cases/_relationship_form.html:35
+msgid "Add row"
+msgstr "Thêm dòng"
+
+#: templates/cases/_relationship_form.html:39
+msgid "Save relationships"
+msgstr "Lưu quan hệ"
+
+#: templates/cases/_relationship_row.html:13
+msgid "Remove row"
+msgstr "Xóa dòng"
+
+#: templates/cases/detail.html:11
+msgid "Civil matter"
+msgstr "Việc dân sự"
+
+#: templates/cases/references/_deactivate_form.html:5
+msgid ""
+"This record will remain in history but will no longer be available for new "
+"selections."
+msgstr ""
+"Dữ liệu này vẫn được lưu trong lịch sử nhưng sẽ không còn dùng được cho các "
+"lựa chọn mới."
+
+#: templates/cases/references/_deactivate_form.html:9
+msgid "Confirm deactivation"
+msgstr "Xác nhận ngừng sử dụng"
+
+#: templates/cases/references/_deactivate_form.html:9
+msgid "Deactivating…"
+msgstr "Đang ngừng sử dụng…"
+
+#: templates/cases/references/_reference_form.html:24
+msgid "Save reference"
+msgstr "Lưu dữ liệu tham chiếu"
+
+#: templates/cases/references/_reference_results.html:10
+msgid "References are temporarily unavailable"
+msgstr "Dữ liệu tham chiếu tạm thời không khả dụng"
+
+#: templates/cases/references/_reference_results.html:11
+msgid "Retry this page. No submitted information was changed."
+msgstr "Hãy tải lại trang. Không có thông tin đã gửi nào bị thay đổi."
+
+#: templates/cases/references/_reference_results.html:16
+msgid "No matching references"
+msgstr "Không có dữ liệu tham chiếu phù hợp"
+
+#: templates/cases/references/_reference_results.html:16
+msgid "No references yet"
+msgstr "Chưa có dữ liệu tham chiếu"
+
+#: templates/cases/references/_reference_results.html:19
+msgid "Adjust or clear the filters to see more records."
+msgstr "Hãy điều chỉnh hoặc xóa bộ lọc để xem thêm dữ liệu."
+
+#: templates/cases/references/_reference_results.html:19
+msgid "Create the first reusable reference record."
+msgstr "Tạo dữ liệu tham chiếu dùng lại đầu tiên."
+
+#: templates/cases/references/_reference_results.html:24
+#, python-format
+msgid "%(total)s reference records."
+msgstr "Có %(total)s dữ liệu tham chiếu."
+
+#: templates/cases/references/_reference_results.html:28
+msgid "Record"
+msgstr "Dữ liệu"
+
+#: templates/cases/references/_reference_results.html:28
+msgid "Details"
+msgstr "Chi tiết"
+
+#: templates/cases/references/_reference_results.html:40
+#: templates/cases/references/_reference_results.html:54
+msgid "Edit"
+msgstr "Chỉnh sửa"
+
+#: templates/cases/references/_reference_results.html:41
+#: templates/cases/references/_reference_results.html:55
+msgid "Deactivate"
+msgstr "Ngừng sử dụng"
+
+#: templates/cases/references/_reference_results.html:61
+msgid "Reference pagination"
+msgstr "Phân trang dữ liệu tham chiếu"
+
+#: templates/cases/references/deactivate.html:5
+#: templates/cases/references/form.html:5
+#: templates/cases/references/list.html:5
+msgid "Case references"
+msgstr "Dữ liệu tham chiếu hồ sơ"
+
+#: templates/cases/references/list.html:13
+msgid "Maintain reusable case reference records without deleting history."
+msgstr "Quản lý dữ liệu tham chiếu dùng lại mà không xóa lịch sử."
+
+#: templates/cases/references/list.html:23
+msgid "Create reference"
+msgstr "Tạo dữ liệu tham chiếu"
+
+#: templates/cases/references/list.html:27
+msgid "Reference record types"
+msgstr "Các loại dữ liệu tham chiếu"
+
+#: templates/cases/references/list.html:62
+msgid "Loading references…"
+msgstr "Đang tải dữ liệu tham chiếu…"
 
 #: templates/components/alerts.html:3
 msgid "Alerts and status regions"
@@ -411,10 +1541,6 @@ msgstr "Lưu thay đổi"
 msgid "Preview"
 msgstr "Xem trước"
 
-#: templates/components/buttons.html:7
-msgid "Cancel"
-msgstr "Hủy"
-
 #: templates/components/buttons.html:8
 msgid "Delete sample item"
 msgstr "Xóa mục mẫu"
@@ -451,10 +1577,6 @@ msgstr "Xác nhận"
 #: templates/components/form_fields.html:3
 msgid "Form fields"
 msgstr "Trường biểu mẫu"
-
-#: templates/components/form_fields.html:6
-msgid "Display name"
-msgstr "Tên hiển thị"
 
 #: templates/components/form_fields.html:13
 msgid "Enter sample name"
@@ -529,17 +1651,9 @@ msgstr "Dữ liệu tổng hợp minh họa cách trình bày bảng"
 msgid "Item"
 msgstr "Mục"
 
-#: templates/components/table.html:10
-msgid "Status"
-msgstr "Trạng thái"
-
 #: templates/components/table.html:11
 msgid "Updated"
 msgstr "Cập nhật"
-
-#: templates/components/table.html:12
-msgid "Actions"
-msgstr "Thao tác"
 
 #: templates/components/table.html:17
 msgid "Synthetic record A"

@@ -1,0 +1,47 @@
+{% load i18n %}
+<div id="case-section" class="case-section" hx-history="false">
+  <div id="case-section-loading" class="case-section-loading htmx-indicator" role="status" aria-live="polite" aria-busy="true">
+    <span class="loading-indicator" aria-hidden="true"></span>{% translate "Loading case section…" %}
+  </div>
+  <nav class="case-section-nav" aria-label="{% translate 'Case sections' %}">
+    {% for key, url in section_links %}
+      <a href="{{ url }}"{% if section == key %} aria-current="page"{% endif %} hx-get="{{ url }}" hx-target="#case-section" hx-swap="outerHTML focus-scroll:true" hx-push-url="true" hx-sync="#case-section:replace" hx-indicator="#case-section-loading">
+        {% if key == "overview" %}{% translate "Overview" %}
+        {% elif key == "participants" %}{% translate "Participants" %}
+        {% elif key == "representatives" %}{% translate "Representatives" %}
+        {% elif key == "assignments" %}{% translate "Officials and assignments" %}
+        {% else %}{% translate "Hearings" %}{% endif %}
+      </a>
+    {% endfor %}
+  </nav>
+
+  <section class="surface" aria-labelledby="case-section-heading">
+    {% if can_edit %}<p class="case-section-actions"><a class="button button-primary" href="{{ relationship_edit_url }}" hx-get="{{ relationship_edit_url }}" hx-target="#case-section" hx-swap="outerHTML" hx-push-url="true">{% translate "Edit this section" %}</a></p>{% endif %}
+    {% if section == "overview" %}
+      <h2 id="case-section-heading" class="surface-title" tabindex="-1">{% translate "Overview" %}</h2>
+      <dl class="case-details">
+        <div><dt>{% translate "Court" %}</dt><dd>{{ case.court.full_name }}</dd></div>
+        <div><dt>{% translate "Matter type" %}</dt><dd>{{ case.matter_type }}</dd></div>
+        <div><dt>{% translate "Procedural stage" %}</dt><dd>{{ case.get_procedural_stage_display }}</dd></div>
+        <div><dt>{% translate "Status" %}</dt><dd>{{ case.get_status_display }}</dd></div>
+        <div><dt>{% translate "Revision" %}</dt><dd>{{ case.revision }}</dd></div>
+        {% if case.acceptance_date %}
+          <div><dt>{% translate "Acceptance number" %}</dt><dd>{{ case.acceptance_number }}/{{ case.acceptance_year }}/{{ case.acceptance_type_code }}</dd></div>
+          <div><dt>{% translate "Acceptance date" %}</dt><dd>{{ case.acceptance_date }}</dd></div>
+        {% endif %}
+      </dl>
+    {% elif section == "participants" %}
+      <h2 id="case-section-heading" class="surface-title" tabindex="-1">{% translate "Participants" %}</h2>
+      {% if case.participants.all %}<ul class="case-related-list">{% for participant in case.participants.all %}<li><strong>{{ participant.entity.legal_name }}</strong><span>{{ participant.get_role_display }}{% if not participant.is_active %} · {% translate "Inactive" %}{% endif %}</span></li>{% endfor %}</ul>{% else %}<div class="state"><p class="state-title">{% translate "No participants" %}</p></div>{% endif %}
+    {% elif section == "representatives" %}
+      <h2 id="case-section-heading" class="surface-title" tabindex="-1">{% translate "Representatives" %}</h2>
+      {% if case.representations.all %}<ul class="case-related-list">{% for representation in case.representations.all %}<li><strong>{{ representation.representative_entity.legal_name }}</strong><span>{{ representation.get_representation_type_display }} · {{ representation.represented_participant.entity.legal_name }}{% if not representation.is_active %} · {% translate "Inactive" %}{% endif %}</span></li>{% endfor %}</ul>{% else %}<div class="state"><p class="state-title">{% translate "No representatives" %}</p></div>{% endif %}
+    {% elif section == "assignments" %}
+      <h2 id="case-section-heading" class="surface-title" tabindex="-1">{% translate "Officials and assignments" %}</h2>
+      {% if case.official_assignments.all %}<ul class="case-related-list">{% for assignment in case.official_assignments.all %}<li><strong>{{ assignment.official.entity.legal_name }}</strong><span>{{ assignment.get_role_display }}{% if not assignment.is_active %} · {% translate "Inactive" %}{% endif %}</span></li>{% endfor %}</ul>{% else %}<div class="state"><p class="state-title">{% translate "No official assignments" %}</p></div>{% endif %}
+    {% else %}
+      <h2 id="case-section-heading" class="surface-title" tabindex="-1">{% translate "Hearings" %}</h2>
+      {% if case.hearings.all %}<ul class="case-related-list">{% for hearing in case.hearings.all %}<li><strong>{{ hearing.scheduled_at_ho_chi_minh }}</strong><span>{{ hearing.get_instance_level_display }} · {{ hearing.get_status_display }} · {{ hearing.location }}</span></li>{% endfor %}</ul>{% else %}<div class="state"><p class="state-title">{% translate "No hearings" %}</p></div>{% endif %}
+    {% endif %}
+  </section>
+</div>

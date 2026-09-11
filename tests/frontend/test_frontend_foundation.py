@@ -108,7 +108,7 @@ def test_essential_token_pairs_meet_wcag_contrast() -> None:
 def test_application_javascript_disables_sensitive_browser_state() -> None:
     javascript = (PROJECT_ROOT / "static_src" / "js" / "app.js").read_text(encoding="utf-8")
 
-    assert "historyEnabled: false" in javascript
+    assert "historyEnabled: true" in javascript
     assert "historyCacheSize: 0" in javascript
     assert "allowEval: false" in javascript
     assert "allowScriptTags: false" in javascript
@@ -122,9 +122,16 @@ def test_application_javascript_disables_sensitive_browser_state() -> None:
     assert "eval(" not in javascript
     assert "new Function" not in javascript
     assert 'getResponseHeader("HX-Redirect")' in javascript
+    assert "event.detail.xhr.status === 422" in javascript
+    assert "event.detail.xhr.status === 409" in javascript
+    assert "event.detail.isError = false" in javascript
     assert "destination.origin !== window.location.origin" in javascript
     assert "event.detail.shouldSwap = false" in javascript
     assert "window.location.assign" in javascript
+    assert 'target?.id === "case-section"' in javascript
+    assert 'event.target.closest("[data-formset-add]")' in javascript
+    assert 'input[name$="-TOTAL_FORMS"]' in javascript
+    assert 'input[name$="-DELETE"]' in javascript
 
 
 def test_component_gallery_is_semantic_local_and_usable_without_javascript() -> None:

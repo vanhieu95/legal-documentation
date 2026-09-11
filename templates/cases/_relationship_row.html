@@ -1,0 +1,14 @@
+{% load i18n %}
+<div class="relationship-row" data-formset-row>
+  {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+  {% for field in form.visible_fields %}
+    <div class="field">
+      <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}<p id="{{ field.id_for_label }}-error" class="field-error">{{ error }}</p>{% endfor %}
+      {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+    </div>
+  {% endfor %}
+  {% for error in form.non_field_errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+  <button class="button button-secondary js-only" type="button" data-formset-remove>{% translate "Remove row" %}</button>
+</div>

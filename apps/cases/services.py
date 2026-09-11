@@ -1,0 +1,776 @@
+from __future__ import annotations
+
+import uuid
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from typing import cast
+
+from django import forms
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.db import models, transaction
+from django.db.models import F, QuerySet
+from django.utils import timezone
+
+from apps.accounts.policies import (
+    ApplicationPermission,
+    get_object_or_not_found,
+    service_permission_required,
+)
+from apps.audit.actions import AuditAction, AuditTargetType
+from apps.cases.audit import record_case_failure, record_case_success, record_reference_success
+from apps.cases.forms import (
+    CaseArchiveForm,
+    CaseRecordEditForm,
+    CaseRecordForm,
+    CaseRestoreForm,
+    CourtForm,
+    EntityAddressForm,
+    EntityForm,
+    OfficialForm,
+    assignment_formset,
+    hearing_formset,
+    participant_formset,
+    representation_formset,
+)
+from apps.cases.models import CaseRecord, Court, Entity, EntityAddress, Official
+from apps.cases.policies import ReferenceObjectPolicy, can_edit_case, case_object_policy
+
+
+class CaseRevisionConflict(Exception):
+    """The submitted case revision no longer matches durable state."""
+
+
+type RelationshipFormSet = forms.BaseModelFormSet[models.Model, forms.ModelForm[models.Model]]
+RELATIONSHIP_CATEGORIES = ("participants", "representations", "assignments", "hearings")
+
+
+@dataclass(frozen=True)
+class RelationshipValidationError(Exception):
+    """Carry every bound formset back to the HTTP adapter without losing rows."""
+
+    formsets: dict[str, RelationshipFormSet]
+
+
+def build_relationship_formsets(
+    *,
+    case: CaseRecord,
+    data: Mapping[str, object] | None = None,
+    categories: Sequence[str] = RELATIONSHIP_CATEGORIES,
+) -> dict[str, RelationshipFormSet]:
+    builders = {
+        "participants": participant_formset,
+        "representations": representation_formset,
+        "assignments": assignment_formset,
+        "hearings": hearing_formset,
+    }
+    if any(category not in builders for category in categories):
+        raise ValueError("Unsupported relationship category.")
+    return {category: builders[category](case=case, data=data) for category in categories}
+
+
+def _relationship_case(*, actor: User, case_id: uuid.UUID) -> CaseRecord:
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_CASES,
+        queryset=CaseRecord.objects.select_related("court").select_for_update(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    if not can_edit_case(case):
+        raise PermissionDenied
+    return case
+
+
+def _update_case_relationships(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    categories: Sequence[str],
+    correlation_id: str,
+) -> CaseRecord:
+    selected_categories = tuple(dict.fromkeys(categories))
+    if not selected_categories or any(
+        category not in RELATIONSHIP_CATEGORIES for category in selected_categories
+    ):
+        raise ValueError("Unsupported relationship category.")
+    with transaction.atomic():
+        case = _relationship_case(actor=actor, case_id=case_id)
+        if case.revision != expected_revision:
+            raise CaseRevisionConflict
+        selected_formsets = build_relationship_formsets(
+            case=case, data=data, categories=selected_categories
+        )
+        validity = [formset.is_valid() for formset in selected_formsets.values()]
+        if not all(validity):
+            raise RelationshipValidationError(selected_formsets)
+        for formset in selected_formsets.values():
+            formset.save()
+        case.revision += 1
+        case.last_edited_by = actor
+        case.updated_at = timezone.now()
+        case.save(update_fields=["revision", "last_edited_by", "updated_at"])
+        record_case_success(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case.pk),
+            correlation_id=correlation_id,
+            changed_fields=selected_categories,
+            metadata={"relationship_categories": sorted(selected_categories)},
+        )
+        return case
+
+
+def _invoke_relationship_update(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    categories: Sequence[str],
+    correlation_id: str,
+) -> CaseRecord:
+    try:
+        return _update_case_relationships(
+            actor=actor,
+            case_id=case_id,
+            expected_revision=expected_revision,
+            data=data,
+            categories=categories,
+            correlation_id=correlation_id,
+        )
+    except RelationshipValidationError:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="validation_error",
+            relationship_categories=categories,
+        )
+        raise
+    except CaseRevisionConflict:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_RELATIONSHIPS_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="revision_conflict",
+            relationship_categories=categories,
+        )
+        raise
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_relationships(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=RELATIONSHIP_CATEGORIES,
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_participants(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("participants",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_representations(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("representations",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_assignments(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("assignments",),
+        correlation_id=correlation_id,
+    )
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case_hearings(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    expected_revision: int,
+    data: Mapping[str, object],
+    correlation_id: str,
+) -> CaseRecord:
+    return _invoke_relationship_update(
+        actor=actor,
+        case_id=case_id,
+        expected_revision=expected_revision,
+        data=data,
+        categories=("hearings",),
+        correlation_id=correlation_id,
+    )
+
+
+def _changed_fields(form: CourtForm | EntityForm | EntityAddressForm | OfficialForm) -> list[str]:
+    return [name for name in form.changed_data if name != "is_active"]
+
+
+def _require_valid(form: CourtForm | EntityForm | EntityAddressForm | OfficialForm) -> None:
+    if not form.is_valid():
+        raise ValueError("A valid reference form is required.")
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_CASES)
+def create_case(*, actor: User, form: CaseRecordForm, correlation_id: str) -> CaseRecord:
+    """Create a case from revalidated client fields and server-owned metadata."""
+    rebound = CaseRecordForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case form is required.")
+    case = rebound.save(commit=False)
+    case.status = CaseRecord.Status.ACTIVE
+    case.revision = 1
+    case.created_by = actor
+    case.last_edited_by = actor
+    case.full_clean()
+    case.save()
+    record_case_success(
+        actor=actor,
+        action=AuditAction.CASE_CREATED,
+        target_id=str(case.pk),
+        correlation_id=correlation_id,
+    )
+    return case
+
+
+@service_permission_required(ApplicationPermission.CHANGE_CASES)
+def update_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseRecordEditForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Atomically update a case only when its expected revision still matches."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    if not can_edit_case(case):
+        raise PermissionDenied
+    rebound = CaseRecordEditForm(data=form.data, instance=case)
+    if not rebound.is_valid():
+        raise ValueError("A valid case edit form is required.")
+
+    editable_fields = tuple(CaseRecordForm.Meta.fields)
+    changed_fields = [name for name in rebound.changed_data if name in editable_fields]
+    updates = {name: rebound.cleaned_data[name] for name in editable_fields}
+    updates.update(
+        revision=F("revision") + 1,
+        last_edited_by=actor,
+        updated_at=timezone.now(),
+    )
+    expected_revision = rebound.cleaned_data["expected_revision"]
+
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case_id,
+            revision=expected_revision,
+        ).update(**updates)
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_UPDATED,
+                target_id=str(case_id),
+                correlation_id=correlation_id,
+                changed_fields=changed_fields,
+            )
+
+    if updated_count != 1:
+        record_case_failure(
+            actor=actor,
+            action=AuditAction.CASE_UPDATED,
+            target_id=str(case_id),
+            correlation_id=correlation_id,
+            reason_code="revision_conflict",
+        )
+        raise CaseRevisionConflict
+    return CaseRecord.objects.select_related("court", "created_by", "last_edited_by").get(
+        pk=case_id
+    )
+
+
+CASE_ARCHIVE_CHANGED_FIELDS = ("status", "archived_by", "archived_at", "archive_reason")
+
+
+def _transition_conflict(
+    *,
+    actor: User,
+    action: AuditAction,
+    case_id: uuid.UUID,
+    expected_status: str,
+    correlation_id: str,
+    reason_supplied: bool | None = None,
+) -> None:
+    current = CaseRecord.objects.only("status").get(pk=case_id)
+    reason_code = "state_conflict" if current.status != expected_status else "revision_conflict"
+    record_case_failure(
+        actor=actor,
+        action=action,
+        target_id=str(case_id),
+        correlation_id=correlation_id,
+        reason_code=reason_code,
+        reason_supplied=reason_supplied,
+    )
+    raise CaseRevisionConflict
+
+
+@service_permission_required(ApplicationPermission.ARCHIVE_CASES)
+def archive_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseArchiveForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Archive an active case with one atomic compare-and-swap update."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.ARCHIVE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    rebound = CaseArchiveForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case archive form is required.")
+    expected_revision = rebound.cleaned_data["expected_revision"]
+    now = timezone.now()
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case.pk,
+            status=CaseRecord.Status.ACTIVE,
+            revision=expected_revision,
+        ).update(
+            status=CaseRecord.Status.ARCHIVED,
+            archived_by=actor,
+            archived_at=now,
+            archive_reason=rebound.cleaned_data["reason"],
+            revision=F("revision") + 1,
+            last_edited_by=actor,
+            updated_at=now,
+        )
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_ARCHIVED,
+                target_id=str(case.pk),
+                correlation_id=correlation_id,
+                changed_fields=CASE_ARCHIVE_CHANGED_FIELDS,
+                metadata={"reason_supplied": True},
+            )
+    if updated_count != 1:
+        _transition_conflict(
+            actor=actor,
+            action=AuditAction.CASE_ARCHIVED,
+            case_id=case.pk,
+            expected_status=CaseRecord.Status.ACTIVE,
+            correlation_id=correlation_id,
+            reason_supplied=True,
+        )
+    return CaseRecord.objects.get(pk=case.pk)
+
+
+@service_permission_required(ApplicationPermission.RESTORE_CASES)
+def restore_case(
+    *,
+    actor: User,
+    case_id: uuid.UUID,
+    form: CaseRestoreForm,
+    correlation_id: str,
+) -> CaseRecord:
+    """Restore an archived case under the current-state archive metadata contract."""
+    case = get_object_or_not_found(
+        actor=actor,
+        permission=ApplicationPermission.RESTORE_CASES,
+        queryset=CaseRecord.objects.all(),
+        object_policy=case_object_policy,
+        pk=case_id,
+    )
+    rebound = CaseRestoreForm(data=form.data)
+    if not rebound.is_valid():
+        raise ValueError("A valid case restore form is required.")
+    expected_revision = rebound.cleaned_data["expected_revision"]
+    now = timezone.now()
+    with transaction.atomic():
+        updated_count = CaseRecord.objects.filter(
+            pk=case.pk,
+            status=CaseRecord.Status.ARCHIVED,
+            revision=expected_revision,
+        ).update(
+            status=CaseRecord.Status.ACTIVE,
+            archived_by=None,
+            archived_at=None,
+            archive_reason="",
+            revision=F("revision") + 1,
+            last_edited_by=actor,
+            updated_at=now,
+        )
+        if updated_count == 1:
+            record_case_success(
+                actor=actor,
+                action=AuditAction.CASE_RESTORED,
+                target_id=str(case.pk),
+                correlation_id=correlation_id,
+                changed_fields=CASE_ARCHIVE_CHANGED_FIELDS,
+            )
+    if updated_count != 1:
+        _transition_conflict(
+            actor=actor,
+            action=AuditAction.CASE_RESTORED,
+            case_id=case.pk,
+            expected_status=CaseRecord.Status.ARCHIVED,
+            correlation_id=correlation_id,
+        )
+    return CaseRecord.objects.get(pk=case.pk)
+
+
+def _get_reference[TReference: Court | Entity | EntityAddress | Official](
+    *,
+    actor: User,
+    permission: ApplicationPermission,
+    model: type[TReference],
+    object_id: uuid.UUID,
+) -> TReference:
+    return get_object_or_not_found(
+        actor=actor,
+        permission=permission,
+        queryset=cast(QuerySet[TReference], model._default_manager.all()),
+        object_policy=ReferenceObjectPolicy[TReference](),
+        pk=object_id,
+    )
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_REFERENCE_ENTITIES)
+def create_court(*, actor: User, form: CourtForm, correlation_id: str) -> Court:
+    rebound = CourtForm(data=form.data)
+    _require_valid(rebound)
+    court = rebound.save()
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_COURT_CREATED,
+        target_type=AuditTargetType.COURT,
+        target_id=str(court.pk),
+        correlation_id=correlation_id,
+        changed_fields=_changed_fields(rebound),
+    )
+    return court
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.CHANGE_REFERENCE_ENTITIES)
+def update_court(
+    *, actor: User, court_id: uuid.UUID, form: CourtForm, correlation_id: str
+) -> Court:
+    court = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_REFERENCE_ENTITIES,
+        model=Court,
+        object_id=court_id,
+    )
+    rebound = CourtForm(data=form.data, instance=court)
+    _require_valid(rebound)
+    court = rebound.save()
+    if rebound.changed_data:
+        record_reference_success(
+            actor=actor,
+            action=AuditAction.REFERENCE_COURT_UPDATED,
+            target_type=AuditTargetType.COURT,
+            target_id=str(court.pk),
+            correlation_id=correlation_id,
+            changed_fields=_changed_fields(rebound),
+        )
+    return court
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES)
+def deactivate_court(*, actor: User, court_id: uuid.UUID, correlation_id: str) -> Court:
+    court = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES,
+        model=Court,
+        object_id=court_id,
+    )
+    court = Court.objects.select_for_update().get(pk=court.pk)
+    if not court.is_active:
+        return court
+    court.is_active = False
+    court.save(update_fields=["is_active"])
+    Official.objects.filter(home_court=court, is_active=True).update(is_active=False)
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_COURT_DEACTIVATED,
+        target_type=AuditTargetType.COURT,
+        target_id=str(court.pk),
+        correlation_id=correlation_id,
+        changed_fields=["is_active"],
+    )
+    return court
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_REFERENCE_ENTITIES)
+def create_entity(*, actor: User, form: EntityForm, correlation_id: str) -> Entity:
+    rebound = EntityForm(data=form.data)
+    _require_valid(rebound)
+    entity = rebound.save()
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_ENTITY_CREATED,
+        target_type=AuditTargetType.ENTITY,
+        target_id=str(entity.pk),
+        correlation_id=correlation_id,
+        changed_fields=_changed_fields(rebound),
+    )
+    return entity
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.CHANGE_REFERENCE_ENTITIES)
+def update_entity(
+    *, actor: User, entity_id: uuid.UUID, form: EntityForm, correlation_id: str
+) -> Entity:
+    entity = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_REFERENCE_ENTITIES,
+        model=Entity,
+        object_id=entity_id,
+    )
+    rebound = EntityForm(data=form.data, instance=entity)
+    _require_valid(rebound)
+    entity = rebound.save()
+    if rebound.changed_data:
+        record_reference_success(
+            actor=actor,
+            action=AuditAction.REFERENCE_ENTITY_UPDATED,
+            target_type=AuditTargetType.ENTITY,
+            target_id=str(entity.pk),
+            correlation_id=correlation_id,
+            changed_fields=_changed_fields(rebound),
+        )
+    return entity
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES)
+def deactivate_entity(*, actor: User, entity_id: uuid.UUID, correlation_id: str) -> Entity:
+    entity = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES,
+        model=Entity,
+        object_id=entity_id,
+    )
+    entity = Entity.objects.select_for_update().get(pk=entity.pk)
+    if not entity.is_active:
+        return entity
+    entity.is_active = False
+    entity.save(update_fields=["is_active"])
+    EntityAddress.objects.filter(entity=entity, is_active=True).update(is_active=False)
+    Official.objects.filter(entity=entity, is_active=True).update(is_active=False)
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_ENTITY_DEACTIVATED,
+        target_type=AuditTargetType.ENTITY,
+        target_id=str(entity.pk),
+        correlation_id=correlation_id,
+        changed_fields=["is_active"],
+    )
+    return entity
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_REFERENCE_ENTITIES)
+def create_address(*, actor: User, form: EntityAddressForm, correlation_id: str) -> EntityAddress:
+    rebound = EntityAddressForm(data=form.data)
+    _require_valid(rebound)
+    address = rebound.save()
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_ADDRESS_CREATED,
+        target_type=AuditTargetType.ENTITY_ADDRESS,
+        target_id=str(address.pk),
+        correlation_id=correlation_id,
+        changed_fields=_changed_fields(rebound),
+    )
+    return address
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.CHANGE_REFERENCE_ENTITIES)
+def update_address(
+    *, actor: User, address_id: uuid.UUID, form: EntityAddressForm, correlation_id: str
+) -> EntityAddress:
+    address = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_REFERENCE_ENTITIES,
+        model=EntityAddress,
+        object_id=address_id,
+    )
+    rebound = EntityAddressForm(data=form.data, instance=address)
+    _require_valid(rebound)
+    address = rebound.save()
+    if rebound.changed_data:
+        record_reference_success(
+            actor=actor,
+            action=AuditAction.REFERENCE_ADDRESS_UPDATED,
+            target_type=AuditTargetType.ENTITY_ADDRESS,
+            target_id=str(address.pk),
+            correlation_id=correlation_id,
+            changed_fields=_changed_fields(rebound),
+        )
+    return address
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES)
+def deactivate_address(*, actor: User, address_id: uuid.UUID, correlation_id: str) -> EntityAddress:
+    address = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES,
+        model=EntityAddress,
+        object_id=address_id,
+    )
+    address = EntityAddress.objects.select_for_update().get(pk=address.pk)
+    if not address.is_active:
+        return address
+    address.is_active = False
+    address.save(update_fields=["is_active"])
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_ADDRESS_DEACTIVATED,
+        target_type=AuditTargetType.ENTITY_ADDRESS,
+        target_id=str(address.pk),
+        correlation_id=correlation_id,
+        changed_fields=["is_active"],
+    )
+    return address
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.ADD_REFERENCE_ENTITIES)
+def create_official(*, actor: User, form: OfficialForm, correlation_id: str) -> Official:
+    rebound = OfficialForm(data=form.data)
+    _require_valid(rebound)
+    official = rebound.save()
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_OFFICIAL_CREATED,
+        target_type=AuditTargetType.OFFICIAL,
+        target_id=str(official.pk),
+        correlation_id=correlation_id,
+        changed_fields=_changed_fields(rebound),
+    )
+    return official
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.CHANGE_REFERENCE_ENTITIES)
+def update_official(
+    *, actor: User, official_id: uuid.UUID, form: OfficialForm, correlation_id: str
+) -> Official:
+    official = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.CHANGE_REFERENCE_ENTITIES,
+        model=Official,
+        object_id=official_id,
+    )
+    rebound = OfficialForm(data=form.data, instance=official)
+    _require_valid(rebound)
+    official = rebound.save()
+    if rebound.changed_data:
+        record_reference_success(
+            actor=actor,
+            action=AuditAction.REFERENCE_OFFICIAL_UPDATED,
+            target_type=AuditTargetType.OFFICIAL,
+            target_id=str(official.pk),
+            correlation_id=correlation_id,
+            changed_fields=_changed_fields(rebound),
+        )
+    return official
+
+
+@transaction.atomic
+@service_permission_required(ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES)
+def deactivate_official(*, actor: User, official_id: uuid.UUID, correlation_id: str) -> Official:
+    official = _get_reference(
+        actor=actor,
+        permission=ApplicationPermission.DEACTIVATE_REFERENCE_ENTITIES,
+        model=Official,
+        object_id=official_id,
+    )
+    official = Official.objects.select_for_update().get(pk=official.pk)
+    if not official.is_active:
+        return official
+    official.is_active = False
+    official.save(update_fields=["is_active"])
+    record_reference_success(
+        actor=actor,
+        action=AuditAction.REFERENCE_OFFICIAL_DEACTIVATED,
+        target_type=AuditTargetType.OFFICIAL,
+        target_id=str(official.pk),
+        correlation_id=correlation_id,
+        changed_fields=["is_active"],
+    )
+    return official

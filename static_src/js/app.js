@@ -100,7 +100,7 @@
   }
 
   const htmxSecurityDefaults = {
-    historyEnabled: false,
+    historyEnabled: true,
     historyCacheSize: 0,
     allowEval: false,
     allowScriptTags: false,
@@ -124,6 +124,10 @@
   });
 
   document.addEventListener("htmx:beforeSwap", (event) => {
+    if (event.detail.xhr.status === 422 || event.detail.xhr.status === 409) {
+      event.detail.shouldSwap = true;
+      event.detail.isError = false;
+    }
     const redirect = event.detail.xhr.getResponseHeader("HX-Redirect");
     if (!redirect) {
       return;
@@ -148,17 +152,159 @@
     if (mainContent) {
       mainContent.setAttribute("aria-busy", String(isBusy));
     }
+    document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
     updateBusyPresentation();
   });
-  document.addEventListener("htmx:afterRequest", () => {
+  const announceHtmxNetworkError = (requestElement) => {
+    const errorRegion = document.getElementById("global-error");
+    const caseResults = requestElement?.closest("#case-results");
+    const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
+    const affectedRegion = caseResults || dashboardActivity;
+    if (affectedRegion && errorRegion) {
+      affectedRegion.setAttribute("aria-busy", "false");
+      errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
+    }
+  };
+  document.addEventListener("htmx:afterRequest", (event) => {
     activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
     updateBusyPresentation();
+    if (event.detail.successful === false) {
+      announceHtmxNetworkError(event.detail.elt);
+    }
+  });
+  document.addEventListener("htmx:sendError", (event) => {
+    announceHtmxNetworkError(event.detail.elt);
   });
 
-  const errorSummary = document.querySelector("[data-error-summary]");
+  let referenceDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-reference-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      referenceDialogTrigger = trigger;
+    }
+    const closeButton = event.target.closest("[data-reference-dialog-close]");
+    if (closeButton) {
+      document.getElementById("reference-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    const target = event.detail.target;
+    if (target?.id === "case-section") {
+      document.getElementById("case-section-heading")?.focus();
+    }
+    if (target?.id === "reference-dialog-content") {
+      const dialog = document.getElementById("reference-dialog");
+      if (dialog instanceof HTMLDialogElement) {
+        dialog.showModal();
+        dialog.querySelector("button, a, input, select, textarea")?.focus();
+      }
+    }
+    const summary = document.querySelector("[data-error-summary], [data-conflict-summary]");
+    if (summary instanceof HTMLElement) {
+      summary.focus();
+      return;
+    }
+    const relationshipSuccess = document.querySelector("#relationship-form .alert-success");
+    if (relationshipSuccess instanceof HTMLElement) {
+      relationshipSuccess.focus();
+      return;
+    }
+    const referenceFormHeading = document.querySelector("[data-reference-form-heading]");
+    if (referenceFormHeading instanceof HTMLElement) {
+      referenceFormHeading.focus();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    const addButton = event.target.closest("[data-formset-add]");
+    if (addButton instanceof HTMLButtonElement) {
+      const fieldset = addButton.closest("[data-formset]");
+      const template = fieldset?.querySelector("[data-formset-template]");
+      const rows = fieldset?.querySelector("[data-formset-rows]");
+      const totalInput = fieldset?.querySelector('input[name$="-TOTAL_FORMS"]');
+      if (
+        template instanceof HTMLTemplateElement &&
+        rows instanceof HTMLElement &&
+        totalInput instanceof HTMLInputElement
+      ) {
+        const index = Number.parseInt(totalInput.value, 10);
+        const wrapper = document.createElement("div");
+        wrapper.append(template.content.cloneNode(true));
+        wrapper.innerHTML = wrapper.innerHTML.replaceAll("__prefix__", String(index));
+        const row = wrapper.firstElementChild;
+        if (row) {
+          rows.append(row);
+          totalInput.value = String(index + 1);
+          row.querySelector('input:not([type="hidden"]), select, textarea')?.focus();
+        }
+      }
+      return;
+    }
+    const removeButton = event.target.closest("[data-formset-remove]");
+    if (removeButton instanceof HTMLButtonElement) {
+      const row = removeButton.closest("[data-formset-row]");
+      const deleteInput = row?.querySelector('input[name$="-DELETE"]');
+      if (row instanceof HTMLElement && deleteInput instanceof HTMLInputElement) {
+        deleteInput.checked = true;
+        row.hidden = true;
+        row.closest("[data-formset]")?.querySelector("[data-formset-add]")?.focus();
+      }
+    }
+  });
+  document.getElementById("reference-dialog")?.addEventListener("close", () => {
+    referenceDialogTrigger?.focus();
+    referenceDialogTrigger = null;
+  });
+
+  let caseDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-case-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      caseDialogTrigger = trigger;
+    }
+    if (event.target.closest("[data-case-dialog-close]")) {
+      document.getElementById("case-transition-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target?.id !== "case-transition-dialog-content") {
+      return;
+    }
+    const dialog = document.getElementById("case-transition-dialog");
+    if (dialog instanceof HTMLDialogElement) {
+      dialog.showModal();
+      dialog.querySelector('button, a, input:not([type="hidden"]), textarea, select')?.focus();
+    }
+  });
+  document.getElementById("case-transition-dialog")?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+    const focusableElements = Array.from(
+      event.currentTarget.querySelectorAll(
+        'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled])',
+      ),
+    );
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement?.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement?.focus();
+    }
+  });
+  document.getElementById("case-transition-dialog")?.addEventListener("close", () => {
+    caseDialogTrigger?.focus();
+    caseDialogTrigger = null;
+  });
+
+  const errorSummary = document.querySelector("[data-error-summary], [data-conflict-summary]");
   if (errorSummary instanceof HTMLElement) {
     errorSummary.focus();
   }

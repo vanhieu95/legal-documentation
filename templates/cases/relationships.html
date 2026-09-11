@@ -1,0 +1,15 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} · VDS{% endblock %}
+{% block page_context %}{% translate "Cases" %}{% endblock %}
+
+{% block main_content %}
+  <article class="case-relationship-page">
+    <header>
+      <p class="eyebrow">{{ case.internal_reference }}</p>
+      <h1 class="gallery-title">{{ page_title }}</h1>
+    </header>
+    {% include "cases/_relationship_form.html" %}
+  </article>
+{% endblock %}

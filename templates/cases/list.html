@@ -1,0 +1,41 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Cases" %} · VDS{% endblock %}
+{% block page_context %}{% translate "Cases" %}{% endblock %}
+
+{% block main_content %}
+  <section class="case-list-page" aria-labelledby="case-list-heading">
+    <header class="case-list-header">
+      <div><p class="eyebrow">{% translate "Civil matters" %}</p><h1 id="case-list-heading" class="gallery-title">{% translate "Cases" %}</h1></div>
+      <a class="button button-primary" href="{% url 'cases:create' %}">{% translate "Create case" %}</a>
+    </header>
+    <form
+      class="surface case-filter-form"
+      method="get"
+      action="{% url 'cases:list' %}"
+      hx-get="{% url 'cases:list' %}"
+      hx-trigger="submit, input changed delay:350ms, change"
+      hx-target="#case-results"
+      hx-swap="outerHTML show:none"
+      hx-push-url="true"
+      hx-sync="this:replace"
+      hx-indicator="#case-results-loading"
+    >
+      <div class="case-filter-grid">
+        {% for field in form %}{% if not field.is_hidden and field.name != "page" %}
+          <div class="field{% if field.name == 'q' %} case-filter-search{% endif %}">
+            <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<p class="field-error" id="{{ field.id_for_label }}-error">{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}{% endfor %}
+      </div>
+      <div class="reference-actions">
+        <button class="button button-secondary" type="submit">{% translate "Apply filters" %}</button>
+        <a class="button button-quiet" href="{% url 'cases:list' %}">{% translate "Clear all filters" %}</a>
+      </div>
+    </form>
+    {% include "cases/_case_results.html" %}
+  </section>
+{% endblock %}

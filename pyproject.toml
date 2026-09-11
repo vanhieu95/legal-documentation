@@ -8,6 +8,7 @@ DJANGO_SETTINGS_MODULE = "config.settings.test"
 addopts = "--strict-config --strict-markers"
 testpaths = ["apps", "tests"]
 markers = [
+    "performance: explicit synthetic scale profile excluded from routine test runs",
     "postgresql: requires the PostgreSQL integration-test profile",
 ]
 

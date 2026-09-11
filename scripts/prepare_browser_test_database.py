@@ -20,6 +20,7 @@ from django.contrib.auth.models import User  # noqa: E402
 from django.contrib.sessions.models import Session  # noqa: E402
 
 from apps.accounts.permissions import seed_administrator_permissions  # noqa: E402
+from apps.cases.models import Court, Entity, Official  # noqa: E402
 
 if settings.SETTINGS_MODULE != "config.settings.browser_test":
     raise RuntimeError("Browser fixtures may only be created with browser-test settings.")
@@ -61,4 +62,43 @@ replace_synthetic_user(
 replace_synthetic_user(
     "synthetic-browser-non-administrator",
     "synthetic-browser-password-123!",
+)
+
+court, _created = Court.objects.update_or_create(
+    code="SYN-BROWSER",
+    defaults={
+        "full_name": "Tòa án nhân dân thử nghiệm trình duyệt",
+        "short_name": "TAND thử nghiệm",
+        "level": Court.Level.DISTRICT,
+        "address": "Địa chỉ hành chính thử nghiệm",
+        "is_active": True,
+    },
+)
+
+participant_entity, _created = Entity.objects.update_or_create(
+    identity_document_number="SYN-BROWSER-PARTICIPANT-ID",
+    defaults={
+        "kind": Entity.Kind.INDIVIDUAL,
+        "legal_name": "Người tham gia thử nghiệm trình duyệt",
+        "display_name": "Người tham gia thử nghiệm",
+        "is_active": True,
+    },
+)
+official_entity, _created = Entity.objects.update_or_create(
+    identity_document_number="SYN-BROWSER-OFFICIAL-ID",
+    defaults={
+        "kind": Entity.Kind.INDIVIDUAL,
+        "legal_name": "Cán bộ thử nghiệm trình duyệt",
+        "display_name": "Cán bộ thử nghiệm",
+        "is_active": True,
+    },
+)
+Official.objects.update_or_create(
+    entity=official_entity,
+    defaults={
+        "home_court": court,
+        "title": "Thẩm phán thử nghiệm",
+        "position": "Bộ phận dân sự thử nghiệm",
+        "is_active": True,
+    },
 )

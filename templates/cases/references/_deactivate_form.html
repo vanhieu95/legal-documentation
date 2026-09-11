@@ -1,0 +1,14 @@
+{% load i18n %}
+<div id="reference-deactivate-form">
+  <h1 id="reference-dialog-title" class="gallery-title">{{ page_title }}</h1>
+  <p class="reference-confirmation-name"><strong>{{ reference_label }}</strong></p>
+  <p>{% translate "This record will remain in history but will no longer be available for new selections." %}</p>
+  <form method="post" action="{{ form_action }}" class="stack-vertical" hx-post="{{ form_action }}" data-submit-form>
+    {% csrf_token %}
+    <div class="reference-actions">
+      <button class="button button-danger" type="submit" data-submit-button><span data-submit-label>{% translate "Confirm deactivation" %}</span><span data-submit-loading hidden>{% translate "Deactivating…" %}</span></button>
+      <a class="button button-quiet no-js-only" href="{{ cancel_url }}">{% translate "Cancel" %}</a>
+      <button class="button button-quiet js-only" type="button" data-reference-dialog-close>{% translate "Cancel" %}</button>
+    </div>
+  </form>
+</div>

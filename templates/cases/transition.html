@@ -1,0 +1,11 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ page_title }} · VDS{% endblock %}
+{% block page_context %}{% translate "Cases" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface reference-form-page" aria-labelledby="case-transition-title">
+    {% include "cases/_case_transition_form.html" %}
+  </section>
+{% endblock %}

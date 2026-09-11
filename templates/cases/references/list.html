@@ -1,0 +1,73 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{{ config.plural_label }} · VDS{% endblock %}
+{% block page_context %}{% translate "Case references" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface reference-page" aria-labelledby="reference-heading">
+    <header class="reference-header">
+      <div>
+        <h1 id="reference-heading" class="gallery-title">{{ config.plural_label }}</h1>
+        <p class="gallery-description">
+          {% translate "Maintain reusable case reference records without deleting history." %}
+        </p>
+      </div>
+      {% if can_add %}
+        <a
+          class="button button-primary"
+          href="{% url 'cases:reference-create' reference_type=config.key %}"
+          hx-get="{% url 'cases:reference-create' reference_type=config.key %}"
+          hx-target="#reference-workspace"
+          hx-swap="innerHTML"
+        >{% translate "Create reference" %}</a>
+      {% endif %}
+    </header>
+
+    <nav class="reference-tabs" aria-label="{% translate 'Reference record types' %}">
+      {% for key, item in reference_configs.items %}
+        <a
+          class="button {% if key == config.key %}button-primary{% else %}button-quiet{% endif %}"
+          href="{% url 'cases:reference-list' reference_type=key %}"
+          {% if key == config.key %}aria-current="page"{% endif %}
+        >{{ item.plural_label }}</a>
+      {% endfor %}
+    </nav>
+
+    <form
+      class="reference-filter-form"
+      method="get"
+      action="{% url 'cases:reference-list' reference_type=config.key %}"
+      hx-get="{% url 'cases:reference-list' reference_type=config.key %}"
+      hx-target="#reference-results"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+      hx-indicator="#reference-loading"
+    >
+      <div class="field">
+        <label class="field-label" for="{{ form.q.id_for_label }}">{{ form.q.label }}</label>
+        {{ form.q }}
+      </div>
+      <div class="field">
+        <label class="field-label" for="{{ form.state.id_for_label }}">{{ form.state.label }}</label>
+        {{ form.state }}
+      </div>
+      <button class="button button-secondary" type="submit">{% translate "Apply filters" %}</button>
+      <a class="button button-quiet" href="{% url 'cases:reference-list' reference_type=config.key %}">
+        {% translate "Clear filters" %}
+      </a>
+    </form>
+
+    <div id="reference-loading" class="state htmx-indicator" role="status" aria-live="polite" aria-busy="true">
+      <p class="state-title"><span class="loading-indicator" aria-hidden="true"></span>{% translate "Loading references…" %}</p>
+    </div>
+
+    <div id="reference-workspace" aria-live="polite">
+      {% include "cases/references/_reference_results.html" %}
+    </div>
+
+    <dialog id="reference-dialog" class="dialog" aria-labelledby="reference-dialog-title">
+      <div id="reference-dialog-content" class="dialog-content"></div>
+    </dialog>
+  </section>
+{% endblock %}
