@@ -154,6 +154,7 @@
     }
     document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
     document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("template-upload-workflow")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
@@ -163,7 +164,8 @@
     const errorRegion = document.getElementById("global-error");
     const caseResults = requestElement?.closest("#case-results");
     const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
-    const affectedRegion = caseResults || dashboardActivity;
+    const templateWorkflow = requestElement?.closest("#template-upload-workflow");
+    const affectedRegion = caseResults || dashboardActivity || templateWorkflow;
     if (affectedRegion && errorRegion) {
       affectedRegion.setAttribute("aria-busy", "false");
       errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
@@ -206,6 +208,13 @@
     const summary = document.querySelector("[data-error-summary], [data-conflict-summary]");
     if (summary instanceof HTMLElement) {
       summary.focus();
+      return;
+    }
+    const templateOutcome = document.querySelector(
+      "[data-template-result], [data-template-server-error]",
+    );
+    if (templateOutcome instanceof HTMLElement) {
+      templateOutcome.focus();
       return;
     }
     const relationshipSuccess = document.querySelector("#relationship-form .alert-success");

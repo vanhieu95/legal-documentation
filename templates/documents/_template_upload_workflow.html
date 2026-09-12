@@ -1,0 +1,51 @@
+{% load i18n %}
+<div id="template-upload-workflow" class="surface template-upload-workflow" aria-live="polite" data-network-error-message="{% translate 'The upload could not be completed. Your text values remain in the form.' %}">
+  {% if result %}
+    <div class="alert {% if result.status == 'valid' %}alert-success{% else %}alert-danger{% endif %}" role="status" tabindex="-1" data-template-result>
+      <p class="alert-title">
+        {% if result.status == 'valid' %}{% translate "Automated validation passed" %}{% else %}{% translate "Automated validation did not pass" %}{% endif %}
+      </p>
+      <p {% if result.status == 'valid' %}data-activation-candidate{% endif %}>
+        {% if result.status == 'valid' %}{% translate "This version is a candidate for later activation. It has not been activated." %}{% else %}{% translate "This version remains inactive and is unavailable for case generation." %}{% endif %}
+      </p>
+      {% if report_items %}
+        <div class="validation-report">
+          <h2>{% translate "Safe validation report" %}</h2>
+          <ul>
+            {% for item in report_items %}<li>{{ item }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+  {% if server_error %}
+    <div class="alert alert-danger" role="alert" tabindex="-1" data-template-server-error>
+      <p class="alert-title">{% translate "Template processing is temporarily unavailable" %}</p>
+      <p>{% translate "Try again later. No internal file or error details are shown." %}</p>
+    </div>
+  {% endif %}
+  {% if form.errors %}
+    <div id="template-upload-errors" class="alert alert-danger" role="alert" tabindex="-1" data-error-summary>
+      <p class="alert-title">{% translate "Correct the highlighted fields" %}</p>
+      <ul class="alert-list">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data" action="{{ form_action }}" hx-post="{{ form_action }}" hx-encoding="multipart/form-data" hx-target="#template-upload-workflow" hx-swap="outerHTML" hx-indicator="#template-upload-busy" hx-disabled-elt="find button[type='submit']" class="stack-vertical" data-template-upload-form>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p id="{{ field.id_for_label }}-help" class="field-help">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p id="{{ field.id_for_label }}-error" class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <div id="template-upload-busy" class="htmx-indicator busy-state" role="status" aria-live="polite" aria-busy="true">{% translate "Uploading and validating both synthetic renders…" %}</div>
+    <div class="reference-actions"><button class="button button-primary" type="submit">{% translate "Upload and validate" %}</button><a class="button button-quiet" href="{% url 'documents:template-list' %}">{% translate "Cancel" %}</a></div>
+  </form>
+</div>

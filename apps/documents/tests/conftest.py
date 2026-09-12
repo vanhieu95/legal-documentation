@@ -5,6 +5,12 @@ from typing import Any
 
 import pytest
 from django.contrib.auth.models import User
+from django.test import Client
+
+
+@pytest.fixture
+def csrf_client() -> Client:
+    return Client(enforce_csrf_checks=True)
 
 
 @pytest.fixture
