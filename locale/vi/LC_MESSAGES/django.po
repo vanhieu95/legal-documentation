@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-10 21:17+0700\n"
+"POT-Creation-Date: 2026-09-12 08:07+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -270,14 +270,16 @@ msgid "State"
 msgstr "Trạng thái"
 
 #: apps/cases/forms.py:155 apps/cases/models.py:247
+#: apps/documents/models.py:146
 #: templates/accounts/_dashboard_case_activity.html:65
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
 msgstr "Đang hoạt động"
 
-#: apps/cases/forms.py:155 templates/cases/_case_section.html:35
-#: templates/cases/_case_section.html:38 templates/cases/_case_section.html:41
+#: apps/cases/forms.py:155 apps/documents/models.py:147
+#: templates/cases/_case_section.html:35 templates/cases/_case_section.html:38
+#: templates/cases/_case_section.html:41
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Inactive"
@@ -865,6 +867,71 @@ msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 #, python-format
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
+
+#: apps/documents/models.py:77
+msgid "The validation report is too deeply nested."
+msgstr "Báo cáo xác thực được lồng quá sâu."
+
+#: apps/documents/models.py:80 apps/documents/models.py:90
+msgid "The validation report has too many entries."
+msgstr "Báo cáo xác thực có quá nhiều mục."
+
+#: apps/documents/models.py:85 apps/documents/models.py:109
+msgid "The validation report contains an unsafe field."
+msgstr "Báo cáo xác thực chứa trường không an toàn."
+
+#: apps/documents/models.py:97 apps/documents/models.py:100
+#: apps/documents/models.py:111 apps/documents/models.py:131
+msgid "The validation report contains an unsupported value."
+msgstr "Báo cáo xác thực chứa giá trị không được hỗ trợ."
+
+#: apps/documents/models.py:105
+msgid "The validation report must be a structured object."
+msgstr "Báo cáo xác thực phải là một đối tượng có cấu trúc."
+
+#: apps/documents/models.py:136
+msgid "The validation report must be valid JSON."
+msgstr "Báo cáo xác thực phải là JSON hợp lệ."
+
+#: apps/documents/models.py:138
+msgid "The validation report exceeds the storage limit."
+msgstr "Báo cáo xác thực vượt quá giới hạn lưu trữ."
+
+#: apps/documents/models.py:143
+msgid "Uploaded"
+msgstr "Đã tải lên"
+
+#: apps/documents/models.py:144
+msgid "Valid"
+msgstr "Hợp lệ"
+
+#: apps/documents/models.py:145
+msgid "Invalid"
+msgstr "Không hợp lệ"
+
+#: apps/documents/models.py:313
+msgid "Unknown document type key."
+msgstr "Không nhận diện được khóa loại văn bản."
+
+#: apps/documents/models.py:315
+msgid "A template version is required."
+msgstr "Cần có phiên bản biểu mẫu."
+
+#: apps/documents/models.py:318
+msgid "The template display filename must be sanitized."
+msgstr "Tên tệp hiển thị của biểu mẫu phải được làm sạch."
+
+#: apps/documents/models.py:321
+msgid "The private storage key is invalid."
+msgstr "Khóa lưu trữ riêng tư không hợp lệ."
+
+#: apps/documents/models.py:325
+msgid "The private storage key does not match this template."
+msgstr "Khóa lưu trữ riêng tư không khớp với biểu mẫu này."
+
+#: apps/documents/models.py:328
+msgid "An approval reference is required."
+msgstr "Cần có thông tin tham chiếu phê duyệt."
 
 #: apps/documents/views.py:17
 msgid "Template management is not available yet."

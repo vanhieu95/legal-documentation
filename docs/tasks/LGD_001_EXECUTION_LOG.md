@@ -1079,3 +1079,77 @@ credentials, generated-document content, or other sensitive payloads.
   design-target plan remains evidenced by its approved checkpoint and was not rerun; CASE-012's
   new 10,000-row PostgreSQL plan was measured in this checkpoint. No M4 blocker remains. The next
   eligible task is `DOC-001`, which was not started.
+
+## DOC-001 — Define the stable registry and synthetic test document type
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added a frozen, typed, code-owned registry contract for stable keys, official and
+  localized names, enabled/schema state, Django form and formset providers, context and filename
+  providers, required/optional placeholders with value kinds, filter/global allowlists, synthetic
+  fixture providers, and explicitly named post-processors. The only entry is
+  `synthetic-platform-test`; it is marked non-production and cannot count toward MVP VDS coverage.
+- **Contract enforcement:** Construction rejects malformed or duplicate keys/codes, mutable or
+  incomplete contracts, missing/invalid providers, invalid fixtures or formsets, mapper name/kind
+  mismatches, unsafe filenames, and undeclared/non-callable post-processors. No mapping loader,
+  runtime registration, import resolver, or expression evaluator exists. Lookup explicitly conveys
+  neither authorization nor active-template availability.
+- **Architecture and privacy:** Automated import guards prove that `cases` imports no `documents`
+  code and `audit` imports no document models. Fixtures contain synthetic platform text only; no
+  case, legal, credential, path, or file-byte data was added.
+
+## DOC-002 — Model immutable template versions and private storage keys
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added immutable `TemplateVersion` metadata with UUID identity, registry key and
+  version, opaque server-generated private key, sanitized display filename, SHA-256, bounded byte
+  size, lifecycle status, fixed-schema bounded validation report, uploader/time, protected
+  activation actor/time, and approval reference.
+- **Durable invariants:** PostgreSQL enforces unique type/version, a partial unique active version
+  per type, status/key/version/storage/checksum/size/display-name/activation checks, and exact
+  storage-key identity. A PostgreSQL history trigger requires initial `uploaded` state, permits only
+  declared transitions, bounds report writes, freezes completed reports and identity/file/approval
+  metadata, preserves first activation metadata, and rejects deletion. Model transitions lock and
+  re-read the row so stale instances cannot overwrite committed state; supported ORM update,
+  bulk-create, bulk-update, and delete paths are blocked.
+- **Private storage:** Keys contain only validated server-owned components and random UUID material.
+  Existing private filesystem storage produced `0600` files and `0700` directories, exposes no URL,
+  and never derives a storage path from the sanitized display filename.
+
+## CP-DOC-A — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local implementation and verification complete; `DOC-001` and `DOC-002` are complete.
+  Work stopped before `DOC-003` as required; human approval is pending.
+- **Focused and coverage evidence:** The final focused SQLite profile passed 77 tests with two
+  intentional PostgreSQL-only skips. The final PostgreSQL 18.6 profile passed all 79 tests. The
+  mandated full coverage command passed 606 tests with 14 intentional environment-profile skips at
+  94.89% branch coverage; `apps/documents/registry.py` reached 98.59%, above the 95% sensitive-module
+  threshold.
+- **Migration and schema evidence:** PostgreSQL applied the complete migration graph from an empty
+  database, reversed `documents.0001_initial` to zero, and reapplied it successfully. Direct schema
+  inspection confirmed the history trigger, both uniqueness guarantees, all declared checks and the
+  bounded lookup index. Migration drift is empty.
+- **Quality commands:** Ruff lint and format, mypy over `apps config`, Django system and migration
+  checks, Tailwind build, vendored-asset verification, message extraction, Vietnamese compilation,
+  sensitive-module coverage, and diff checks passed. English gettext source and Vietnamese catalog
+  entries were added together.
+- **Security and adversarial review:** Tests cover unknown/request-like identifiers, traversal and
+  Windows filename hazards, storage-prefix wildcard attacks, checksums and 10 MiB size bounds,
+  report shape/size/sensitive-field rejection, stale transitions, activation metadata injection,
+  raw-SQL immutable updates/deletion, unsupported ORM bulk writes, and restrictive filesystem
+  permissions. Two fresh-context review cycles found and drove fixes for lifecycle locking,
+  database history durability, placeholder kinds, formsets, report safety, storage-key equality and
+  bulk-write bypasses. The authorized Codex CLI second-opinion attempt remained read-only but failed
+  to return findings because it recursively paused for another review choice; no external finding
+  was treated as verification.
+- **HTTP, authorization, CSRF, IDOR, audit and DOCX:** Not applicable at this metadata-only
+  checkpoint: no views, unsafe endpoints, object selectors, audit workflow, upload handling, or DOCX
+  parsing/rendering was introduced. Those gates begin with `DOC-003` through `DOC-006`. Registry
+  lookup remains deliberately separate from authorization and template availability.
+- **Full-page, HTMX, no-JavaScript and browser evidence:** Not applicable because CP-DOC-A adds no
+  user-facing route or interactive behavior. Existing frontend assets and full application tests
+  remain green.
+- **Commit:** Checkpoint implementation commit follows this entry.
+- **Deviations or blockers:** No implementation blocker remains. PostgreSQL-only durability is
+  additionally protected by application checks under SQLite. The next eligible checkpoint is
+  `CP-DOC-B` (`DOC-003`, `DOC-004`), which was not started.

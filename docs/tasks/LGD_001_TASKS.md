@@ -48,6 +48,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
 - [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
+- [x] `CP-DOC-A` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -462,7 +463,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 5 — Document-platform vertical slice
 
-### [ ] DOC-001 — Define the stable registry and synthetic test document type
+### [x] DOC-001 — Define the stable registry and synthetic test document type
 
 - **Outcome:** Code owns an immutable registry protocol for stable keys, labels, schema/form provider, mapper, filename, placeholder/value-kind contract, allowlists, fixtures and optional named post-processor.
 - **SPEC:** §§6.3, 6.5–6.6, 11.1–11.2; **FR:** `FR-DOC-01`, `FR-DOC-02`, `FR-GEN-01`, `FR-TPL-01`; **AC:** `AC-10`, `AC-11`, `AC-12`.
@@ -478,7 +479,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A new type cannot exist without an explicit reviewable code contract; `cases` imports nothing from `documents`.
 - **Size:** M. **Blockers/skills:** `api-and-interface-design`, **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-002 — Model immutable template versions and private storage keys
+### [x] DOC-002 — Model immutable template versions and private storage keys
 
 - **Outcome:** Uploaded template identity/bytes metadata is immutable; lifecycle states and zero-or-one active version per registry key are durably represented on PostgreSQL.
 - **SPEC:** §§10.2, 11.1, 11.5, 17.2, 18; **FR:** `FR-TPL-02`–`FR-TPL-05`; **AC:** `AC-13`, `AC-14`, `AC-17`, `AC-18`, `AC-22`.
