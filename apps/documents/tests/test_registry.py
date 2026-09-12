@@ -35,10 +35,10 @@ def test_synthetic_registration_is_complete_immutable_and_not_production() -> No
     assert registration.form_provider().form_class.__name__ == "SyntheticDocumentForm"
     assert registration.form_provider().formset_classes == ()
     assert registration.context_mapper(registration.minimal_fixture()) == {
-        "document.title": "Synthetic document"
+        "document.title": "Tài liệu kiểm thử tổng hợp"
     }
     assert registration.filename_builder(registration.minimal_fixture()).endswith(".docx")
-    assert registration.representative_fixture()["notes"] == "Synthetic representative notes"
+    assert registration.representative_fixture()["notes"] == "Nội dung tổng hợp có dấu tiếng Việt"
     assert registration.placeholder_contract.required_names == frozenset({"document.title"})
     assert registration.placeholder_contract.optional_names == frozenset({"document.notes"})
     assert registration.placeholder_contract.expected_kinds == {
@@ -326,7 +326,7 @@ def test_registry_has_stable_non_executable_description() -> None:
             "is_synthetic": True,
             "required_placeholders": ("document.title",),
             "optional_placeholders": ("document.notes",),
-            "allowed_filters": (),
+            "allowed_filters": ("default",),
             "allowed_globals": (),
             "post_processor_name": None,
         },

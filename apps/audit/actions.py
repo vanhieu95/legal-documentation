@@ -33,6 +33,8 @@ class AuditAction(StrEnum):
     CASE_ARCHIVED = "case.archived"
     CASE_RESTORED = "case.restored"
     CASE_RELATIONSHIPS_UPDATED = "case.relationships_updated"
+    TEMPLATE_UPLOADED = "template.uploaded"
+    TEMPLATE_VALIDATED = "template.validated"
 
 
 class AuditOutcome(StrEnum):
@@ -56,3 +58,4 @@ class AuditTargetType(StrEnum):
     ENTITY_ADDRESS = "entity_address"
     OFFICIAL = "official"
     CASE = "case"
+    TEMPLATE_VERSION = "template_version"

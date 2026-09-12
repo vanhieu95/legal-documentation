@@ -355,14 +355,14 @@ def _synthetic_filename_builder(values: Mapping[str, Any]) -> str:
 
 
 def _synthetic_minimal_fixture() -> Mapping[str, Any]:
-    return MappingProxyType({"title": "Synthetic document"})
+    return MappingProxyType({"title": "Tài liệu kiểm thử tổng hợp"})
 
 
 def _synthetic_representative_fixture() -> Mapping[str, Any]:
     return MappingProxyType(
         {
-            "title": "Synthetic representative document",
-            "notes": "Synthetic representative notes",
+            "title": "Tài liệu đại diện kiểm thử tổng hợp",
+            "notes": "Nội dung tổng hợp có dấu tiếng Việt",
         }
     )
 
@@ -382,6 +382,7 @@ document_registry = DocumentRegistry(
             placeholder_contract=PlaceholderContract(
                 required=(PlaceholderDefinition("document.title", PlaceholderValueKind.TEXT),),
                 optional=(PlaceholderDefinition("document.notes", PlaceholderValueKind.TEXT),),
+                allowed_filters=frozenset({"default"}),
             ),
             minimal_fixture=_synthetic_minimal_fixture,
             representative_fixture=_synthetic_representative_fixture,
