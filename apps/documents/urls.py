@@ -12,4 +12,14 @@ urlpatterns = [
         views.template_upload,
         name="template-upload",
     ),
+    path(
+        "templates/<slug:type_key>/<uuid:template_id>/activate/",
+        views.template_activate,
+        name="template-activate",
+    ),
+    path(
+        "templates/<slug:type_key>/<uuid:template_id>/deactivate/",
+        views.template_deactivate,
+        name="template-deactivate",
+    ),
 ]

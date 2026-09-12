@@ -35,6 +35,8 @@ class AuditAction(StrEnum):
     CASE_RELATIONSHIPS_UPDATED = "case.relationships_updated"
     TEMPLATE_UPLOADED = "template.uploaded"
     TEMPLATE_VALIDATED = "template.validated"
+    TEMPLATE_ACTIVATED = "template.activated"
+    TEMPLATE_DEACTIVATED = "template.deactivated"
 
 
 class AuditOutcome(StrEnum):

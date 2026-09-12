@@ -28,8 +28,11 @@
               <h3 id="template-version-{{ row.template.id }}">{{ row.registration.official_code }} · {{ row.template.version }}</h3>
               <p><span class="badge">{{ row.template.get_status_display }}</span> · {{ row.template.uploaded_at }}</p>
             </div>
-            {% if row.is_candidate %}
-              <p class="candidate-note" data-activation-candidate>{% translate "This version is a candidate for later activation." %}</p>
+            {% if row.is_candidate and can_activate_templates %}
+              <p class="candidate-note" data-activation-candidate>{% translate "This version passed validation and can be activated." %}</p>
+              <a class="button button-primary" href="{% url 'documents:template-activate' row.template.type_key row.template.id %}" hx-get="{% url 'documents:template-activate' row.template.type_key row.template.id %}" hx-target="#template-transition-dialog-content" hx-swap="innerHTML" data-template-dialog-trigger>{% translate "Activate" %}</a>
+            {% elif row.can_deactivate and can_deactivate_templates %}
+              <a class="button button-danger" href="{% url 'documents:template-deactivate' row.template.type_key row.template.id %}" hx-get="{% url 'documents:template-deactivate' row.template.type_key row.template.id %}" hx-target="#template-transition-dialog-content" hx-swap="innerHTML" data-template-dialog-trigger>{% translate "Deactivate" %}</a>
             {% endif %}
             {% if row.report_items %}
               <div class="validation-report">
@@ -56,4 +59,7 @@
       </nav>
     {% endif %}
   </section>
+  <dialog id="template-transition-dialog" class="dialog" aria-labelledby="template-transition-title">
+    <div id="template-transition-dialog-content" class="dialog-content"></div>
+  </dialog>
 </div>

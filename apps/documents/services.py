@@ -6,13 +6,14 @@ from collections import Counter
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, BinaryIO
+from uuid import UUID
 from zipfile import BadZipFile, ZipFile
 
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.storage import Storage, storages
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, transaction
 from docxtpl import DocxTemplate  # type: ignore[import-untyped]
 
 from apps.accounts.policies import ApplicationPermission, service_permission_required
@@ -63,6 +64,14 @@ class InvalidTemplateUpload(TemplateUploadError):
 
 class TemplateStorageError(TemplateUploadError):
     """Raised when immutable private placement cannot be completed."""
+
+
+class TemplateTransitionConflict(ValueError):
+    """Raised when a template lifecycle confirmation is no longer current."""
+
+    def __init__(self, message: str, *, reason_code: str = "state_conflict") -> None:
+        super().__init__(message)
+        self.reason_code = reason_code
 
 
 def _registration(type_key: str) -> DocumentRegistration:
@@ -137,6 +146,230 @@ def _audit(
         correlation_id=correlation_id,
         metadata=metadata,
     )
+
+
+def _transition_audit(
+    *,
+    action: AuditAction,
+    outcome: AuditOutcome,
+    actor: User,
+    correlation_id: str,
+    template: TemplateVersion,
+    reason_code: str | None = None,
+) -> None:
+    metadata: dict[str, object] = {
+        "type_key": template.type_key,
+        "version": template.version,
+        "approval_reference_id": hashlib.sha256(
+            template.approval_reference.encode("utf-8")
+        ).hexdigest()[:16],
+    }
+    if reason_code is not None:
+        metadata["reason_code"] = reason_code
+    record_audit_event(
+        action=action,
+        outcome=outcome,
+        actor=actor,
+        target=AuditTarget(type=AuditTargetType.TEMPLATE_VERSION, id=str(template.pk)),
+        correlation_id=correlation_id,
+        changed_fields=("status",) if outcome == AuditOutcome.SUCCESS else (),
+        metadata=metadata,
+    )
+
+
+def _acquire_type_transition_lock(type_key: str) -> None:
+    """Serialize one registered type without locking its unbounded history."""
+    if connection.vendor == "postgresql":
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", [type_key])
+
+
+def _locked_transition_state(
+    template_id: UUID,
+) -> tuple[TemplateVersion, TemplateVersion | None]:
+    identity = TemplateVersion.objects.only("type_key").get(pk=template_id)
+    registration = _registration(identity.type_key)
+    _acquire_type_transition_lock(registration.key)
+    selected = TemplateVersion.objects.select_for_update().get(
+        pk=template_id, type_key=registration.key
+    )
+    active = (
+        TemplateVersion.objects.select_for_update()
+        .filter(type_key=registration.key, status=TemplateVersion.Status.ACTIVE)
+        .first()
+    )
+    return selected, active
+
+
+def _audit_transition_failure(
+    *,
+    action: AuditAction,
+    actor: User,
+    template_id: UUID,
+    correlation_id: str,
+    reason_code: str,
+) -> None:
+    template = TemplateVersion.objects.filter(pk=template_id).first()
+    if template is not None:
+        _transition_audit(
+            action=action,
+            outcome=AuditOutcome.FAILURE,
+            actor=actor,
+            correlation_id=correlation_id,
+            template=template,
+            reason_code=reason_code,
+        )
+
+
+def _current_active_id(active: TemplateVersion | None) -> UUID | None:
+    return active.pk if active is not None else None
+
+
+@service_permission_required(ApplicationPermission.ACTIVATE_TEMPLATES)
+def record_activation_confirmation_failure(
+    *, actor: User, template_id: UUID, correlation_id: str
+) -> None:
+    _audit_transition_failure(
+        action=AuditAction.TEMPLATE_ACTIVATED,
+        actor=actor,
+        template_id=template_id,
+        correlation_id=correlation_id,
+        reason_code="invalid_confirmation",
+    )
+
+
+@service_permission_required(ApplicationPermission.DEACTIVATE_TEMPLATES)
+def record_deactivation_confirmation_failure(
+    *, actor: User, template_id: UUID, correlation_id: str
+) -> None:
+    _audit_transition_failure(
+        action=AuditAction.TEMPLATE_DEACTIVATED,
+        actor=actor,
+        template_id=template_id,
+        correlation_id=correlation_id,
+        reason_code="invalid_confirmation",
+    )
+
+
+@service_permission_required(ApplicationPermission.ACTIVATE_TEMPLATES)
+def activate_template_version(
+    *,
+    actor: User,
+    template_id: UUID,
+    expected_status: str,
+    expected_active_id: UUID | None,
+    correlation_id: str,
+) -> TemplateVersion:
+    """Atomically make one approved version active for future selection."""
+    try:
+        with transaction.atomic():
+            selected, active = _locked_transition_state(template_id)
+            if _current_active_id(active) != expected_active_id:
+                raise TemplateTransitionConflict("The template state changed.")
+            if (
+                selected.status != expected_status
+                or selected.status != TemplateVersion.Status.VALID
+            ):
+                raise TemplateTransitionConflict("The template state changed.")
+            if (
+                not selected.approval_reference.strip()
+                or selected.validation_report.get("result") != "valid"
+            ):
+                raise TemplateTransitionConflict(
+                    "The template is not an activation candidate.",
+                    reason_code="invalid_candidate",
+                )
+            if active is not None:
+                active.transition_to(TemplateVersion.Status.INACTIVE)
+                _transition_audit(
+                    action=AuditAction.TEMPLATE_DEACTIVATED,
+                    outcome=AuditOutcome.SUCCESS,
+                    actor=actor,
+                    correlation_id=correlation_id,
+                    template=active,
+                    reason_code="replaced",
+                )
+            selected.transition_to(TemplateVersion.Status.ACTIVE, actor=actor)
+            _transition_audit(
+                action=AuditAction.TEMPLATE_ACTIVATED,
+                outcome=AuditOutcome.SUCCESS,
+                actor=actor,
+                correlation_id=correlation_id,
+                template=selected,
+            )
+            return selected
+    except TemplateTransitionConflict as error:
+        _audit_transition_failure(
+            action=AuditAction.TEMPLATE_ACTIVATED,
+            actor=actor,
+            template_id=template_id,
+            correlation_id=correlation_id,
+            reason_code=error.reason_code,
+        )
+        raise
+    except (IntegrityError, TemplateVersion.DoesNotExist, UnknownOrDisabledDocumentType) as error:
+        _audit_transition_failure(
+            action=AuditAction.TEMPLATE_ACTIVATED,
+            actor=actor,
+            template_id=template_id,
+            correlation_id=correlation_id,
+            reason_code="transition_unavailable",
+        )
+        raise TemplateTransitionConflict(
+            "The template transition could not be completed."
+        ) from error
+
+
+@service_permission_required(ApplicationPermission.DEACTIVATE_TEMPLATES)
+def deactivate_template_version(
+    *,
+    actor: User,
+    template_id: UUID,
+    expected_status: str,
+    expected_active_id: UUID | None,
+    correlation_id: str,
+) -> TemplateVersion:
+    """Deactivate one active version without changing its immutable history."""
+    try:
+        with transaction.atomic():
+            selected, active = _locked_transition_state(template_id)
+            if (
+                _current_active_id(active) != expected_active_id
+                or expected_active_id != selected.pk
+                or active is None
+                or selected.status != expected_status
+                or selected.status != TemplateVersion.Status.ACTIVE
+            ):
+                raise TemplateTransitionConflict("The template state changed.")
+            selected.transition_to(TemplateVersion.Status.INACTIVE)
+            _transition_audit(
+                action=AuditAction.TEMPLATE_DEACTIVATED,
+                outcome=AuditOutcome.SUCCESS,
+                actor=actor,
+                correlation_id=correlation_id,
+                template=selected,
+            )
+            return selected
+    except TemplateTransitionConflict as error:
+        _audit_transition_failure(
+            action=AuditAction.TEMPLATE_DEACTIVATED,
+            actor=actor,
+            template_id=template_id,
+            correlation_id=correlation_id,
+            reason_code=error.reason_code,
+        )
+        raise
+    except (TemplateVersion.DoesNotExist, UnknownOrDisabledDocumentType) as error:
+        _audit_transition_failure(
+            action=AuditAction.TEMPLATE_DEACTIVATED,
+            actor=actor,
+            template_id=template_id,
+            correlation_id=correlation_id,
+            reason_code="transition_unavailable",
+        )
+        raise TemplateTransitionConflict(
+            "The template transition could not be completed."
+        ) from error
 
 
 def _report(result: str, categories: list[str], *, render_count: int = 0) -> dict[str, object]:

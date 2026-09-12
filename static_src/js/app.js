@@ -269,6 +269,31 @@
     referenceDialogTrigger = null;
   });
 
+  let templateDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-template-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      templateDialogTrigger = trigger;
+    }
+    if (event.target.closest("[data-template-dialog-close]")) {
+      document.getElementById("template-transition-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target?.id !== "template-transition-dialog-content") {
+      return;
+    }
+    const dialog = document.getElementById("template-transition-dialog");
+    if (dialog instanceof HTMLDialogElement) {
+      dialog.showModal();
+      dialog.querySelector('button, a, input:not([type="hidden"])')?.focus();
+    }
+  });
+  document.getElementById("template-transition-dialog")?.addEventListener("close", () => {
+    templateDialogTrigger?.focus();
+    templateDialogTrigger = null;
+  });
+
   let caseDialogTrigger = null;
   document.addEventListener("click", (event) => {
     const trigger = event.target.closest("[data-case-dialog-trigger]");

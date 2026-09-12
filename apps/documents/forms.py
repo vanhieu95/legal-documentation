@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
 
 from apps.documents.limits import MAX_TEMPLATE_BYTES
+from apps.documents.models import TemplateVersion
 
 
 class TemplateUploadForm(forms.Form):
@@ -36,3 +37,11 @@ class TemplateUploadForm(forms.Form):
         if not uploaded.name.casefold().endswith(".docx"):
             raise forms.ValidationError(_("Select a DOCX file."))
         return uploaded
+
+
+class TemplateTransitionForm(forms.Form):
+    expected_status = forms.ChoiceField(
+        choices=TemplateVersion.Status.choices,
+        widget=forms.HiddenInput,
+    )
+    expected_active_id = forms.UUIDField(required=False, widget=forms.HiddenInput)

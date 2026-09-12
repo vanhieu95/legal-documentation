@@ -164,6 +164,43 @@ test("template upload remains usable without JavaScript at 200 percent zoom", as
   await context.close();
 });
 
+test("template activation confirmation traps focus and activates through HTMX", async ({ page }) => {
+  await signInAsAdministrator(page);
+  await page.goto("/templates/");
+  const activationLink = page.getByRole("link", { name: "Kích hoạt" }).first();
+  await activationLink.focus();
+  await activationLink.press("Enter");
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kích hoạt phiên bản biểu mẫu" })).toBeVisible();
+  const confirmButton = page.getByRole("button", { name: "Xác nhận kích hoạt" });
+  await expect(confirmButton).toBeFocused();
+  const activationResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/activate/") && response.request().method() === "POST",
+  );
+  await confirmButton.click();
+  expect((await activationResponse).status()).toBe(204);
+
+  await expect(page).toHaveURL(/\/templates\/$/);
+  await expect(page.getByRole("link", { name: "Ngừng sử dụng" }).first()).toBeVisible();
+});
+
+test("template activation has a JavaScript-disabled confirmation fallback", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/templates/");
+  await page.getByRole("link", { name: "Kích hoạt" }).first().click();
+
+  await expect(page).toHaveURL(/\/activate\/$/);
+  await expect(page.getByRole("heading", { name: "Kích hoạt phiên bản biểu mẫu" })).toBeVisible();
+  await page.getByRole("button", { name: "Xác nhận kích hoạt" }).click();
+  await expect(page).toHaveURL(/\/templates\/$/);
+  await context.close();
+});
+
 for (const viewport of [
   { name: "compact", width: 375, height: 812 },
   { name: "tablet", width: 768, height: 1024 },

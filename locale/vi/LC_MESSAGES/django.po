@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 16:09+0700\n"
+"POT-Creation-Date: 2026-09-12 21:30+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -32,6 +32,7 @@ msgstr "Hồ sơ việc dân sự"
 #: apps/accounts/context_processors.py:27
 #: templates/documents/template_list.html:3
 #: templates/documents/template_list.html:4
+#: templates/documents/template_transition.html:4
 #: templates/documents/template_upload.html:4
 msgid "Templates"
 msgstr "Biểu mẫu"
@@ -573,13 +574,11 @@ msgstr "Người tiến hành tố tụng phải tham chiếu đến một cá n
 
 #: apps/cases/models.py:228
 msgid "An active official requires an active individual."
-msgstr ""
-"Người tiến hành tố tụng đang hoạt động phải gắn với cá nhân đang hoạt động."
+msgstr "Người tiến hành tố tụng đang hoạt động phải gắn với cá nhân đang hoạt động."
 
 #: apps/cases/models.py:232
 msgid "An active official requires an active home court."
-msgstr ""
-"Người tiến hành tố tụng đang hoạt động phải thuộc tòa án đang hoạt động."
+msgstr "Người tiến hành tố tụng đang hoạt động phải thuộc tòa án đang hoạt động."
 
 #: apps/cases/models.py:240
 msgid "Pre-acceptance"
@@ -871,35 +870,35 @@ msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
 
-#: apps/documents/forms.py:16
+#: apps/documents/forms.py:17
 msgid "Template version"
 msgstr "Phiên bản biểu mẫu"
 
-#: apps/documents/forms.py:17
+#: apps/documents/forms.py:18
 msgid "Use a unique controlled version, for example v1.0."
 msgstr "Sử dụng phiên bản kiểm soát duy nhất, ví dụ v1.0."
 
-#: apps/documents/forms.py:22
+#: apps/documents/forms.py:23
 msgid "Approval note or reference"
 msgstr "Ghi chú hoặc tham chiếu phê duyệt"
 
-#: apps/documents/forms.py:23
+#: apps/documents/forms.py:24
 msgid "This records provenance and does not activate the template."
 msgstr "Thông tin này ghi nhận nguồn gốc và không kích hoạt biểu mẫu."
 
-#: apps/documents/forms.py:27
+#: apps/documents/forms.py:28
 msgid "DOCX template"
 msgstr "Biểu mẫu DOCX"
 
-#: apps/documents/forms.py:28
+#: apps/documents/forms.py:29
 msgid "Maximum compressed file size: 10 MiB."
 msgstr "Kích thước tệp nén tối đa: 10 MiB."
 
-#: apps/documents/forms.py:35
+#: apps/documents/forms.py:36
 msgid "The uploaded file exceeds the 10 MiB limit."
 msgstr "Tệp tải lên vượt quá giới hạn 10 MiB."
 
-#: apps/documents/forms.py:37
+#: apps/documents/forms.py:38
 msgid "Select a DOCX file."
 msgstr "Chọn tệp DOCX."
 
@@ -968,53 +967,60 @@ msgstr "Khóa lưu trữ riêng tư không khớp với biểu mẫu này."
 msgid "An approval reference is required."
 msgstr "Cần có thông tin tham chiếu phê duyệt."
 
-#: apps/documents/views.py:30
+#: apps/documents/views.py:36
 msgid "The file is not a readable DOCX package."
 msgstr "Tệp không phải là gói DOCX có thể đọc."
 
-#: apps/documents/views.py:31
+#: apps/documents/views.py:37
 msgid "The DOCX package did not pass security validation."
 msgstr "Gói DOCX không vượt qua xác thực bảo mật."
 
-#: apps/documents/views.py:32
+#: apps/documents/views.py:38
 msgid "A template token is split across incompatible Word runs."
 msgstr "Mã biểu mẫu bị chia tách giữa các đoạn chạy Word không tương thích."
 
-#: apps/documents/views.py:33
+#: apps/documents/views.py:39
 msgid "A synthetic validation render could not be completed."
 msgstr "Không thể hoàn tất kết xuất xác thực tổng hợp."
 
-#: apps/documents/views.py:34
+#: apps/documents/views.py:40
 msgid "A synthetic output contains an unresolved template token."
 msgstr "Kết quả tổng hợp còn chứa mã biểu mẫu chưa được xử lý."
 
-#: apps/documents/views.py:36
+#: apps/documents/views.py:42
 msgid "Expected Vietnamese Unicode text is missing from a synthetic output."
 msgstr "Kết quả tổng hợp thiếu văn bản Unicode tiếng Việt dự kiến."
 
-#: apps/documents/views.py:39
+#: apps/documents/views.py:45
 msgid "The template did not pass automated validation."
 msgstr "Biểu mẫu không vượt qua xác thực tự động."
 
-#: apps/documents/views.py:65
+#: apps/documents/views.py:71
 msgid "The validation report is unavailable."
 msgstr "Báo cáo xác thực hiện không khả dụng."
 
-#: apps/documents/views.py:177
+#: apps/documents/views.py:190
 msgid "This template version already exists."
 msgstr "Phiên bản biểu mẫu này đã tồn tại."
 
-#: apps/documents/views.py:179
+#: apps/documents/views.py:192
 msgid "The upload metadata is invalid."
 msgstr "Siêu dữ liệu tải lên không hợp lệ."
 
-#: apps/documents/views.py:209
+#: apps/documents/views.py:222
 msgid "Template upload and automated validation completed."
 msgstr "Đã tải lên và hoàn tất xác thực tự động biểu mẫu."
 
+#: apps/documents/views.py:337
+msgid "The template version was activated."
+msgstr "Đã kích hoạt phiên bản biểu mẫu."
+
+#: apps/documents/views.py:339
+msgid "The template version was deactivated."
+msgstr "Đã ngừng sử dụng phiên bản biểu mẫu."
+
 #: templates/accounts/_dashboard_case_activity.html:9
-msgid ""
-"Case activity could not be refreshed. Check the connection and try again."
+msgid "Case activity could not be refreshed. Check the connection and try again."
 msgstr "Không thể làm mới hoạt động hồ sơ. Kiểm tra kết nối rồi thử lại."
 
 #: templates/accounts/_dashboard_case_activity.html:12
@@ -1091,8 +1097,7 @@ msgstr "Chưa có hoạt động hồ sơ"
 
 #: templates/accounts/_dashboard_case_activity.html:76
 msgid "Case activity will appear here after a case is created or updated."
-msgstr ""
-"Hoạt động hồ sơ sẽ xuất hiện tại đây sau khi hồ sơ được tạo hoặc cập nhật."
+msgstr "Hoạt động hồ sơ sẽ xuất hiện tại đây sau khi hồ sơ được tạo hoặc cập nhật."
 
 #: templates/accounts/dashboard.html:11 templates/cases/list.html:10
 msgid "Civil matters"
@@ -1111,12 +1116,8 @@ msgid "Document features are not yet available"
 msgstr "Chức năng tài liệu chưa khả dụng"
 
 #: templates/accounts/dashboard.html:23
-msgid ""
-"Generation results and template coverage will appear after the document "
-"platform is available."
-msgstr ""
-"Kết quả tạo tài liệu và phạm vi biểu mẫu sẽ xuất hiện sau khi nền tảng tài "
-"liệu khả dụng."
+msgid "Generation results and template coverage will appear after the document platform is available."
+msgstr "Kết quả tạo tài liệu và phạm vi biểu mẫu sẽ xuất hiện sau khi nền tảng tài liệu khả dụng."
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:48
 msgid "Sign in"
@@ -1188,8 +1189,7 @@ msgstr "Thử điều chỉnh hoặc xóa bộ lọc để xem thêm kết quả
 
 #: templates/audit/_audit_results.html:15
 msgid "Identity and workflow events will appear here after they are recorded."
-msgstr ""
-"Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
+msgstr "Sự kiện định danh và quy trình sẽ hiển thị tại đây sau khi được ghi nhận."
 
 #: templates/audit/_audit_results.html:21
 #, python-format
@@ -1249,7 +1249,7 @@ msgstr "Phân trang nhật ký kiểm tra"
 #: templates/audit/_audit_results.html:144
 #: templates/cases/_case_results.html:63
 #: templates/cases/references/_reference_results.html:62
-#: templates/documents/_template_list.html:53
+#: templates/documents/_template_list.html:56
 msgid "Previous"
 msgstr "Trước"
 
@@ -1267,15 +1267,13 @@ msgstr ""
 #: templates/audit/_audit_results.html:154
 #: templates/cases/_case_results.html:65
 #: templates/cases/references/_reference_results.html:64
-#: templates/documents/_template_list.html:55
+#: templates/documents/_template_list.html:58
 msgid "Next"
 msgstr "Sau"
 
 #: templates/audit/list.html:13
 msgid "Browse bounded audit metadata. Sensitive payloads are never shown here."
-msgstr ""
-"Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ hiển "
-"thị tại đây."
+msgstr "Duyệt siêu dữ liệu kiểm tra có giới hạn. Dữ liệu nhạy cảm không bao giờ hiển thị tại đây."
 
 #: templates/audit/list.html:28
 msgid "Loading audit results…"
@@ -1322,12 +1320,8 @@ msgid "This case was changed in another session."
 msgstr "Hồ sơ này đã được thay đổi trong một phiên làm việc khác."
 
 #: templates/cases/_case_form.html:7
-msgid ""
-"Your submitted values remain below for comparison. Reload the latest case "
-"before applying the change again."
-msgstr ""
-"Các giá trị bạn đã gửi vẫn được giữ lại bên dưới để đối chiếu. Hãy tải lại "
-"hồ sơ mới nhất trước khi áp dụng lại thay đổi."
+msgid "Your submitted values remain below for comparison. Reload the latest case before applying the change again."
+msgstr "Các giá trị bạn đã gửi vẫn được giữ lại bên dưới để đối chiếu. Hãy tải lại hồ sơ mới nhất trước khi áp dụng lại thay đổi."
 
 #: templates/cases/_case_form.html:8
 msgid "Reload the latest case"
@@ -1353,13 +1347,14 @@ msgstr "Đang lưu…"
 #: templates/cases/references/_deactivate_form.html:11
 #: templates/cases/references/_reference_form.html:25
 #: templates/components/buttons.html:7
+#: templates/documents/_template_transition_form.html:39
+#: templates/documents/_template_transition_form.html:40
 #: templates/documents/_template_upload_workflow.html:49
 msgid "Cancel"
 msgstr "Hủy"
 
 #: templates/cases/_case_results.html:2
-msgid ""
-"The case results could not be updated. Check the connection and try again."
+msgid "The case results could not be updated. Check the connection and try again."
 msgstr "Không thể cập nhật kết quả hồ sơ. Kiểm tra kết nối rồi thử lại."
 
 #: templates/cases/_case_results.html:4
@@ -1479,16 +1474,11 @@ msgid "Reload the case and confirm the action again."
 msgstr "Hãy tải lại hồ sơ và xác nhận lại thao tác."
 
 #: templates/cases/_case_transition_form.html:21
-msgid ""
-"The case will remain viewable, but editing and new document generation will "
-"be unavailable until it is restored."
-msgstr ""
-"Hồ sơ vẫn có thể xem, nhưng không thể chỉnh sửa hoặc tạo văn bản mới cho đến "
-"khi được khôi phục."
+msgid "The case will remain viewable, but editing and new document generation will be unavailable until it is restored."
+msgstr "Hồ sơ vẫn có thể xem, nhưng không thể chỉnh sửa hoặc tạo văn bản mới cho đến khi được khôi phục."
 
 #: templates/cases/_case_transition_form.html:23
-msgid ""
-"The case will return to active editing and document-generation eligibility."
+msgid "The case will return to active editing and document-generation eligibility."
 msgstr "Hồ sơ sẽ có thể được chỉnh sửa và dùng để tạo văn bản trở lại."
 
 #: templates/cases/_relationship_form.html:3
@@ -1500,11 +1490,8 @@ msgid "This case was updated by someone else."
 msgstr "Hồ sơ này đã được người khác cập nhật."
 
 #: templates/cases/_relationship_form.html:8
-msgid ""
-"Review your submitted values against the current case, then reload and try "
-"again."
-msgstr ""
-"Đối chiếu các giá trị đã gửi với hồ sơ hiện tại, sau đó tải lại và thử lại."
+msgid "Review your submitted values against the current case, then reload and try again."
+msgstr "Đối chiếu các giá trị đã gửi với hồ sơ hiện tại, sau đó tải lại và thử lại."
 
 #: templates/cases/_relationship_form.html:9
 msgid "Reload current relationships"
@@ -1531,14 +1518,11 @@ msgid "Civil matter"
 msgstr "Việc dân sự"
 
 #: templates/cases/references/_deactivate_form.html:5
-msgid ""
-"This record will remain in history but will no longer be available for new "
-"selections."
-msgstr ""
-"Dữ liệu này vẫn được lưu trong lịch sử nhưng sẽ không còn dùng được cho các "
-"lựa chọn mới."
+msgid "This record will remain in history but will no longer be available for new selections."
+msgstr "Dữ liệu này vẫn được lưu trong lịch sử nhưng sẽ không còn dùng được cho các lựa chọn mới."
 
 #: templates/cases/references/_deactivate_form.html:9
+#: templates/documents/_template_transition_form.html:37
 msgid "Confirm deactivation"
 msgstr "Xác nhận ngừng sử dụng"
 
@@ -1594,6 +1578,7 @@ msgstr "Chỉnh sửa"
 
 #: templates/cases/references/_reference_results.html:41
 #: templates/cases/references/_reference_results.html:55
+#: templates/documents/_template_list.html:35
 msgid "Deactivate"
 msgstr "Ngừng sử dụng"
 
@@ -1709,10 +1694,10 @@ msgstr "Xác nhận thao tác mẫu"
 
 #: templates/components/dialog.html:10
 msgid "This is synthetic content to test focus, Escape key, and line wrapping."
-msgstr ""
-"Đây là nội dung tổng hợp để kiểm tra tiêu điểm, phím Escape và ngắt dòng."
+msgstr "Đây là nội dung tổng hợp để kiểm tra tiêu điểm, phím Escape và ngắt dòng."
 
 #: templates/components/dialog.html:12
+#: templates/documents/_template_transition_form.html:13
 msgid "Close"
 msgstr "Đóng"
 
@@ -1782,8 +1767,7 @@ msgstr "Xung đột"
 
 #: templates/components/states.html:19
 msgid "Information changed elsewhere; reload and review before continuing."
-msgstr ""
-"Thông tin đã thay đổi ở nơi khác; hãy tải lại và kiểm tra trước khi tiếp tục."
+msgstr "Thông tin đã thay đổi ở nơi khác; hãy tải lại và kiểm tra trước khi tiếp tục."
 
 #: templates/components/table.html:3
 msgid "Responsive table"
@@ -1854,39 +1838,72 @@ msgid "Validation history"
 msgstr "Lịch sử xác thực"
 
 #: templates/documents/_template_list.html:32
-msgid "This version is a candidate for later activation."
-msgstr "Phiên bản này đủ điều kiện để kích hoạt sau."
+msgid "This version passed validation and can be activated."
+msgstr "Phiên bản này đã đạt yêu cầu xác thực và có thể được kích hoạt."
 
-#: templates/documents/_template_list.html:36
+#: templates/documents/_template_list.html:33
+msgid "Activate"
+msgstr "Kích hoạt"
+
+#: templates/documents/_template_list.html:39
 #: templates/documents/_template_upload_workflow.html:13
 msgid "Safe validation report"
 msgstr "Báo cáo xác thực an toàn"
 
-#: templates/documents/_template_list.html:47
+#: templates/documents/_template_list.html:50
 msgid "No template versions have been uploaded."
 msgstr "Chưa có phiên bản biểu mẫu nào được tải lên."
 
-#: templates/documents/_template_list.html:48
-msgid ""
-"Document generation is unavailable until a valid version is activated later."
-msgstr ""
-"Chức năng tạo văn bản chưa khả dụng cho đến khi một phiên bản hợp lệ được "
-"kích hoạt sau."
+#: templates/documents/_template_list.html:51
+msgid "Document generation is unavailable until a valid version is activated later."
+msgstr "Chức năng tạo văn bản chưa khả dụng cho đến khi một phiên bản hợp lệ được kích hoạt sau."
 
-#: templates/documents/_template_list.html:52
+#: templates/documents/_template_list.html:55
 msgid "Template version pages"
 msgstr "Các trang phiên bản biểu mẫu"
 
-#: templates/documents/_template_list.html:54
+#: templates/documents/_template_list.html:57
 #, python-format
 msgid "Page %(number)s of %(total)s"
 msgstr "Trang %(number)s / %(total)s"
 
+#: templates/documents/_template_transition_form.html:4
+msgid "Activate template version"
+msgstr "Kích hoạt phiên bản biểu mẫu"
+
+#: templates/documents/_template_transition_form.html:4
+msgid "Deactivate template version"
+msgstr "Ngừng sử dụng phiên bản biểu mẫu"
+
+#: templates/documents/_template_transition_form.html:8
+msgid "Template state changed"
+msgstr "Trạng thái biểu mẫu đã thay đổi"
+
+#: templates/documents/_template_transition_form.html:9
+msgid "Reload the version list and review the current state before trying again."
+msgstr "Tải lại danh sách phiên bản và kiểm tra trạng thái hiện tại trước khi thử lại."
+
+#: templates/documents/_template_transition_form.html:12
+#, fuzzy
+#| msgid "Template versions"
+msgid "Reload version list"
+msgstr "Các phiên bản biểu mẫu"
+
+#: templates/documents/_template_transition_form.html:19
+msgid "This version will be used only for future document selections. Earlier versions and generated documents remain unchanged."
+msgstr "Phiên bản này chỉ được dùng cho các lượt chọn văn bản trong tương lai. Các phiên bản trước và văn bản đã tạo vẫn không thay đổi."
+
+#: templates/documents/_template_transition_form.html:21
+msgid "This version will no longer be available for future document selections. Historical files and metadata remain available."
+msgstr "Phiên bản này sẽ không còn khả dụng cho các lượt chọn văn bản trong tương lai. Tệp và siêu dữ liệu lịch sử vẫn được lưu giữ."
+
+#: templates/documents/_template_transition_form.html:37
+msgid "Confirm activation"
+msgstr "Xác nhận kích hoạt"
+
 #: templates/documents/_template_upload_workflow.html:2
 msgid "The upload could not be completed. Your text values remain in the form."
-msgstr ""
-"Không thể hoàn tất tải lên. Các giá trị văn bản của bạn vẫn được giữ trong "
-"biểu mẫu."
+msgstr "Không thể hoàn tất tải lên. Các giá trị văn bản của bạn vẫn được giữ trong biểu mẫu."
 
 #: templates/documents/_template_upload_workflow.html:6
 msgid "Automated validation passed"
@@ -1897,15 +1914,12 @@ msgid "Automated validation did not pass"
 msgstr "Xác thực tự động không đạt yêu cầu"
 
 #: templates/documents/_template_upload_workflow.html:9
-msgid ""
-"This version is a candidate for later activation. It has not been activated."
-msgstr ""
-"Phiên bản này đủ điều kiện để kích hoạt sau. Phiên bản chưa được kích hoạt."
+msgid "This version is a candidate for later activation. It has not been activated."
+msgstr "Phiên bản này đủ điều kiện để kích hoạt sau. Phiên bản chưa được kích hoạt."
 
 #: templates/documents/_template_upload_workflow.html:9
 msgid "This version remains inactive and is unavailable for case generation."
-msgstr ""
-"Phiên bản này vẫn không hoạt động và không khả dụng để tạo văn bản hồ sơ."
+msgstr "Phiên bản này vẫn không hoạt động và không khả dụng để tạo văn bản hồ sơ."
 
 #: templates/documents/_template_upload_workflow.html:23
 msgid "Template processing is temporarily unavailable"
@@ -1932,12 +1946,12 @@ msgid "Template versions"
 msgstr "Các phiên bản biểu mẫu"
 
 #: templates/documents/template_list.html:11
-msgid ""
-"Review automated validation outcomes for deployed document types. Activation "
-"is a separate confirmed action."
-msgstr ""
-"Xem lại kết quả xác thực tự động cho các loại văn bản đã triển khai. Kích "
-"hoạt là một thao tác xác nhận riêng biệt."
+msgid "Review automated validation outcomes for deployed document types. Activation is a separate confirmed action."
+msgstr "Xem lại kết quả xác thực tự động cho các loại văn bản đã triển khai. Kích hoạt là một thao tác xác nhận riêng biệt."
+
+#: templates/documents/template_transition.html:3
+msgid "Template transition"
+msgstr "Chuyển trạng thái biểu mẫu"
 
 #: templates/documents/template_upload.html:3
 #: templates/documents/template_upload.html:10
@@ -1978,9 +1992,5 @@ msgid "Interface component gallery"
 msgstr "Bộ sưu tập thành phần giao diện"
 
 #: templates/foundation/component_gallery.html:12
-msgid ""
-"Foundation components using semantic HTML, local assets, and visible when "
-"JavaScript is disabled."
-msgstr ""
-"Các thành phần nền tảng sử dụng HTML ngữ nghĩa, tài nguyên cục bộ và vẫn "
-"hiển thị khi JavaScript bị tắt."
+msgid "Foundation components using semantic HTML, local assets, and visible when JavaScript is disabled."
+msgstr "Các thành phần nền tảng sử dụng HTML ngữ nghĩa, tài nguyên cục bộ và vẫn hiển thị khi JavaScript bị tắt."

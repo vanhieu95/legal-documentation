@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, BinaryIO, cast
+from uuid import UUID
 
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -16,13 +17,18 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.accounts.policies import ApplicationPermission, application_permission_required
 from apps.core.correlation import get_request_correlation_id
-from apps.documents.forms import TemplateUploadForm
+from apps.documents.forms import TemplateTransitionForm, TemplateUploadForm
 from apps.documents.models import TemplateVersion
 from apps.documents.registry import DocumentRegistration, UnknownDocumentTypeKey, document_registry
 from apps.documents.services import (
     DuplicateTemplateVersion,
     InvalidTemplateUpload,
     TemplateStorageError,
+    TemplateTransitionConflict,
+    activate_template_version,
+    deactivate_template_version,
+    record_activation_confirmation_failure,
+    record_deactivation_confirmation_failure,
     upload_and_validate_template,
 )
 
@@ -83,6 +89,7 @@ def _template_rows(page: Any) -> list[dict[str, object]]:
                 "registration": registration,
                 "report_items": _safe_report(template),
                 "is_candidate": template.status == TemplateVersion.Status.VALID,
+                "can_deactivate": template.status == TemplateVersion.Status.ACTIVE,
             }
         )
     return rows
@@ -101,6 +108,12 @@ def template_list(request: HttpRequest) -> HttpResponse:
         "version_rows": _template_rows(page),
         "page": page,
         "is_htmx": _is_htmx(request),
+        "can_activate_templates": request.user.has_perm(
+            ApplicationPermission.ACTIVATE_TEMPLATES.value
+        ),
+        "can_deactivate_templates": request.user.has_perm(
+            ApplicationPermission.DEACTIVATE_TEMPLATES.value
+        ),
     }
     template_name = (
         "documents/_template_list.html" if _is_htmx(request) else "documents/template_list.html"
@@ -208,3 +221,148 @@ def template_upload(request: HttpRequest, type_key: str) -> HttpResponse:
         )
     messages.success(request, gettext("Template upload and automated validation completed."))
     return redirect("documents:template-list")
+
+
+def _transition_template(
+    type_key: str, template_id: UUID
+) -> tuple[DocumentRegistration, TemplateVersion]:
+    registration = _registered_type(type_key)
+    try:
+        template = TemplateVersion.objects.get(pk=template_id, type_key=registration.key)
+    except (TemplateVersion.DoesNotExist, ValueError) as error:
+        raise Http404("Requested content was not found.") from error
+    return registration, template
+
+
+def _render_transition(
+    request: HttpRequest,
+    *,
+    registration: DocumentRegistration,
+    template: TemplateVersion,
+    action: str,
+    conflict: bool = False,
+    form: TemplateTransitionForm | None = None,
+    status: int | None = None,
+) -> HttpResponse:
+    active_id = (
+        TemplateVersion.objects.filter(
+            type_key=registration.key, status=TemplateVersion.Status.ACTIVE
+        )
+        .values_list("pk", flat=True)
+        .first()
+    )
+    context = {
+        "registration": registration,
+        "template": template,
+        "action": action,
+        "conflict": conflict,
+        "form": form
+        or TemplateTransitionForm(
+            initial={
+                "expected_status": template.status,
+                "expected_active_id": active_id,
+            }
+        ),
+        "form_action": reverse(
+            f"documents:template-{action}", args=[registration.key, template.pk]
+        ),
+        "cancel_url": reverse("documents:template-list"),
+        "is_htmx": _is_htmx(request),
+    }
+    template_name = (
+        "documents/_template_transition_form.html"
+        if _is_htmx(request)
+        else "documents/template_transition.html"
+    )
+    response_status = status if status is not None else (409 if conflict else 200)
+    return _vary(render(request, template_name, context, status=response_status))
+
+
+def _perform_transition(
+    request: HttpRequest,
+    *,
+    type_key: str,
+    template_id: UUID,
+    action: str,
+) -> HttpResponse:
+    registration, template = _transition_template(type_key, template_id)
+    if request.method == "GET":
+        expected_state = (
+            TemplateVersion.Status.VALID if action == "activate" else TemplateVersion.Status.ACTIVE
+        )
+        return _render_transition(
+            request,
+            registration=registration,
+            template=template,
+            action=action,
+            conflict=template.status != expected_state,
+        )
+    form = TemplateTransitionForm(request.POST)
+    if not form.is_valid():
+        failure_recorder = (
+            record_activation_confirmation_failure
+            if action == "activate"
+            else record_deactivation_confirmation_failure
+        )
+        failure_recorder(
+            actor=cast(User, request.user),
+            template_id=template.pk,
+            correlation_id=get_request_correlation_id(request),
+        )
+        return _render_transition(
+            request,
+            registration=registration,
+            template=template,
+            action=action,
+            form=form,
+            status=422 if _is_htmx(request) else 200,
+        )
+    service = activate_template_version if action == "activate" else deactivate_template_version
+    try:
+        service(
+            actor=cast(User, request.user),
+            template_id=template.pk,
+            expected_status=form.cleaned_data["expected_status"],
+            expected_active_id=form.cleaned_data["expected_active_id"],
+            correlation_id=get_request_correlation_id(request),
+        )
+    except TemplateTransitionConflict:
+        template.refresh_from_db()
+        return _render_transition(
+            request,
+            registration=registration,
+            template=template,
+            action=action,
+            conflict=True,
+        )
+    if _is_htmx(request):
+        response = HttpResponse(status=204)
+        response.headers["HX-Redirect"] = reverse("documents:template-list")
+        return _vary(response)
+    messages.success(
+        request,
+        gettext("The template version was activated.")
+        if action == "activate"
+        else gettext("The template version was deactivated."),
+    )
+    return redirect("documents:template-list")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.VIEW_TEMPLATES)
+@application_permission_required(ApplicationPermission.ACTIVATE_TEMPLATES)
+def template_activate(request: HttpRequest, type_key: str, template_id: UUID) -> HttpResponse:
+    return _perform_transition(
+        request, type_key=type_key, template_id=template_id, action="activate"
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+@application_permission_required(ApplicationPermission.VIEW_TEMPLATES)
+@application_permission_required(ApplicationPermission.DEACTIVATE_TEMPLATES)
+def template_deactivate(request: HttpRequest, type_key: str, template_id: UUID) -> HttpResponse:
+    return _perform_transition(
+        request, type_key=type_key, template_id=template_id, action="deactivate"
+    )
