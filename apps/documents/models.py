@@ -16,6 +16,7 @@ from django.db.models.functions import Concat
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from apps.documents.limits import MAX_TEMPLATE_BYTES
 from apps.documents.registry import UnknownDocumentTypeKey, document_registry
 from apps.documents.storage_keys import (
     MAX_DISPLAY_FILENAME_LENGTH,
@@ -23,7 +24,6 @@ from apps.documents.storage_keys import (
     sanitize_template_display_filename,
 )
 
-MAX_TEMPLATE_BYTES = 10 * 1024 * 1024
 MAX_VALIDATION_REPORT_BYTES = 4096
 MAX_VALIDATION_REPORT_ITEMS = 50
 MAX_VALIDATION_REPORT_DEPTH = 4
