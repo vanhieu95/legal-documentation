@@ -18,6 +18,7 @@ SENSITIVE_MODULE_TERMS = (
     "registry",
     "render",
     "snapshot",
+    "validation",
 )
 
 

@@ -44,3 +44,32 @@ class PackageValidationLimits:
 
 
 DEFAULT_PACKAGE_LIMITS = PackageValidationLimits()
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateValidationLimits:
+    """Fail-closed parser limits for supported Word text parts."""
+
+    max_source_characters: int = 256 * 1024
+    max_tokens: int = 4096
+    max_token_characters: int = 4096
+    max_control_nesting: int = 32
+    max_ast_nodes: int = 8192
+    max_ast_depth: int = 64
+
+    def __post_init__(self) -> None:
+        if any(
+            isinstance(value, bool) or not isinstance(value, int) or value <= 0
+            for value in (
+                self.max_source_characters,
+                self.max_tokens,
+                self.max_token_characters,
+                self.max_control_nesting,
+                self.max_ast_nodes,
+                self.max_ast_depth,
+            )
+        ):
+            raise ValueError("Template validation limits must be positive integers.")
+
+
+DEFAULT_TEMPLATE_LIMITS = TemplateValidationLimits()
