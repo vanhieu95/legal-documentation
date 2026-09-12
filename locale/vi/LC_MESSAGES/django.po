@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-12 14:54+0700\n"
+"POT-Creation-Date: 2026-09-12 16:09+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -871,35 +871,35 @@ msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
 
-#: apps/documents/forms.py:14
+#: apps/documents/forms.py:16
 msgid "Template version"
 msgstr "Phiên bản biểu mẫu"
 
-#: apps/documents/forms.py:15
+#: apps/documents/forms.py:17
 msgid "Use a unique controlled version, for example v1.0."
 msgstr "Sử dụng phiên bản kiểm soát duy nhất, ví dụ v1.0."
 
-#: apps/documents/forms.py:20
+#: apps/documents/forms.py:22
 msgid "Approval note or reference"
 msgstr "Ghi chú hoặc tham chiếu phê duyệt"
 
-#: apps/documents/forms.py:21
+#: apps/documents/forms.py:23
 msgid "This records provenance and does not activate the template."
 msgstr "Thông tin này ghi nhận nguồn gốc và không kích hoạt biểu mẫu."
 
-#: apps/documents/forms.py:25
+#: apps/documents/forms.py:27
 msgid "DOCX template"
 msgstr "Biểu mẫu DOCX"
 
-#: apps/documents/forms.py:26
+#: apps/documents/forms.py:28
 msgid "Maximum compressed file size: 10 MiB."
 msgstr "Kích thước tệp nén tối đa: 10 MiB."
 
-#: apps/documents/forms.py:33
+#: apps/documents/forms.py:35
 msgid "The uploaded file exceeds the 10 MiB limit."
 msgstr "Tệp tải lên vượt quá giới hạn 10 MiB."
 
-#: apps/documents/forms.py:35
+#: apps/documents/forms.py:37
 msgid "Select a DOCX file."
 msgstr "Chọn tệp DOCX."
 
@@ -968,47 +968,47 @@ msgstr "Khóa lưu trữ riêng tư không khớp với biểu mẫu này."
 msgid "An approval reference is required."
 msgstr "Cần có thông tin tham chiếu phê duyệt."
 
-#: apps/documents/views.py:29
+#: apps/documents/views.py:30
 msgid "The file is not a readable DOCX package."
 msgstr "Tệp không phải là gói DOCX có thể đọc."
 
-#: apps/documents/views.py:30
+#: apps/documents/views.py:31
 msgid "The DOCX package did not pass security validation."
 msgstr "Gói DOCX không vượt qua xác thực bảo mật."
 
-#: apps/documents/views.py:31
+#: apps/documents/views.py:32
 msgid "A template token is split across incompatible Word runs."
 msgstr "Mã biểu mẫu bị chia tách giữa các đoạn chạy Word không tương thích."
 
-#: apps/documents/views.py:32
+#: apps/documents/views.py:33
 msgid "A synthetic validation render could not be completed."
 msgstr "Không thể hoàn tất kết xuất xác thực tổng hợp."
 
-#: apps/documents/views.py:33
+#: apps/documents/views.py:34
 msgid "A synthetic output contains an unresolved template token."
 msgstr "Kết quả tổng hợp còn chứa mã biểu mẫu chưa được xử lý."
 
-#: apps/documents/views.py:35
+#: apps/documents/views.py:36
 msgid "Expected Vietnamese Unicode text is missing from a synthetic output."
 msgstr "Kết quả tổng hợp thiếu văn bản Unicode tiếng Việt dự kiến."
 
-#: apps/documents/views.py:38
+#: apps/documents/views.py:39
 msgid "The template did not pass automated validation."
 msgstr "Biểu mẫu không vượt qua xác thực tự động."
 
-#: apps/documents/views.py:64
+#: apps/documents/views.py:65
 msgid "The validation report is unavailable."
 msgstr "Báo cáo xác thực hiện không khả dụng."
 
-#: apps/documents/views.py:176
+#: apps/documents/views.py:177
 msgid "This template version already exists."
 msgstr "Phiên bản biểu mẫu này đã tồn tại."
 
-#: apps/documents/views.py:178
+#: apps/documents/views.py:179
 msgid "The upload metadata is invalid."
 msgstr "Siêu dữ liệu tải lên không hợp lệ."
 
-#: apps/documents/views.py:208
+#: apps/documents/views.py:209
 msgid "Template upload and automated validation completed."
 msgstr "Đã tải lên và hoàn tất xác thực tự động biểu mẫu."
 
@@ -1884,7 +1884,9 @@ msgstr "Trang %(number)s / %(total)s"
 
 #: templates/documents/_template_upload_workflow.html:2
 msgid "The upload could not be completed. Your text values remain in the form."
-msgstr "Không thể hoàn tất tải lên. Các giá trị văn bản của bạn vẫn được giữ trong biểu mẫu."
+msgstr ""
+"Không thể hoàn tất tải lên. Các giá trị văn bản của bạn vẫn được giữ trong "
+"biểu mẫu."
 
 #: templates/documents/_template_upload_workflow.html:6
 msgid "Automated validation passed"
@@ -1902,7 +1904,8 @@ msgstr ""
 
 #: templates/documents/_template_upload_workflow.html:9
 msgid "This version remains inactive and is unavailable for case generation."
-msgstr "Phiên bản này vẫn không hoạt động và không khả dụng để tạo văn bản hồ sơ."
+msgstr ""
+"Phiên bản này vẫn không hoạt động và không khả dụng để tạo văn bản hồ sơ."
 
 #: templates/documents/_template_upload_workflow.html:23
 msgid "Template processing is temporarily unavailable"
@@ -1933,8 +1936,8 @@ msgid ""
 "Review automated validation outcomes for deployed document types. Activation "
 "is a separate confirmed action."
 msgstr ""
-"Xem lại kết quả xác thực tự động cho các loại văn bản đã triển khai. Kích hoạt "
-"là một thao tác xác nhận riêng biệt."
+"Xem lại kết quả xác thực tự động cho các loại văn bản đã triển khai. Kích "
+"hoạt là một thao tác xác nhận riêng biệt."
 
 #: templates/documents/template_upload.html:3
 #: templates/documents/template_upload.html:10

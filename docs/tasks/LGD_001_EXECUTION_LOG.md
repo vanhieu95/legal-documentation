@@ -1258,3 +1258,101 @@ credentials, generated-document content, or other sensitive payloads.
   usage limit; this is recorded rather than treated as review evidence. The user chose single-model
   continuation. No implementation or verification blocker remains. The next tasks are `DOC-005`
   and `DOC-006` for `CP-DOC-C`; neither was started.
+
+## DOC-005 — Orchestrate upload validation and synthetic renders
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added an explicit authorized upload service for enabled code-registry types. It
+  validates version and approval provenance, bounded-streams at the 10 MiB compressed limit into a
+  process-private temporary directory while calculating SHA-256 and size, assigns an opaque
+  server-generated private storage key, and preserves accepted bytes plus immutable identity facts.
+- **Validation order and lifecycle:** The service invokes the existing OPC/ZIP security validator
+  before the existing restricted Jinja/placeholder validator, then renders both registry-supplied
+  minimal and representative synthetic contexts. Every output is reopened and rechecked as DOCX,
+  including relevant Word parts, unresolved template tokens, and expected Vietnamese Unicode.
+  Outcomes persist only as `uploaded` to `valid` or `uploaded` to inactive `invalid`; no version is
+  activated or made available to case generation.
+- **Storage, reports and audit:** Invalid accepted uploads follow the configured private-retention
+  policy. Reports contain only fixed schema, bounded categories and counts. Upload and validation
+  each produce exactly one bounded audit event without bytes, paths, filenames, exception text, or
+  rendered content. Tests force interrupted input, storage and rendering and confirm temporary-file
+  cleanup on every success and failure path.
+- **Tests and review:** Fifteen orchestration integration tests cover valid/invalid outcomes,
+  unknown/disabled types, duplicate versions, absent approval references, both service permissions,
+  exact bytes/checksum, safe report/audit cardinality, storage/render interruption, hostile package
+  short-circuiting, split-run ordering, and meaningful inspection of both synthetic outputs. The
+  complete documents suite later passed 249 tests with two environment-profile skips, and the
+  PostgreSQL documents profile passed all 252 tests.
+- **Migration:** None. Existing `TemplateVersion` constraints and private storage contract are
+  reused unchanged.
+- **Commit:** `0073172b936311530eeb5884225d47c3950ef61b` (`DOC-005`).
+- **Deviations or blockers:** None. Only the non-production synthetic registry entry and generated
+  synthetic DOCX fixtures were used; no approved VDS template was read or uploaded.
+
+## DOC-006 — Deliver template list, upload, and validation UI
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Replaced the document placeholder with Vietnamese Administrator pages for enabled
+  registry types: a paginated type/version list, selected-type upload form, validation outcome, and
+  bounded safe report. Valid, invalid, unavailable/empty, busy, success, field-error and generic
+  server-error states are explicit. Valid versions are labelled only as candidates for later
+  activation, and the UI exposes no activation action.
+- **Progressive enhancement and authorization:** Ordinary navigation and multipart POST/redirect/get
+  work without JavaScript. HTMX responses use narrow fragments, `Vary: HX-Request`, no-store,
+  swappable `422` errors, CSRF, disabled submit/busy presentation, live regions, and focusable linked
+  error summaries and outcomes. View permissions cover list/upload/validation while the service
+  repeats upload/validation authorization. Unknown keys return the established generic not-found
+  policy, and expired sessions redirect without processing an upload.
+- **Privacy and safe presentation:** Views call the `DOC-005` service and never write
+  `TemplateVersion` directly. Templates display translated allowlisted category summaries only;
+  they do not expose storage keys, private paths or URLs, uploaded filenames, package content,
+  tracebacks, raw findings, or exception strings. Safe version and approval text survives form
+  correction, while file inputs are not repopulated.
+- **Tests, coverage and browser:** Eighteen focused view/form tests passed; focused forms/views branch
+  coverage was 93.60%. Five focused Chromium tests passed across compact, tablet and wide layouts,
+  covering keyboard focus, HTMX busy/error/outcome announcements, safe value preservation, invalid
+  package presentation, no page overflow, JavaScript-disabled submission, and 200% zoom. The final
+  full pinned-Chromium suite passed all 73 tests.
+- **Migration:** None. The existing registry, model lifecycle and constraints are unchanged.
+- **Commit:** `15aeda1723dbae269eb6782749d7d5fc6923a252` (`DOC-006`).
+- **Deviations or blockers:** Chrome DevTools MCP was not available in this environment; the
+  repository's pinned Playwright/Chromium fallback supplied the browser evidence.
+
+## CP-DOC-C — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local implementation and verification are complete for `DOC-005` and `DOC-006`.
+  Work stopped before `DOC-007`; no template was activated. Human review is pending.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind build, gettext extraction and Vietnamese message compilation all
+  passed. Vendored frontend asset pins/checksums and diff checks also passed. The mandated full
+  branch-coverage command passed 782 tests with 14 intentional environment-profile skips at 95.34%
+  overall coverage.
+- **PostgreSQL and migrations:** A disposable UTF-8 PostgreSQL 18.6 database applied the complete
+  migration graph from zero and reported no drift. The complete documents plus PostgreSQL
+  integration profile passed all 252 tests, exercising existing registry/template uniqueness,
+  lifecycle, immutability, report, private-key and database constraints. No checkpoint migration was
+  created.
+- **Validation, storage and audit:** Regression tests prove package validation precedes Jinja parsing
+  and rendering, hostile and split-run packages fail on the established paths, minimal and
+  representative outputs reopen and pass structural/Unicode/token checks, and all process-private
+  temporary files are cleaned after success and forced read/storage/render failures. Valid immutable
+  versions alone become later activation candidates; invalid versions remain inactive and
+  unavailable. Audit/report assertions exclude uploaded content, filenames, private paths and raw
+  errors and prove one upload plus one validation event per accepted outcome.
+- **HTTP and browser security:** Full-page, HTMX and JavaScript-disabled flows pass alongside
+  permission-matrix, direct-service denial, normal/HTMX CSRF, expired-session, duplicate/version,
+  file-size boundary, generic not-found, safe `422`, safe `500`, focus, reflow and no-horizontal-
+  overflow checks. The full Playwright suite passed 73 tests. No direct private-file URL or public
+  template storage exists.
+- **Scope and repository review:** No activation/deactivation, document-type creation, real VDS
+  onboarding, draft, generation, PDF, background-job, object-storage, case dependency, schema
+  change, secret, personal data, test suppression, debug artifact, or unrelated edit was added.
+  `cases` remains independent of `documents`, and audit remains independent of business models.
+- **Commits:** `0073172b936311530eeb5884225d47c3950ef61b` (`DOC-005`);
+  `15aeda1723dbae269eb6782749d7d5fc6923a252` (`DOC-006`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local verification blocker remains. Chrome
+  DevTools MCP and external CI were unavailable and are not claimed; pinned local Chromium and the
+  complete local quality/PostgreSQL gates passed. The next `CP-DOC-D` tasks are `DOC-007` and
+  `DOC-008`; neither was started.

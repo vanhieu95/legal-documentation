@@ -50,6 +50,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
 - [x] `CP-DOC-A` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-B` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-C` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -528,7 +529,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `AC-12` contract/run failures are detected before activation and the same checks are reusable immediately before generation.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-005 — Orchestrate upload validation and synthetic renders
+### [x] DOC-005 — Orchestrate upload validation and synthetic renders
 
 - **Outcome:** Proposed bytes are checksummed/stored immutably, validated through package/Jinja gates, minimally and representatively rendered, reopened/inspected, and persisted as valid or inactive-invalid with safe report.
 - **SPEC:** §§5.5, 11, 15.2, 17.2; **FR:** `FR-TPL-02`–`FR-TPL-04`; **AC:** `AC-12`, `AC-13`, `AC-15`.
@@ -544,7 +545,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Only fully valid immutable versions can become activation candidates; failures are safe, durable and recoverable.
 - **Size:** L. **Blockers/skills:** **Security skill**, `incremental-implementation`, `code-review-and-quality`.
 
-### [ ] DOC-006 — Deliver template list, upload, and validation UI
+### [x] DOC-006 — Deliver template list, upload, and validation UI
 
 - **Outcome:** Administrators manage versions only for deployed registry keys through accessible full/HTMX pages showing safe status/report/unavailable/error states.
 - **SPEC:** §§4.2–4.3, 5.5, 6.6, 13–15; **FR:** `FR-TPL-02`, `FR-TPL-03`; **AC:** `AC-02`, `AC-03`, `AC-08`, `AC-09`, `AC-13`.
