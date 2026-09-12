@@ -49,6 +49,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
 - [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
 - [x] `CP-DOC-A` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-B` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -495,7 +496,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Template identity and lifecycle invariants survive concurrent/direct model misuse through supported services and DB constraints.
 - **Size:** M. **Blockers/skills:** **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-003 — Validate hostile OPC/ZIP packages and relationships
+### [x] DOC-003 — Validate hostile OPC/ZIP packages and relationships
 
 - **Outcome:** A bounded byte-level validator rejects renamed/non-DOCX, oversized, traversal, duplicate-dangerous, encrypted, macro/ActiveX/OLE/executable, unsafe XML and prohibited external-relationship packages.
 - **SPEC:** §§11.3, 15.2, 16; **FR:** `FR-TPL-02`, `FR-TPL-04`; **AC:** `AC-12`, `AC-13`.
@@ -511,7 +512,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** All `AC-13` package threats fail safely before Jinja/rendering and valid packages proceed.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
+### [x] DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
 
 - **Outcome:** Validator discovers placeholders/control tags across body, tables, headers, footers, and supported footnote/endnote parts; rejects malformed/split/unknown/missing/disallowed expressions.
 - **SPEC:** §§11.2–11.3, 15.2; **FR:** `FR-GEN-02`, `FR-TPL-04`; **AC:** `AC-12`, `AC-13`, `AC-15`.

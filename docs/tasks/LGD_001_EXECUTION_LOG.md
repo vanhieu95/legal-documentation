@@ -1153,3 +1153,108 @@ credentials, generated-document content, or other sensitive payloads.
 - **Deviations or blockers:** No implementation blocker remains. PostgreSQL-only durability is
   additionally protected by application checks under SQLite. The next eligible checkpoint is
   `CP-DOC-B` (`DOC-003`, `DOC-004`), which was not started.
+
+## DOC-003 — Validate hostile OPC/ZIP packages and relationships
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added a pure byte/bounded-stream validator that authenticates ZIP structure and the
+  readable central directory, validates required OPC and WordprocessingML parts, normalizes entry
+  and relationship targets, parses bounded XML without DTD/entity resolution, and returns only
+  stable categories with bounded structural locations. It performs no extraction, persistence,
+  request/user lookup, rendering, activation, logging, or temporary-file creation.
+- **Explicit limits:** 10 MiB compressed input, 512 entries, 50 MiB total expanded data, 10 MiB per
+  expanded entry, 100:1 per-entry compression ratio, 2 MiB per XML part, XML depth 64, and at most
+  50 returned findings. Limits are immutable, centrally declared, reject fail-open values, and are
+  tested below, at, and above applicable boundaries.
+- **Threat coverage:** Synthetic fixtures cover renamed/corrupt/truncated packages, required-part
+  loss, absolute/traversing/backslash/encoded/NUL/unsafe names, duplicates and case collisions,
+  entry/expanded/compression limits, encrypted flags, macro/VBA, ActiveX, OLE, embedded packages,
+  executables and prohibited binaries, disguised binary magic, malformed/ambiguous content types,
+  malformed/internal/external/unsafe/missing relationship targets, DTD/entities/network references,
+  UTF-16/32 evasion, malformed/oversized/deep XML, interrupted or non-byte streams, deterministic
+  output, bounded reports, and absence of content in logs.
+- **Important files changed:** `apps/documents/{limits.py,package_validation.py,models.py}`,
+  `apps/documents/tests/{docx_fixtures.py,test_package_validation.py}`, and
+  `docs/architecture/TEMPLATE_VALIDATION.md`.
+- **Verification and security review:** 86 focused threat tests passed. Focused combined coverage
+  reported 95.81% for the package module; the dedicated branch-only gate reported 95.21%. The
+  documents suite, Ruff, mypy, Django checks, migration drift, and the then-current 693-test full
+  suite passed. An adversarial review produced actionable fixes for wide-encoding entity bypasses,
+  magic/content-type ambiguity, relationship semantics, Word root/body structure, recursive path
+  decoding, bounded findings, pre-tree XML depth, limit validation, stream failures, OPC declaration
+  coverage, and optional relationship semantics.
+- **Commit:** `fb0e663e8de4f346a82e89f1d9d78a05e67873b0` (`DOC-003`).
+- **Deviations or blockers:** No implementation blocker remains. No temporary resources exist to
+  leak on success or failure. Only synthetic generated packages were used; the repository's legal
+  DOCX source was not opened or processed.
+
+## DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added package-first placeholder discovery and contract validation across the main
+  document, table paragraphs/rows/cells, numbered headers and footers, footnotes, and endnotes.
+  Supported parts are an explicit allowlist; template syntax in other XML parts or outside supported
+  visible run text is rejected rather than ignored. The same pure validator is reusable immediately
+  before future generation.
+- **Jinja restrictions:** The sandbox uses `StrictUndefined`, always-on XML autoescaping, no loader,
+  no tests or default globals, fixed registry-and-platform filter/global intersections, no callable
+  or Python attribute access, and finalization that converts pre-marked safe values back to escaped
+  data. Validation rejects missing/unknown variables, unsafe or loop-local attributes, calls,
+  imports, includes/inheritance, assignments/macros, subscripts, tests, disallowed filters/globals,
+  type-incompatible filters/loops, dynamic arithmetic/collection expressions, malformed syntax,
+  and malformed delimiters. Case values are data and are never reparsed as source.
+- **Parser limits:** Per supported part: 256 KiB reconstructed source, 4,096 tokens, 4,096
+  characters per token, 32 control/expression nesting levels, 8,192 AST nodes, and AST depth 64.
+  Limit failure returns the stable bounded `complexity_limit` category.
+- **Run and structure coverage:** Paragraph text is reconstructed with run/style boundaries,
+  including compatible tab and break nodes. Tests reject split opening/closing delimiters, split
+  variable names, partial styling, hidden/non-visible tokens, and invalid/multiple paragraph, row,
+  cell, or run structural tags without rewriting source; whole-token formatting and valid
+  structural containers pass.
+- **Important files changed:** `apps/documents/{limits.py,template_validation.py}`,
+  `apps/documents/tests/test_template_validation.py`,
+  `docs/{architecture/TEMPLATE_VALIDATION.md,templates/TEMPLATE_AUTHORING_GUIDE.md}`, and the
+  sensitive coverage selector/tests.
+- **Verification and security review:** 53 focused template tests and 139 combined package/template
+  tests passed. Focused combined coverage reported 99.59% for the template module; the dedicated
+  branch-only gate reported 99.21%. The final documents suite passed 216 tests with two expected
+  environment-profile skips. Adversarial TDD cycles closed hidden UTF-16 part syntax, non-visible
+  XML tokens, local attribute traversal, parser complexity, value-kind/filter mismatches, empty-tag
+  exception escape, coverage-gate selection, and pre-marked safe-value bypasses.
+- **Commit:** `dbdc34bc50d15f5c430b5e16fefce11728a96d5d` (`DOC-004`).
+- **Deviations or blockers:** No implementation blocker remains. A requested fresh-context final
+  reviewer could not run because its model account hit a usage limit; the earlier fresh-context
+  review and subsequent single-model adversarial TDD cycles were completed, and the user explicitly
+  directed continuation with a single model.
+
+## CP-DOC-B — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local CP-DOC-B implementation and verification are complete. `DOC-003` and `DOC-004`
+  are complete, and work stopped before `DOC-005`.
+- **Quality and coverage:** Ruff lint and format, mypy over `apps config`, Django system and migration
+  drift checks, and diff checks passed. The required full coverage command passed 749 tests with 14
+  expected environment-profile skips at 95.34% overall combined branch coverage. The dedicated
+  branch-only gate passed package validation at 95.21%, the registry at 97.56%, and template/Jinja
+  validation at 99.21%. The gate now includes validator modules while excluding test modules.
+- **Cross-task security:** Package validation is called before any Jinja environment is created or
+  source parsed; an invalid package test proves that short circuit. Validators accept no paths,
+  actors, requests, cases, drafts, or database rows. No archive extraction, network/entity access,
+  arbitrary import/call/global/attribute traversal, uploaded-byte/XML/placeholder logging, document
+  content in reports, or temporary resources exist. External relationships, macros, VBA, ActiveX,
+  OLE, embedded packages/executables, encryption, and unsupported split runs all fail closed.
+- **Privacy, scope, and dependencies:** Every fixture is synthetic and no real legal template or
+  personal data was used. No upload orchestration, persistence transition, UI, activation, draft,
+  rendering, or generation behavior was introduced. `cases` imports no `documents` code. No
+  migrations, dependency changes, secrets, debug output, broad ignores, test suppression, hardcoded
+  Vietnamese application strings, or unrelated cleanup were added.
+- **Temporary cleanup:** Both validators operate in memory and create no temporary directories or
+  files, so success and every tested failure leave no temporary resource. Stream interruption and
+  failure paths return safe deterministic categories without exception or content leakage.
+- **Commits:** `fb0e663e8de4f346a82e89f1d9d78a05e67873b0` (`DOC-003`);
+  `dbdc34bc50d15f5c430b5e16fefce11728a96d5d` (`DOC-004`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** The final fresh-context reviewer was unavailable because of its model
+  usage limit; this is recorded rather than treated as review evidence. The user chose single-model
+  continuation. No implementation or verification blocker remains. The next tasks are `DOC-005`
+  and `DOC-006` for `CP-DOC-C`; neither was started.
