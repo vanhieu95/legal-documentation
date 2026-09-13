@@ -13,6 +13,8 @@ from scripts.check_sensitive_coverage import branch_percentage, is_sensitive_mod
         ("apps/documents/renderer.py", True),
         ("apps/documents/package_validation.py", True),
         ("apps/documents/template_validation.py", True),
+        ("apps/core/legal_formatters.py", True),
+        ("apps/core/display_formatters.py", False),
         ("apps/documents/tests/test_package_validation.py", False),
         ("apps/cases/models.py", False),
         ("tests/test_permissions.py", False),
