@@ -51,6 +51,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-A` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-B` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-C` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-D` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -561,7 +562,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Upload/validation is usable and secure without JavaScript and exposes no private path/content.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] DOC-007 — Implement atomic activation and confirmed deactivation
+### [x] DOC-007 — Implement atomic activation and confirmed deactivation
 
 - **Outcome:** Valid approved versions activate atomically under concurrency, leaving zero or one active per type; deactivation blocks future selection but preserves history.
 - **SPEC:** §§4.3, 5.5, 6.6, 17.2; **FR:** `FR-DOC-01`, `FR-TPL-04`, `FR-TPL-05`; **AC:** `AC-03`, `AC-14`.
@@ -577,7 +578,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Future selection observes a single committed active version and old metadata/bytes are unchanged.
 - **Size:** M. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-008 — Model versioned mutable drafts and form contracts
+### [x] DOC-008 — Model versioned mutable drafts and form contracts
 
 - **Outcome:** `DocumentDraft` stores only revalidated document-specific payload under stable type/schema, explicit revision and draft/ready states; incompatible schemas are rejected.
 - **SPEC:** §§6.3, 10.2, 11.5, 15.1; **FR:** `FR-DOC-02`, `FR-DOC-05`–`FR-DOC-07`; **AC:** `AC-11`, `AC-18`, `AC-20`.

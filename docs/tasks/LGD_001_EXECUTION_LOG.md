@@ -1356,3 +1356,87 @@ credentials, generated-document content, or other sensitive payloads.
   DevTools MCP and external CI were unavailable and are not claimed; pinned local Chromium and the
   complete local quality/PostgreSQL gates passed. The next `CP-DOC-D` tasks are `DOC-007` and
   `DOC-008`; neither was started.
+
+## DOC-007 — Implement atomic activation and confirmed deactivation
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added explicit activation and deactivation services plus purpose-built confirmation
+  views. Transitions resolve deployed registry keys, require distinct permissions at both HTTP and
+  service boundaries, validate lifecycle and approval state, preserve immutable version identity
+  and bytes, and expose only committed active versions to future selection.
+- **Concurrency and recovery:** PostgreSQL advisory transaction locking serializes each registry
+  type without locking its complete history. The existing conditional unique constraint remains the
+  final zero-or-one-active invariant. A type-level expected-active token detects stale requests;
+  ordinary and HTMX callers receive recoverable conflict handling, while repeated transitions are
+  deterministic. No migration was required because real concurrent service and HTTP races proved
+  the lock and existing constraint sufficient.
+- **HTTP, security and audit:** Mutations are POST-only and CSRF-protected. Full-page, HTMX and
+  JavaScript-disabled confirmation flows identify only the type and safe version label. Audit events
+  include actor, time, safe version identity, outcome and approval-reference identifier, including
+  replacement deactivation, without storage keys, private paths, filenames or package content.
+- **Tests and browser:** Focused service/view testing passed 28 tests with two PostgreSQL-profile
+  skips; the broader document regression profile passed 89 tests with four profile skips. The final
+  PostgreSQL checkpoint profile passed all four selected database tests, including different-version
+  activation races and concurrent HTMX requests. Focused Playwright/Chromium confirmation checks
+  passed 2/2 for HTMX focus and no-JavaScript fallback.
+- **Commit:** `570bd84` (`DOC-007`).
+- **Deviations or blockers:** None. A cross-model Codex CLI review and fresh-context adversarial
+  review were applied; their actionable concurrency, bounded-lock, audit and recovery findings were
+  resolved before completion.
+
+## DOC-008 — Model versioned mutable drafts and form contracts
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added `DocumentDraft` and a version-aware service contract for bounded, validated
+  document-specific JSON in `draft` and `ready` states. Stable case/type/schema identity, revision,
+  creator/editor and timestamps are explicit; finalized snapshots and generation remain separate.
+- **Validation, authorization and concurrency:** Every create, update and ready transition resolves
+  the exact registry form/formsets, rejects unknown or incompatible schema, revalidates normalized
+  data, batch re-queries declared related identifiers within the case, rechecks case permission and
+  archive state, and performs a direct atomic revision-guarded update. Concurrent PostgreSQL updates
+  prove one success and one recoverable stale conflict with no lost write.
+- **Migration and storage:** `apps/documents/migrations/0002_add_document_drafts.py` creates the
+  draft table, case/type/schema indexes, one-draft identity policy, state/revision/type/schema
+  constraints, and PostgreSQL JSON-object and 65,536-byte payload checks. The linear graph applied
+  successfully both to an empty PostgreSQL 17 database and as an upgrade from the committed
+  `CP-DOC-C` schema. Inspection confirmed all expected constraints and indexes. A stored synthetic
+  draft contained only the approved document-specific fields.
+- **Security and audit:** Writes require draft add/change permission plus case access; reads require
+  draft view permission plus case access. Archived or inaccessible cases, cross-case related IDs,
+  prohibited graph/snapshot keys and direct unauthorized service calls are rejected. Audit events
+  contain bounded field names or categories only; forced validation and audit failures roll back,
+  and tests exclude payload values and personal case data from logs.
+- **Tests:** Focused registry/model/service testing passed 84 tests with two PostgreSQL-profile skips;
+  the complete documents/storage regression profile passed 316 tests with six profile skips. The
+  final PostgreSQL checkpoint profile passed its draft JSON-constraint and concurrent-revision tests
+  alongside the DOC-007 races.
+- **Commit:** `8dfa93f` (`DOC-008`).
+- **Deviations or blockers:** None. Fresh-context review findings for disabled historical schemas,
+  identity immutability, batch related-ID validation and formset error preservation were resolved.
+
+## CP-DOC-D — Checkpoint closure
+
+- **Completion date:** 2026-09-13
+- **Status:** Local implementation and verification are complete for `DOC-007` and `DOC-008`;
+  human review is pending. Work stopped before `DOC-009` and `DOC-010`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind CSS build, and the mandated full branch-coverage command passed.
+  The full suite reported 845 passed, 18 intentional environment-profile skips, and 94.48% overall
+  branch coverage, above the 85% project threshold.
+- **PostgreSQL and migrations:** The final real-PostgreSQL profile passed 4/4 selected tests covering
+  database payload enforcement, service activation races, concurrent HTMX activation and optimistic
+  draft updates. Empty-database and `CP-DOC-C`-schema upgrade paths both applied the linear graph
+  through documents migration `0002`; Django reported no migration drift.
+- **Security and scope review:** Separate transition and draft permissions are enforced at service
+  and view boundaries; CSRF and POST-only behavior pass; historical template identity, checksum and
+  bytes remain unchanged; audit, response and log assertions exclude private paths, package content,
+  draft payload and sensitive case data. `cases` imports no `documents` code. No selector UI,
+  generation workflow, finalized snapshot, real VDS form or other `CP-DOC-E` work was introduced.
+- **Browser and review evidence:** The final focused Playwright suite passed both activation
+  confirmation checks. Cross-model Codex CLI and independent fresh-context reviews were completed
+  and all accepted findings were retested. External CI and Chrome DevTools MCP were unavailable and
+  are not claimed.
+- **Commits:** `570bd84` (`DOC-007`); `8dfa93f` (`DOC-008`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local-verification blocker remains. The next
+  `CP-DOC-E` tasks are `DOC-009` and `DOC-010`; neither was started.
