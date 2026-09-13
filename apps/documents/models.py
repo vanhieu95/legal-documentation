@@ -17,7 +17,11 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.documents.limits import MAX_TEMPLATE_BYTES
-from apps.documents.registry import UnknownDocumentTypeKey, document_registry
+from apps.documents.registry import (
+    RESERVED_DRAFT_FIELD_NAMES,
+    UnknownDocumentTypeKey,
+    document_registry,
+)
 from apps.documents.storage_keys import (
     MAX_DISPLAY_FILENAME_LENGTH,
     build_template_storage_key,
@@ -25,6 +29,7 @@ from apps.documents.storage_keys import (
 )
 
 MAX_VALIDATION_REPORT_BYTES = 4096
+MAX_DRAFT_PAYLOAD_BYTES = 64 * 1024
 MAX_VALIDATION_REPORT_ITEMS = 50
 MAX_VALIDATION_REPORT_DEPTH = 4
 MAX_VALIDATION_REPORT_STRING_LENGTH = 500
@@ -35,6 +40,19 @@ _STORAGE_KEY_PATTERN = re.compile(
 _VERSION_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _SAFE_REPORT_CODE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _SENSITIVE_REPORT_KEY_PARTS = ("path", "content", "payload", "snapshot", "bytes", "secret")
+
+
+def validate_document_draft_payload(value: object) -> None:
+    if not isinstance(value, dict):
+        raise ValidationError(_("A document draft payload must be a JSON object."))
+    if any(not isinstance(key, str) or key in RESERVED_DRAFT_FIELD_NAMES for key in value):
+        raise ValidationError(_("The document draft payload contains a prohibited field."))
+    try:
+        encoded = json.dumps(value, ensure_ascii=False, sort_keys=True).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise ValidationError(_("A document draft payload must contain JSON values.")) from error
+    if len(encoded) > MAX_DRAFT_PAYLOAD_BYTES:
+        raise ValidationError(_("The document draft payload exceeds the allowed size."))
 
 
 class ImmutableTemplateVersionError(Exception):
@@ -399,3 +417,134 @@ class TemplateVersion(models.Model):
         raise ImmutableTemplateVersionError(
             "Template versions cannot be deleted by the application."
         )
+
+
+class ImmutableDocumentDraftIdentityError(Exception):
+    """Raised when durable draft identity is changed without an explicit migration."""
+
+
+class DocumentDraftQuerySet(models.QuerySet["DocumentDraft"]):
+    _IMMUTABLE_UPDATE_FIELDS = frozenset(
+        {
+            "id",
+            "case",
+            "case_id",
+            "type_key",
+            "schema_version",
+            "created_by",
+            "created_by_id",
+            "created_at",
+        }
+    )
+
+    def update(self, **kwargs: Any) -> int:
+        if self._IMMUTABLE_UPDATE_FIELDS & set(kwargs):
+            raise ImmutableDocumentDraftIdentityError(
+                "Draft case, type, schema, creator, and creation time are immutable."
+            )
+        return super().update(**kwargs)
+
+
+class DocumentDraftManager(models.Manager["DocumentDraft"]):
+    def get_queryset(self) -> DocumentDraftQuerySet:
+        return DocumentDraftQuerySet(self.model, using=self._db)
+
+
+class DocumentDraft(models.Model):
+    """Mutable, schema-bound document input kept separate from final snapshots."""
+
+    class State(models.TextChoices):
+        DRAFT = "draft", _("Draft")
+        READY = "ready", _("Ready")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(
+        "cases.CaseRecord",
+        on_delete=models.PROTECT,
+        related_name="document_drafts",
+    )
+    type_key = models.CharField(max_length=64)
+    schema_version = models.CharField(
+        max_length=16,
+        validators=[RegexValidator(r"^v[1-9][0-9]*$")],
+    )
+    payload = models.JSONField(validators=[validate_document_draft_payload])
+    state = models.CharField(max_length=16, choices=State.choices, default=State.DRAFT)
+    revision = models.PositiveBigIntegerField(default=1, validators=[MinValueValidator(1)])
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_document_drafts",
+        editable=False,
+    )
+    last_edited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="edited_document_drafts",
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
+
+    objects = DocumentDraftManager()
+
+    _IMMUTABLE_IDENTITY_FIELDS = (
+        "case_id",
+        "type_key",
+        "schema_version",
+        "created_by_id",
+        "created_at",
+    )
+
+    class Meta:
+        ordering = ("-updated_at", "id")
+        indexes = [
+            models.Index(
+                fields=["case", "state", "-updated_at"],
+                name="doc_draft_case_state_idx",
+            ),
+            models.Index(
+                fields=["type_key", "schema_version", "state"],
+                name="doc_draft_type_schema_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["case", "type_key", "schema_version"],
+                name="documents_draft_case_type_schema_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(state__in=("draft", "ready")),
+                name="documents_draft_state_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(revision__gte=1),
+                name="documents_draft_revision_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(
+                    type_key__regex=(r"^(?:vds-[0-9]{2}|synthetic-[a-z0-9]+(?:-[a-z0-9]+)*)$")
+                ),
+                name="documents_draft_type_key_format",
+            ),
+            models.CheckConstraint(
+                condition=Q(schema_version__regex=r"^v[1-9][0-9]*$"),
+                name="documents_draft_schema_version_format",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.type_key}:{self.schema_version} draft {self.pk}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            persisted = type(self).objects.only(*self._IMMUTABLE_IDENTITY_FIELDS).get(pk=self.pk)
+            if any(
+                getattr(self, field_name) != getattr(persisted, field_name)
+                for field_name in self._IMMUTABLE_IDENTITY_FIELDS
+            ):
+                raise ImmutableDocumentDraftIdentityError(
+                    "Draft case, type, schema, creator, and creation time are immutable."
+                )
+        self.full_clean()
+        super().save(*args, **kwargs)

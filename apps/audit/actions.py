@@ -37,6 +37,9 @@ class AuditAction(StrEnum):
     TEMPLATE_VALIDATED = "template.validated"
     TEMPLATE_ACTIVATED = "template.activated"
     TEMPLATE_DEACTIVATED = "template.deactivated"
+    DOCUMENT_DRAFT_CREATED = "document_draft.created"
+    DOCUMENT_DRAFT_UPDATED = "document_draft.updated"
+    DOCUMENT_DRAFT_STATE_CHANGED = "document_draft.state_changed"
 
 
 class AuditOutcome(StrEnum):
@@ -61,3 +64,4 @@ class AuditTargetType(StrEnum):
     OFFICIAL = "official"
     CASE = "case"
     TEMPLATE_VERSION = "template_version"
+    DOCUMENT_DRAFT = "document_draft"

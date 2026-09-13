@@ -34,6 +34,10 @@ class PlaceholderValueKind(StrEnum):
     MAPPING = "mapping"
 
 
+class RelatedObjectKind(StrEnum):
+    CASE_PARTICIPANT = "case_participant"
+
+
 @dataclass(frozen=True, slots=True)
 class PlaceholderDefinition:
     name: str
@@ -104,12 +108,30 @@ class DocumentRegistration:
     representative_fixture: FixtureProvider
     is_synthetic: bool = False
     post_processor_name: str | None = None
+    related_fields: tuple[RelatedFieldDefinition, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class RelatedFieldDefinition:
+    name: str
+    object_kind: RelatedObjectKind
+    formset_prefix: str | None = None
 
 
 _PRODUCTION_KEY = re.compile(r"^vds-[0-9]{2}$")
 _SYNTHETIC_KEY = re.compile(r"^synthetic-[a-z0-9]+(?:-[a-z0-9]+)*$")
 _PLACEHOLDER_NAME = re.compile(r"^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$")
 _ALLOWLIST_NAME = re.compile(r"^[a-z][a-z0-9_]*$")
+RESERVED_DRAFT_FIELD_NAMES = frozenset(
+    {
+        "case",
+        "court",
+        "participants",
+        "rendered_context",
+        "snapshot",
+        "template_source",
+    }
+)
 
 
 def _matches_value_kind(value: object, kind: PlaceholderValueKind) -> bool:
@@ -222,6 +244,50 @@ class DocumentRegistry:
         )
         if len(formset_prefixes) != len(set(formset_prefixes)):
             raise InvalidDocumentRegistration("Each formset must have a unique stable prefix.")
+        formsets_by_prefix = dict(zip(formset_prefixes, form_bundle.formset_classes, strict=True))
+        stored_names = (
+            *form_bundle.form_class.base_fields,
+            *formset_prefixes,
+            *(name for formset in form_bundle.formset_classes for name in formset.form.base_fields),
+        )
+        if any(
+            _ALLOWLIST_NAME.fullmatch(name) is None or name in RESERVED_DRAFT_FIELD_NAMES
+            for name in stored_names
+        ):
+            raise InvalidDocumentRegistration(
+                "Form and formset fields must use stable safe identifiers."
+            )
+        related_paths = [
+            (field.formset_prefix, field.name) for field in registration.related_fields
+        ]
+        if len(related_paths) != len(set(related_paths)) or any(
+            not isinstance(field, RelatedFieldDefinition)
+            or not isinstance(field.object_kind, RelatedObjectKind)
+            or (
+                field.formset_prefix is None
+                and (
+                    field.name not in form_bundle.form_class.base_fields
+                    or not isinstance(
+                        form_bundle.form_class.base_fields[field.name], forms.UUIDField
+                    )
+                )
+            )
+            or (
+                field.formset_prefix is not None
+                and (
+                    field.formset_prefix not in formsets_by_prefix
+                    or field.name not in formsets_by_prefix[field.formset_prefix].form.base_fields
+                    or not isinstance(
+                        formsets_by_prefix[field.formset_prefix].form.base_fields[field.name],
+                        forms.UUIDField,
+                    )
+                )
+            )
+            for field in registration.related_fields
+        ):
+            raise InvalidDocumentRegistration(
+                "Related fields must be unique UUID fields declared by the form or formsets."
+            )
 
         fixtures: list[Mapping[str, Any]] = []
         for provider in (registration.minimal_fixture, registration.representative_fixture):
@@ -337,6 +403,7 @@ class DocumentRegistry:
 class SyntheticDocumentForm(forms.Form):
     title = forms.CharField(max_length=200)
     notes = forms.CharField(required=False, max_length=1000)
+    participant_id = forms.UUIDField(required=False)
 
 
 def _synthetic_form_provider() -> DocumentFormBundle:
@@ -387,6 +454,9 @@ document_registry = DocumentRegistry(
             minimal_fixture=_synthetic_minimal_fixture,
             representative_fixture=_synthetic_representative_fixture,
             is_synthetic=True,
+            related_fields=(
+                RelatedFieldDefinition("participant_id", RelatedObjectKind.CASE_PARTICIPANT),
+            ),
         ),
     )
 )
