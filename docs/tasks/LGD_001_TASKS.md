@@ -52,6 +52,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-B` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-C` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-D` — Local checkpoint gates passed on 2026-09-13; human review is pending.
+- [x] `CP-DOC-E` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -594,7 +595,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Drafts are mutable, versioned and validated, while finalized snapshots remain outside this model.
 - **Size:** M. **Blockers/skills:** **Security skill**, `api-and-interface-design`, `code-review-and-quality`.
 
-### [ ] DOC-009 — Deliver document selector and draft form framework
+### [x] DOC-009 — Deliver document selector and draft form framework
 
 - **Outcome:** A case shows only enabled types with valid active templates; selecting one renders its versioned long form/formsets with source/override cues and accessible full/HTMX validation/draft saving.
 - **SPEC:** §§5.3, 6.3, 13–15; **FR:** `FR-DOC-01`, `FR-DOC-02`, `FR-DOC-04`–`FR-DOC-07`; **AC:** `AC-03`, `AC-08`, `AC-09`, `AC-11`.
@@ -610,7 +611,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** The form framework can host any explicit VDS schema without database-driven behavior or client-owned truth.
 - **Size:** L. **Blockers/skills:** `frontend-ui-engineering`, **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-010 — Define the case transfer value and explicit prefill boundary
+### [x] DOC-010 — Define the case transfer value and explicit prefill boundary
 
 - **Outcome:** `cases` exports one typed immutable document-prefill value; `documents` explicitly maps it to each form without mutating case data.
 - **SPEC:** §§6.3–6.4, 9–11, 12; **FR:** `FR-DOC-03`, `FR-DOC-04`; **AC:** `AC-11`, `AC-17`.

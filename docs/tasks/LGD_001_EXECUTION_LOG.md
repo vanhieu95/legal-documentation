@@ -1440,3 +1440,100 @@ credentials, generated-document content, or other sensitive payloads.
   entry.
 - **Deviations or blockers:** No implementation or local-verification blocker remains. The next
   `CP-DOC-E` tasks are `DOC-009` and `DOC-010`; neither was started.
+
+## DOC-009 — Deliver document selector and draft form framework
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added stable case-scoped selector and draft routes. The selector intersects the
+  immutable code registry with enabled registrations and the database-enforced single active
+  template version. Unknown, disabled, invalid, inactive and template-less types remain absent and
+  direct access returns the established generic unavailable behavior without resolving executable
+  behavior from request data.
+- **Draft workflow:** Full pages and narrow HTMX fragments load the registry-owned versioned form
+  and formsets, create or update the one compatible draft through the `DOC-008` service, preserve
+  submitted field and repeated-row values, support `draft` and `ready`, and return intentional
+  `422` validation, recoverable `409` revision/schema, and generic recoverable `500` fragments.
+  Responses vary on `HX-Request`, disable caching and HTMX history, retain server/URL ownership,
+  and keep ordinary navigation and submission functional without JavaScript.
+- **Authorization, privacy and accessibility:** Views require case-object access and draft-view
+  permission; services repeat add/change/view enforcement, related UUID case scoping, schema
+  validation and archive restrictions. Normal and HTMX unsafe requests remain CSRF protected.
+  Audit metadata contains safe type/schema/state/revision and field names or categories only.
+  Source sections, semantic formset fieldsets, linked summaries, focusable conflict/server states,
+  busy labels, empty/unavailable states and translated Vietnamese copy were verified without
+  persisting case or draft values in browser storage or query strings.
+- **Tests and browser:** TDD began with nine expected route failures. The completed focused profile
+  passed 84 tests with one environment-profile skip; the documents regression profile passed 321
+  with six profile skips. Four pinned Chromium tests covered compact, tablet and wide long-content
+  draft layouts, keyboard focus, server-side validation, Vietnamese expansion, reflow/no horizontal
+  overflow, and a no-JavaScript 200% workflow.
+- **Migration:** None. Existing `TemplateVersion` and `DocumentDraft` lifecycle, uniqueness and
+  schema contracts are reused.
+- **Commit:** `d134e5a` (`DOC-009`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable; the repository's pinned local
+  Playwright/Chromium suite supplied browser evidence. No generation, snapshot, artifact, download,
+  legal formatter or real VDS form was added.
+
+## DOC-010 — Define the case transfer value and explicit prefill boundary
+
+- **Completion date:** 2026-09-13
+- **Outcome:** `cases` now exports frozen, slotted Court, Case, Participant, Representation,
+  OfficialAssignment and Hearing transfer values from an already authorized case context.
+  `documents` consumes that typed value through an explicit type/schema mapper for form/formset
+  initial data, field source labels and override comparisons. Draft overrides remain isolated from
+  ORM case state and future snapshot behavior remains outside this checkpoint.
+- **Determinism and query behavior:** The selector preserves Vietnamese Unicode, prefers
+  case-specific participant address/contact values, and orders participants, representations,
+  assignments and hearings explicitly. It performs a fixed seven queries after authorization with
+  eight participants, including a defense-in-depth permission/object-policy recheck; participant
+  growth adds no queries. No query-plan evidence justified a new index or migration.
+- **Dependency and privacy boundary:** `cases` imports no `documents` module; an AST dependency guard
+  proves the one-way edge and absence of a circular application import. Mapping uses no reflection,
+  `model_to_dict`, naming coincidence or arbitrary ORM traversal. Tests prove no case write service,
+  ORM mutation, cache, logging or browser storage receives transfer or draft values; no sensitive
+  value appears in audit metadata or captured logs.
+- **Tests and review:** TDD began with expected missing-module import failures. The final focused
+  transfer/mapping/workflow profile passed 29 tests; the combined cases/documents profile passed 677
+  with 16 environment-profile skips. Coverage includes minimal and complete cases, all core roles,
+  deterministic multiples, addresses/contacts, representations, officials, hearings, archived read,
+  forged/unauthorized contexts, immutability, Unicode, overrides, formsets, cross-case identifiers,
+  schema/revision conflicts and service/view permission agreement. Multi-axis code, API, security,
+  privacy, query and accessibility review found no remaining actionable issue.
+- **Migration:** None. PostgreSQL query-count evidence did not justify an index.
+- **Commit:** `70af71a` (`DOC-010`).
+- **Deviations or blockers:** None in implementation. The final review corrected valid-formset error
+  summary detection before this commit and its 11 workflow tests passed.
+
+## CP-DOC-E — Checkpoint closure
+
+- **Completion date:** 2026-09-13
+- **Status:** Local implementation and verification are complete for `DOC-009` and `DOC-010`;
+  human review is pending. Work stopped before `DOC-011` and `DOC-012`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind CSS build, gettext extraction and Vietnamese catalog compilation
+  passed. The mandated final branch-coverage command passed 874 tests with 18 intentional
+  environment-profile skips at 94.64% overall, above the 85% project gate. The sensitive-module
+  guard separately passed every measured module at or above 95% branch coverage.
+- **PostgreSQL and migrations:** An isolated UTF-8 PostgreSQL 18.6 database applied all migrations
+  from zero through `documents.0002`, reversed the documents leaf to zero, reapplied it, and then
+  reported no migrations to apply. The selected transfer, workflow, draft and PostgreSQL integration
+  profile passed 57/57. Django reports no migration drift; no checkpoint migration was created.
+- **Browser and progressive enhancement:** The complete pinned Chromium suite passed 79/79,
+  including the four new document tests at compact/tablet/wide widths and no-JavaScript 200% zoom.
+  It verified keyboard activation, linked/focused summaries, long Vietnamese content, reflow,
+  `422` behavior, ordinary redirects and absence of case-prefill values from local/session storage.
+  The complete suite preceded a final one-line formset error-count correction; that correction then
+  passed all 11 workflow tests. A redundant browser rerun was attempted but could not launch because
+  the execution tool reported its usage limit, so no post-correction browser rerun is claimed.
+- **Security, privacy and scope:** Registry/type allowlisting, single-valid-active availability,
+  draft/schema/revision recovery, view/service permissions, case-object policy, CSRF, archived-case
+  write denial and cross-case related-ID rejection pass. Prefill and draft data are absent from logs,
+  audit metadata, cache, cookies, browser storage and query strings. No database-defined executable
+  mapping, cross-application case write, generation reservation, renderer, artifact, download,
+  formatter or real legal form was introduced.
+- **Commits:** `d134e5a` (`DOC-009`); `70af71a` (`DOC-010`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** Chrome DevTools MCP, external CI and the redundant final browser rerun
+  were unavailable and are not claimed. Pinned Chromium already passed the complete pre-correction
+  suite, and focused post-correction behavior is green. No implementation blocker remains. The next
+  `CP-DOC-F` tasks are `DOC-011` and `DOC-012`; neither was started.
