@@ -73,6 +73,15 @@ for _index in range(2):
     confirmation_template.save(update_fields=("validation_report",))
     confirmation_template.transition_to(TemplateVersion.Status.VALID)
 
+if not TemplateVersion.objects.filter(
+    type_key="synthetic-platform-test", status=TemplateVersion.Status.ACTIVE
+).exists():
+    active_template = TemplateVersion.objects.filter(
+        type_key="synthetic-platform-test", status=TemplateVersion.Status.VALID
+    ).first()
+    if active_template is not None:
+        active_template.transition_to(TemplateVersion.Status.ACTIVE, actor=administrator)
+
 replace_synthetic_user(
     "synthetic-browser-superuser",
     "synthetic-browser-password-123!",

@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.utils.translation import gettext_lazy as _
 
 from apps.documents.limits import MAX_TEMPLATE_BYTES
-from apps.documents.models import TemplateVersion
+from apps.documents.models import DocumentDraft, TemplateVersion
 
 
 class TemplateUploadForm(forms.Form):
@@ -45,3 +45,12 @@ class TemplateTransitionForm(forms.Form):
         widget=forms.HiddenInput,
     )
     expected_active_id = forms.UUIDField(required=False, widget=forms.HiddenInput)
+
+
+class DocumentDraftControlForm(forms.Form):
+    draft_id = forms.UUIDField(required=False, widget=forms.HiddenInput)
+    revision = forms.IntegerField(required=False, min_value=1, widget=forms.HiddenInput)
+    schema_version = forms.RegexField(
+        regex=r"^v[1-9][0-9]*$", required=False, widget=forms.HiddenInput
+    )
+    state = forms.ChoiceField(choices=DocumentDraft.State.choices, widget=forms.HiddenInput)

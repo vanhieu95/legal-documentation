@@ -1,0 +1,29 @@
+{% load i18n %}
+<div id="document-selector" hx-history="false" aria-busy="false">
+  {% if case.status == "archived" %}
+    <div class="alert alert-warning" role="status" data-archived-document-notice>
+      <p class="alert-title">{% translate "This case is archived" %}</p>
+      <p>{% translate "Existing document information remains readable, but drafts cannot be changed until the case is restored." %}</p>
+    </div>
+  {% endif %}
+  {% if available_types %}
+    <ul class="template-type-list" role="list">
+      {% for item in available_types %}
+        <li>
+          <div>
+            <strong>{{ item.registration.official_code }}</strong>
+            <span>{{ item.registration.vietnamese_name }}</span>
+          </div>
+          <a class="button button-primary" href="{% url 'documents:case-document-draft' case.pk item.registration.key %}">
+            {% translate "Open document form" %}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty-state" role="status" data-document-selector-empty>
+      <h2>{% translate "No document types are available" %}</h2>
+      <p>{% translate "An enabled document type needs one valid active template before it can be selected." %}</p>
+    </div>
+  {% endif %}
+</div>

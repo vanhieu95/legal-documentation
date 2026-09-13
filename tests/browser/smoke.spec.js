@@ -206,6 +206,55 @@ for (const viewport of [
   { name: "tablet", width: 768, height: 1024 },
   { name: "wide", width: 1440, height: 900 },
 ]) {
+  test(`document draft framework reflows at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const caseUrl = await createSyntheticCase(page, `DOCUMENT-${viewport.name}`);
+    const selectorUrl = `${new URL(caseUrl).pathname}documents/`;
+    await page.goto(selectorUrl);
+
+    await expect(page.getByRole("heading", { level: 1, name: "Chọn tài liệu" })).toBeVisible();
+    const openForm = page.getByRole("link", { name: "Mở biểu mẫu tài liệu" });
+    await openForm.focus();
+    await expect(openForm).toBeFocused();
+    await openForm.press("Enter");
+    await expect(page.getByRole("heading", { name: "Giá trị riêng của tài liệu" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Giá trị dùng chung từ hồ sơ" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ghi đè của quản trị viên" })).toBeVisible();
+    await expectNoPageOverflow(page);
+
+    await page.getByRole("button", { name: "Lưu bản nháp" }).click();
+    const summary = page.locator("[data-error-summary]");
+    await expect(summary).toBeVisible();
+    await expect(summary).toBeFocused();
+  });
+}
+
+test("document draft works without JavaScript at 200 percent zoom", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 640, height: 900 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  const caseUrl = await createSyntheticCase(page, "DOCUMENT-NOJS");
+  await page.goto(`${new URL(caseUrl).pathname}documents/`);
+  await page.getByRole("link", { name: "Mở biểu mẫu tài liệu" }).click();
+  await page.locator('[name="title"]').fill("Bản nháp thử nghiệm");
+  await page.getByRole("button", { name: "Lưu bản nháp" }).click();
+
+  await expect(page).toHaveURL(/\/documents\/synthetic-platform-test\/$/);
+  await expect(page.locator('[name="title"]')).toHaveValue("Bản nháp thử nghiệm");
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
   test(`case dashboard reflows at the ${viewport.name} viewport`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await signInAsAdministrator(page);
