@@ -221,8 +221,17 @@ for (const viewport of [
     await expect(page.getByRole("heading", { name: "Giá trị riêng của tài liệu" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Giá trị dùng chung từ hồ sơ" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ghi đè của quản trị viên" })).toBeVisible();
+    const storedValues = await page.evaluate(() => ({
+      local: { ...localStorage },
+      session: { ...sessionStorage },
+    }));
+    expect(JSON.stringify(storedValues)).not.toContain("Yêu cầu dân sự ban đầu");
     await expectNoPageOverflow(page);
 
+    await page.locator('[name="notes"]').fill(
+      Array.from({ length: 24 }, (_, index) => `Dòng nội dung dài ${index + 1}`).join("\n"),
+    );
+    await page.locator('[name="title"]').fill("");
     await page.getByRole("button", { name: "Lưu bản nháp" }).click();
     const summary = page.locator("[data-error-summary]");
     await expect(summary).toBeVisible();
@@ -239,6 +248,9 @@ test("document draft works without JavaScript at 200 percent zoom", async ({ bro
   await signInAsAdministrator(page);
   const caseUrl = await createSyntheticCase(page, "DOCUMENT-NOJS");
   await page.goto(`${new URL(caseUrl).pathname}documents/`);
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
   await page.getByRole("link", { name: "Mở biểu mẫu tài liệu" }).click();
   await page.locator('[name="title"]').fill("Bản nháp thử nghiệm");
   await page.getByRole("button", { name: "Lưu bản nháp" }).click();

@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from typing import cast
+from typing import Any, cast
 
 import pytest
+from django import forms
 from django.contrib.auth.models import Permission, User
+from django.db import DatabaseError
 from django.test import Client
 from django.urls import reverse
 
 from apps.accounts.permissions import seed_administrator_permissions
 from apps.cases.models import CaseRecord
 from apps.documents.models import DocumentDraft, TemplateVersion
-from apps.documents.registry import document_registry
+from apps.documents.registry import DocumentFormBundle, document_registry
 from tests.factories import CaseRecordFactory
 
 pytestmark = pytest.mark.django_db
@@ -157,6 +159,10 @@ def test_new_existing_ready_and_draft_workflow_preserves_values(
     _active_template(actor)
     client.force_login(actor)
 
+    initial = client.get(_draft_url(case))
+    assert case.matter_type in initial.content.decode()
+    assert 'data-value-source="case.matter_type"' in initial.content.decode()
+
     invalid = client.post(_draft_url(case), {"title": "", "notes": "kept", "state": "draft"})
     assert invalid.status_code == 422
     body = invalid.content.decode()
@@ -268,3 +274,87 @@ def test_anonymous_htmx_request_expires_without_case_content(
     response = client.get(_draft_url(case), headers={"HX-Request": "true"})
     assert response.status_code == 302
     assert case.internal_reference not in response.content.decode()
+
+
+def test_formset_validation_preserves_values_and_links_summary(
+    client: Client, user_factory: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class ItemForm(forms.Form):
+        name = forms.CharField(max_length=50)
+        detail = forms.CharField(required=False, max_length=50)
+
+    actor = _actor(user_factory)
+    case = _case(actor)
+    _active_template(actor)
+    client.force_login(actor)
+    registration = document_registry.get("synthetic-platform-test")
+    item_formset = cast(Any, forms.formset_factory(ItemForm, extra=0))
+    patched = replace(
+        registration,
+        form_provider=lambda: DocumentFormBundle(
+            registration.form_provider().form_class, (item_formset,)
+        ),
+    )
+    monkeypatch.setattr(document_registry, "get", lambda _key: patched)
+
+    response = client.post(
+        _draft_url(case),
+        {
+            "title": "Formset draft",
+            "state": "draft",
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-name": "",
+            "form-0-detail": "Kept repeated value",
+        },
+    )
+
+    assert response.status_code == 422
+    body = response.content.decode()
+    assert 'href="#id_form-0-name"' in body
+    assert "Kept repeated value" in body
+
+    valid = client.post(
+        _draft_url(case),
+        {
+            "title": "Formset draft",
+            "state": "draft",
+            "form-TOTAL_FORMS": "1",
+            "form-INITIAL_FORMS": "0",
+            "form-MIN_NUM_FORMS": "0",
+            "form-MAX_NUM_FORMS": "1000",
+            "form-0-name": "Preserved row",
+            "form-0-detail": "Kept repeated value",
+        },
+    )
+    assert valid.status_code == 302
+
+
+def test_database_failure_returns_recoverable_fragment_without_payload_logging(
+    client: Client,
+    user_factory: object,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    actor = _actor(user_factory)
+    case = _case(actor)
+    _active_template(actor)
+    client.force_login(actor)
+    sensitive = "SYNTHETIC-PRIVATE-DRAFT-VALUE"
+
+    def fail_save(**_kwargs: object) -> None:
+        raise DatabaseError("Synthetic unavailable database")
+
+    monkeypatch.setattr("apps.documents.workflow_views.create_document_draft", fail_save)
+    response = client.post(
+        _draft_url(case),
+        {"title": sensitive, "state": "draft"},
+        headers={"HX-Request": "true"},
+    )
+
+    assert response.status_code == 500
+    assert "data-draft-server-error" in response.content.decode()
+    assert sensitive in response.content.decode()
+    assert sensitive not in caplog.text

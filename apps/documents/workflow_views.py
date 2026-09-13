@@ -8,6 +8,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
+from django.db import DatabaseError
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -22,6 +23,7 @@ from apps.accounts.policies import (
     application_permission_required,
     get_object_or_not_found,
 )
+from apps.cases.document_prefill import authorize_document_case, document_case_transfer
 from apps.cases.models import CaseRecord
 from apps.cases.policies import case_object_policy
 from apps.core.correlation import get_request_correlation_id
@@ -36,6 +38,7 @@ from apps.documents.draft_services import (
 )
 from apps.documents.forms import DocumentDraftControlForm
 from apps.documents.models import DocumentDraft
+from apps.documents.prefill import DocumentPrefill, map_case_transfer
 from apps.documents.registry import DocumentRegistration, UnknownDocumentTypeKey, document_registry
 from apps.documents.selectors import (
     available_document_types,
@@ -105,7 +108,9 @@ def _formsets(
             bound = formset_class(data=data, prefix=prefix)
         else:
             rows = initial_payload.get(prefix, [])
-            bound = formset_class(initial=rows if isinstance(rows, list) else [], prefix=prefix)
+            bound = formset_class(
+                initial=rows if isinstance(rows, (list, tuple)) else [], prefix=prefix
+            )
         result.append(bound)
     return tuple(result)
 
@@ -131,6 +136,7 @@ def _render_draft(
     formsets: tuple[forms.BaseFormSet[forms.Form], ...],
     control_form: DocumentDraftControlForm,
     draft: DocumentDraft | None,
+    prefill: DocumentPrefill,
     conflict: bool = False,
     server_error: bool = False,
     status: int = 200,
@@ -142,6 +148,14 @@ def _render_draft(
         "formsets": formsets,
         "control_form": control_form,
         "draft": draft,
+        "field_rows": tuple(
+            {
+                "field": field,
+                "provenance": prefill.sources.get(field.name),
+                "override": prefill.overrides.get(field.name),
+            }
+            for field in form
+        ),
         "conflict": conflict,
         "server_error": server_error,
         "can_write": case.status == CaseRecord.Status.ACTIVE,
@@ -172,10 +186,18 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
         )
     bundle = registration.form_provider()
     initial_payload: Mapping[str, object] = found.payload if found else {}
+    transfer = document_case_transfer(
+        authorize_document_case(actor=cast(User, request.user), case_id=case.pk)
+    )
+    prefill = map_case_transfer(
+        registration=registration,
+        transfer=transfer,
+        draft_payload=initial_payload,
+    )
 
     if request.method == "GET":
-        form = bundle.form_class(initial=dict(initial_payload))
-        formsets = _formsets(registration, data=None, initial_payload=initial_payload)
+        form = bundle.form_class(initial=dict(prefill.form_initial))
+        formsets = _formsets(registration, data=None, initial_payload=prefill.formset_initial)
         control = DocumentDraftControlForm(
             initial={
                 "draft_id": found.pk if found else None,
@@ -192,6 +214,7 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             formsets=formsets,
             control_form=control,
             draft=found,
+            prefill=prefill,
         )
 
     if case.status != CaseRecord.Status.ACTIVE:
@@ -205,6 +228,11 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
     form = bundle.form_class(data=request.POST)
     formsets = _formsets(registration, data=request.POST, initial_payload={})
     control = DocumentDraftControlForm(request.POST)
+    submitted_prefill = map_case_transfer(
+        registration=registration,
+        transfer=transfer,
+        draft_payload={name: request.POST.get(name, "") for name in bundle.form_class.base_fields},
+    )
     valid = form.is_valid()
     formsets_valid = all(formset.is_valid() for formset in formsets)
     control_valid = control.is_valid()
@@ -224,6 +252,7 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             formsets=formsets,
             control_form=control,
             draft=found,
+            prefill=submitted_prefill,
             conflict=True,
             status=409,
         )
@@ -236,6 +265,7 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             formsets=formsets,
             control_form=control,
             draft=found,
+            prefill=submitted_prefill,
             status=422,
         )
 
@@ -270,6 +300,7 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             formsets=formsets,
             control_form=control,
             draft=found,
+            prefill=submitted_prefill,
             conflict=True,
             status=409,
         )
@@ -283,7 +314,21 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             formsets=formsets,
             control_form=control,
             draft=found,
+            prefill=submitted_prefill,
             status=422,
+        )
+    except DatabaseError:
+        return _render_draft(
+            request,
+            case=case,
+            registration=registration,
+            form=form,
+            formsets=formsets,
+            control_form=control,
+            draft=found,
+            prefill=submitted_prefill,
+            server_error=True,
+            status=500,
         )
 
     if _is_htmx(request):

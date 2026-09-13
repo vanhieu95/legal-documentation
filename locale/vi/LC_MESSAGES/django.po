@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:34+0700\n"
+"POT-Creation-Date: 2026-09-13 08:56+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -989,11 +989,23 @@ msgstr "Cần có thông tin tham chiếu phê duyệt."
 
 #: apps/documents/models.py:457
 msgid "Draft"
-msgstr ""
+msgstr "Bản nháp"
 
 #: apps/documents/models.py:458
 msgid "Ready"
-msgstr ""
+msgstr "Sẵn sàng"
+
+#: apps/documents/prefill.py:53
+msgid "Case matter"
+msgstr "Việc dân sự"
+
+#: apps/documents/prefill.py:54
+msgid "Document value"
+msgstr "Giá trị riêng của tài liệu"
+
+#: apps/documents/prefill.py:55
+msgid "Case participant"
+msgstr "Người tham gia tố tụng trong hồ sơ"
 
 #: apps/documents/views.py:36
 msgid "The file is not a readable DOCX package."
@@ -1047,11 +1059,11 @@ msgstr "Đã kích hoạt phiên bản biểu mẫu."
 msgid "The template version was deactivated."
 msgstr "Đã ngừng sử dụng phiên bản biểu mẫu."
 
-#: apps/documents/workflow_views.py:277
+#: apps/documents/workflow_views.py:308
 msgid "The submitted document values are invalid."
 msgstr "Các giá trị tài liệu đã gửi không hợp lệ."
 
-#: apps/documents/workflow_views.py:295
+#: apps/documents/workflow_views.py:340
 msgid "The document draft was saved."
 msgstr "Đã lưu bản nháp tài liệu."
 
@@ -1384,13 +1396,14 @@ msgstr "Tải lại hồ sơ mới nhất"
 #: templates/cases/_case_transition_form.html:12
 #: templates/cases/references/_reference_form.html:6
 #: templates/documents/_document_draft_form.html:30
+#: templates/documents/_document_draft_form.html:41
 #: templates/documents/_template_upload_workflow.html:29
 msgid "Correct the highlighted fields"
 msgstr "Vui lòng sửa các trường được đánh dấu"
 
 #: templates/cases/_case_form.html:33
 #: templates/cases/references/_reference_form.html:24
-#: templates/documents/_document_draft_form.html:72
+#: templates/documents/_document_draft_form.html:86
 msgid "Saving…"
 msgstr "Đang lưu…"
 
@@ -1402,7 +1415,7 @@ msgstr "Đang lưu…"
 #: templates/cases/references/_deactivate_form.html:11
 #: templates/cases/references/_reference_form.html:25
 #: templates/components/buttons.html:7
-#: templates/documents/_document_draft_form.html:74
+#: templates/documents/_document_draft_form.html:88
 #: templates/documents/_template_transition_form.html:39
 #: templates/documents/_template_transition_form.html:40
 #: templates/documents/_template_upload_workflow.html:49
@@ -1925,36 +1938,44 @@ msgstr "Không thể lưu bản nháp."
 msgid "Your values remain below. Try again."
 msgstr "Các giá trị của bạn vẫn được giữ lại bên dưới. Hãy thử lại."
 
-#: templates/documents/_document_draft_form.html:39
+#: templates/documents/_document_draft_form.html:52
 msgid "Value sources"
 msgstr "Nguồn giá trị"
 
-#: templates/documents/_document_draft_form.html:41
+#: templates/documents/_document_draft_form.html:54
 msgid "Shared case-prefilled values"
 msgstr "Giá trị dùng chung từ hồ sơ"
 
-#: templates/documents/_document_draft_form.html:42
+#: templates/documents/_document_draft_form.html:55
 msgid ""
 "These values come from the case and are not changed by saving this draft."
 msgstr "Các giá trị này lấy từ hồ sơ và không thay đổi khi lưu bản nháp."
 
-#: templates/documents/_document_draft_form.html:45
+#: templates/documents/_document_draft_form.html:58
 msgid "Document-specific values"
 msgstr "Giá trị riêng của tài liệu"
 
-#: templates/documents/_document_draft_form.html:72
+#: templates/documents/_document_draft_form.html:66
+msgid "Source"
+msgstr "Nguồn"
+
+#: templates/documents/_document_draft_form.html:66
+msgid "Overridden in this draft"
+msgstr "Đã ghi đè trong bản nháp này"
+
+#: templates/documents/_document_draft_form.html:86
 msgid "Save draft"
 msgstr "Lưu bản nháp"
 
-#: templates/documents/_document_draft_form.html:73
+#: templates/documents/_document_draft_form.html:87
 msgid "Mark ready"
 msgstr "Đánh dấu sẵn sàng"
 
-#: templates/documents/_document_draft_form.html:80
+#: templates/documents/_document_draft_form.html:94
 msgid "Administrator overrides"
 msgstr "Ghi đè của quản trị viên"
 
-#: templates/documents/_document_draft_form.html:81
+#: templates/documents/_document_draft_form.html:95
 msgid "An override belongs only to this draft and retains its source."
 msgstr "Giá trị ghi đè chỉ thuộc bản nháp này và vẫn lưu nguồn của giá trị."
 
