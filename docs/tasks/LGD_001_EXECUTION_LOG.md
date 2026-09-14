@@ -1537,3 +1537,109 @@ credentials, generated-document content, or other sensitive payloads.
   were unavailable and are not claimed. Pinned Chromium already passed the complete pre-correction
   suite, and focused post-correction behavior is green. No implementation blocker remains. The next
   `CP-DOC-F` tasks are `DOC-011` and `DOC-012`; neither was started.
+
+## DOC-011 — Implement deterministic Vietnamese legal formatters
+
+- **Completion date:** 2026-09-14
+- **Outcome:** Added the explicit `vi-legal-v1` formatter contract for legal dates, date-only values,
+  Ho Chi Minh City datetimes, personal and organization names, addresses, generic identifiers,
+  numeric currency, Vietnamese currency words, reviewed word overrides, and controlled multiline
+  Word XML text. Frozen result values retain independently reviewable raw input and deterministic
+  formatted output without database, actor, network, audit, or locale state.
+- **Formatting decisions:** Date-only inputs never receive timezone conversion; aware datetimes are
+  converted to `Asia/Ho_Chi_Minh` and reject unsupported precision. Authoritative Unicode spelling,
+  normalization, diacritics, uppercase, and mixed case are preserved. Only contract-declared
+  whitespace is normalized; address components are joined without guessing missing administrative
+  units. Currency keeps `Decimal` numeric facts separate from Vietnamese words and from an explicit
+  reviewed override; no currency or template suffix is guessed.
+- **XML and privacy:** The typed multiline adapter rejects arbitrary construction, validates XML 1.0
+  characters and bounded input, escapes XML-sensitive characters, encodes Jinja delimiters as data,
+  and preserves only approved line or paragraph breaks. It does not use `safe`, `mark_safe`, template
+  execution, database access, logging, or other side effects.
+- **Tests and coverage:** TDD covered Vietnamese dates and edge cases, timezone conversion and
+  date-only invariance, locale independence, Unicode/name casing, addresses, identifiers, currency
+  boundaries and overrides, multiline/XML/Jinja input, length bounds, raw-value retention, and
+  representative synthetic Vietnamese strings. The final focused formatter profile passed 83 tests;
+  `apps/core/legal_formatters.py` reached 99.01% branch coverage in the checkpoint-wide run.
+- **Review and legal boundary:** Two fresh-context reviews and an authorized cross-model Codex CLI
+  review found and corrected typed-adapter, XML-character, datetime-precision, raw-override, and
+  paragraph-break issues. Exact template-specific wording, identifier patterns, suffixes, and legal
+  approval remain deferred to each later VDS onboarding contract.
+- **Migration:** None.
+- **Commit:** `7588496` (`DOC-011`).
+- **Deviations or blockers:** No implementation blocker remains. No real VDS form, legal wording, or
+  generated document was introduced.
+
+## DOC-012 — Model generation attempts and reserve idempotently
+
+- **Completion date:** 2026-09-14
+- **Outcome:** Added `GeneratedDocument` with UUID identity, protected case/template/actor references,
+  stable type and schema, source revisions, lifecycle timestamps, versioned input/resolved/override/
+  template snapshots, actor-scoped SHA-256 idempotency identity, safe failure fields, future output
+  metadata, and case/type/status/actor history indexes. Supported model/query paths cannot rewrite or
+  delete reservation history; retries use a new token and row.
+- **Reservation and idempotency:** `reserve_generation` enforces generation permission and scoped case
+  access, rejects archived cases, resolves the enabled registry schema, locks case and draft in a
+  consistent order, revalidates the exact ready draft, serializes template activation through the
+  shared type advisory lock, and pins the expected active valid template. It freezes exact cleaned
+  input, resolved shared values, override provenance, template identity/checksum, revisions, and
+  actor. A 256-bit URL-safe opaque token is validated and stored only as an actor-scoped hash;
+  repeats return the original authorized row and audit event without refreshing facts.
+- **Migration and database invariants:** `documents.0003_generated_document` creates the table,
+  protected foreign keys, unique actor/token-hash scope, lookup indexes, status/output/path/checksum
+  checks, strict numeric versioned JSON envelopes, and PostgreSQL triggers that enforce immutable
+  reservation facts, one-way lifecycle changes, protected template type/identity/version/checksum
+  agreement, and delete denial. Output-key identity works consistently with PostgreSQL and SQLite
+  UUID representations. The graph remains linear.
+- **Concurrency and snapshots:** A disposable PostgreSQL 18.6 database applied the full graph from
+  zero and the migration test upgraded from the committed `CP-DOC-E` leaf. The final 53-test
+  PostgreSQL profile passed sequential and genuine concurrent duplicate tokens, distinct tokens,
+  cross-case token reuse, activation races, case/draft edit races, the draft-service lock-order race,
+  stale revisions, malformed raw inserts, lifecycle constraints, immutability, and migration graph
+  checks. Successful attempts remained pinned after later case, draft, and template changes.
+- **Authorization, audit, and privacy:** Direct permission denial and object-scope denial pass at the
+  service boundary. Reservation creates exactly one bounded audit event. Correlation identifiers are
+  normalized and replaced when they equal a token, case/draft identifier, or reserved snapshot
+  value; raw database exception causes are suppressed. Tests prove tokens, snapshots, payloads, case
+  values, and resolved values are absent from logs and audit metadata. Reservation imports no render,
+  parser, temporary-file, checksum, or artifact-storage work.
+- **Tests, coverage, and review:** The final combined document/formatter/sensitive profile passed 453
+  tests with 15 environment-profile skips. `apps/documents/generation_reservations.py` reached 97.22%
+  branch coverage in the full run. Fresh-context, security, and authorized cross-model Codex CLI
+  reviews found and corrected generated-size NULL handling, weak JSON checks, a cross-case uniqueness
+  race, correlation/token leakage, raw database exception chaining, case/draft lock inversion,
+  database template inconsistency, and SQLite UUID constraint portability. The final third-cycle
+  review found no PostgreSQL blocker.
+- **Commit:** `75b5da1` (`DOC-012`).
+- **Deviations or blockers:** The first exploratory empty-schema command accidentally targeted the
+  ignored development SQLite database because test settings were omitted; it is not counted as
+  PostgreSQL evidence. The corrected isolated PostgreSQL runner set test settings explicitly and
+  passed from zero. Two early external CLI review attempts produced incomplete captured output; the
+  authorized compact replacement completed after transient websocket retries. Template placeholder
+  compatibility is deliberately rechecked immediately before rendering in `DOC-013`; no rendering
+  occurred here. No implementation blocker remains.
+
+## CP-DOC-F — Checkpoint closure
+
+- **Completion date:** 2026-09-14
+- **Status:** Local implementation and verification are complete for `DOC-011` and `DOC-012`; human
+  review is pending. Work stopped before `DOC-013` and `DOC-014`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, gettext extraction and Vietnamese catalog compilation all passed. The
+  mandated full branch-coverage command passed 992 tests with 27 intentional environment-profile
+  skips at 93.48% overall, above the 85% project threshold. The sensitive-module gate passed, with
+  legal formatters at 99.01% and generation reservation at 97.22% branch coverage.
+- **PostgreSQL evidence:** PostgreSQL 18.6 applied every migration from an empty database through
+  `documents.0003`; the committed-schema upgrade and linear leaf were verified. The final focused
+  PostgreSQL profile passed 53/53, including genuine idempotency, activation, case-edit, draft-edit,
+  lock-order, immutable-snapshot, protected-reference, and status/output constraint cases.
+- **Security, privacy, and scope:** Legal formatting is pure, versioned, locale-independent, bounded,
+  and escaped. Reservation rechecks service and object permissions, freezes raw/resolved/provenance
+  facts without rendering, and creates one attempt/audit per actor-scoped token. Audit and logs contain
+  no tokens or snapshot values. `cases` imports no `documents` code. No filesystem artifact, DOCX
+  render, checksum, download route, generation UI, real VDS implementation, or legal wording was
+  added; no successful artifact exists yet.
+- **Commits:** `7588496` (`DOC-011`); `75b5da1` (`DOC-012`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local-verification blocker remains. External CI
+  is not claimed. The next `CP-DOC-G` tasks are `DOC-013` and `DOC-014`; neither was started.

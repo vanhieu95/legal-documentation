@@ -53,6 +53,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-C` — Local checkpoint gates passed on 2026-09-12; human review is pending.
 - [x] `CP-DOC-D` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 - [x] `CP-DOC-E` — Local checkpoint gates passed on 2026-09-13; human review is pending.
+- [x] `CP-DOC-F` — Local checkpoint gates passed on 2026-09-14; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -627,7 +628,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `cases` has no `documents` import and prefill is deterministic, typed, explicit and mutation-free.
 - **Size:** M. **Blockers/skills:** `api-and-interface-design`, `code-review-and-quality`.
 
-### [ ] DOC-011 — Implement deterministic Vietnamese legal formatters
+### [x] DOC-011 — Implement deterministic Vietnamese legal formatters
 
 - **Outcome:** Versioned formatters produce approved-form-ready dates, times, identifiers, names, addresses, currency words and XML-safe multiline legal text independent of UI locale.
 - **SPEC:** §§6.7, 7.1, 11.4, 16; **FR:** `FR-I18N-03`, `FR-L10N-01`, `FR-L10N-02`; **AC:** `AC-15`, `AC-27`.
@@ -643,7 +644,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Legal formatting is deterministic and separate from generic Django UI localization.
 - **Size:** M. **Blockers/skills:** Approval of exact template-specific formatting is per VDS contract; **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-012 — Model generation attempts and reserve idempotently
+### [x] DOC-012 — Model generation attempts and reserve idempotently
 
 - **Outcome:** An authorized confirmed submission creates or returns exactly one immutable generation attempt with exact input/resolved/override/template/schema snapshot facts.
 - **SPEC:** §§10.2, 12, 17.1–17.2; **FR:** `FR-GEN-05`, `FR-GEN-06`; **AC:** `AC-17`–`AC-20`.
