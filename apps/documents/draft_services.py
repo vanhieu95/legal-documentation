@@ -387,7 +387,12 @@ def update_document_draft(
             current = DocumentDraft.objects.select_related("case").get(pk=draft_id)
         except DocumentDraft.DoesNotExist as error:
             raise PermissionDenied from error
-        case = _accessible_case(actor=actor, case_id=current.case_id, for_write=True)
+        case = _accessible_case(
+            actor=actor,
+            case_id=current.case_id,
+            for_write=True,
+            lock=True,
+        )
         if current.type_key != type_key or current.schema_version != schema_version:
             raise DraftSchemaMismatch("The submitted draft identity is incompatible.")
         validated = validate_document_draft_payload(
@@ -410,7 +415,6 @@ def update_document_draft(
         )
         if updated != 1:
             raise DraftRevisionConflict("The draft was changed by another request.")
-        _accessible_case(actor=actor, case_id=current.case_id, for_write=True, lock=True)
         result = DocumentDraft.objects.get(pk=draft_id)
         action = (
             AuditAction.DOCUMENT_DRAFT_STATE_CHANGED

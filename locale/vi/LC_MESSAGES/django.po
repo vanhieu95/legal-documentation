@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-13 08:56+0700\n"
+"POT-Creation-Date: 2026-09-14 16:11+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -274,14 +274,14 @@ msgid "State"
 msgstr "Trạng thái"
 
 #: apps/cases/forms.py:155 apps/cases/models.py:247
-#: apps/documents/models.py:164
+#: apps/documents/models.py:261
 #: templates/accounts/_dashboard_case_activity.html:65
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
 msgstr "Đang hoạt động"
 
-#: apps/cases/forms.py:155 apps/documents/models.py:165
+#: apps/cases/forms.py:155 apps/documents/models.py:262
 #: templates/cases/_case_section.html:35 templates/cases/_case_section.html:38
 #: templates/cases/_case_section.html:41
 #: templates/cases/references/_reference_results.html:38
@@ -904,96 +904,176 @@ msgstr "Tệp tải lên vượt quá giới hạn 10 MiB."
 msgid "Select a DOCX file."
 msgstr "Chọn tệp DOCX."
 
-#: apps/documents/models.py:47
+#: apps/documents/models.py:61
 msgid "A document draft payload must be a JSON object."
 msgstr ""
 
-#: apps/documents/models.py:49
+#: apps/documents/models.py:63
 #, fuzzy
 #| msgid "The validation report contains an unsafe field."
 msgid "The document draft payload contains a prohibited field."
 msgstr "Báo cáo xác thực chứa trường không an toàn."
 
-#: apps/documents/models.py:53
+#: apps/documents/models.py:67
 msgid "A document draft payload must contain JSON values."
 msgstr ""
 
-#: apps/documents/models.py:55
+#: apps/documents/models.py:69
 msgid "The document draft payload exceeds the allowed size."
 msgstr ""
 
-#: apps/documents/models.py:95
+#: apps/documents/models.py:79
+msgid "The generation snapshot has too many values."
+msgstr "Ảnh chụp dữ liệu tạo văn bản có quá nhiều giá trị."
+
+#: apps/documents/models.py:81
+msgid "The generation snapshot is too deeply nested."
+msgstr "Ảnh chụp dữ liệu tạo văn bản được lồng quá sâu."
+
+#: apps/documents/models.py:84 apps/documents/models.py:92
+msgid "The generation snapshot has too many entries."
+msgstr "Ảnh chụp dữ liệu tạo văn bản có quá nhiều mục."
+
+#: apps/documents/models.py:87
+msgid "The generation snapshot has an invalid field name."
+msgstr "Ảnh chụp dữ liệu tạo văn bản có tên trường không hợp lệ."
+
+#: apps/documents/models.py:99 apps/documents/models.py:102
+msgid "The generation snapshot contains an unsupported value."
+msgstr "Ảnh chụp dữ liệu tạo văn bản chứa giá trị không được hỗ trợ."
+
+#: apps/documents/models.py:113
+msgid "The generation snapshot envelope is invalid."
+msgstr "Cấu trúc bao của ảnh chụp dữ liệu tạo văn bản không hợp lệ."
+
+#: apps/documents/models.py:120
+msgid "The generation snapshot must contain JSON values."
+msgstr "Ảnh chụp dữ liệu tạo văn bản phải chứa các giá trị JSON."
+
+#: apps/documents/models.py:122
+msgid "The generation snapshot exceeds the allowed size."
+msgstr "Ảnh chụp dữ liệu tạo văn bản vượt quá kích thước cho phép."
+
+#: apps/documents/models.py:146
+msgid "The generation template snapshot is invalid."
+msgstr "Ảnh chụp biểu mẫu tạo văn bản không hợp lệ."
+
+#: apps/documents/models.py:152
+msgid "The generation template snapshot exceeds the allowed size."
+msgstr "Ảnh chụp biểu mẫu tạo văn bản vượt quá kích thước cho phép."
+
+#: apps/documents/models.py:192
 msgid "The validation report is too deeply nested."
 msgstr "Báo cáo xác thực được lồng quá sâu."
 
-#: apps/documents/models.py:98 apps/documents/models.py:108
+#: apps/documents/models.py:195 apps/documents/models.py:205
 msgid "The validation report has too many entries."
 msgstr "Báo cáo xác thực có quá nhiều mục."
 
-#: apps/documents/models.py:103 apps/documents/models.py:127
+#: apps/documents/models.py:200 apps/documents/models.py:224
 msgid "The validation report contains an unsafe field."
 msgstr "Báo cáo xác thực chứa trường không an toàn."
 
-#: apps/documents/models.py:115 apps/documents/models.py:118
-#: apps/documents/models.py:129 apps/documents/models.py:149
+#: apps/documents/models.py:212 apps/documents/models.py:215
+#: apps/documents/models.py:226 apps/documents/models.py:246
 msgid "The validation report contains an unsupported value."
 msgstr "Báo cáo xác thực chứa giá trị không được hỗ trợ."
 
-#: apps/documents/models.py:123
+#: apps/documents/models.py:220
 msgid "The validation report must be a structured object."
 msgstr "Báo cáo xác thực phải là một đối tượng có cấu trúc."
 
-#: apps/documents/models.py:154
+#: apps/documents/models.py:251
 msgid "The validation report must be valid JSON."
 msgstr "Báo cáo xác thực phải là JSON hợp lệ."
 
-#: apps/documents/models.py:156
+#: apps/documents/models.py:253
 msgid "The validation report exceeds the storage limit."
 msgstr "Báo cáo xác thực vượt quá giới hạn lưu trữ."
 
-#: apps/documents/models.py:161
+#: apps/documents/models.py:258
 msgid "Uploaded"
 msgstr "Đã tải lên"
 
-#: apps/documents/models.py:162
+#: apps/documents/models.py:259
 msgid "Valid"
 msgstr "Hợp lệ"
 
-#: apps/documents/models.py:163
+#: apps/documents/models.py:260
 msgid "Invalid"
 msgstr "Không hợp lệ"
 
-#: apps/documents/models.py:331
+#: apps/documents/models.py:428
 msgid "Unknown document type key."
 msgstr "Không nhận diện được khóa loại văn bản."
 
-#: apps/documents/models.py:333
+#: apps/documents/models.py:430
 msgid "A template version is required."
 msgstr "Cần có phiên bản biểu mẫu."
 
-#: apps/documents/models.py:336
+#: apps/documents/models.py:433
 msgid "The template display filename must be sanitized."
 msgstr "Tên tệp hiển thị của biểu mẫu phải được làm sạch."
 
-#: apps/documents/models.py:339
+#: apps/documents/models.py:436
 msgid "The private storage key is invalid."
 msgstr "Khóa lưu trữ riêng tư không hợp lệ."
 
-#: apps/documents/models.py:343
+#: apps/documents/models.py:440
 msgid "The private storage key does not match this template."
 msgstr "Khóa lưu trữ riêng tư không khớp với biểu mẫu này."
 
-#: apps/documents/models.py:346
+#: apps/documents/models.py:443
 msgid "An approval reference is required."
 msgstr "Cần có thông tin tham chiếu phê duyệt."
 
-#: apps/documents/models.py:457
+#: apps/documents/models.py:554
 msgid "Draft"
 msgstr "Bản nháp"
 
-#: apps/documents/models.py:458
+#: apps/documents/models.py:555
 msgid "Ready"
 msgstr "Sẵn sàng"
+
+#: apps/documents/models.py:685
+msgid "Generating"
+msgstr "Đang tạo"
+
+#: apps/documents/models.py:686
+msgid "Generated"
+msgstr "Đã tạo"
+
+#: apps/documents/models.py:687 templates/components/badges.html:8
+msgid "Failed"
+msgstr "Thất bại"
+
+#: apps/documents/models.py:690
+msgid "Template invalid"
+msgstr "Biểu mẫu không hợp lệ"
+
+#: apps/documents/models.py:691
+msgid "Context missing"
+msgstr "Thiếu ngữ cảnh"
+
+#: apps/documents/models.py:692
+msgid "Render error"
+msgstr "Lỗi kết xuất"
+
+#: apps/documents/models.py:693
+msgid "Storage error"
+msgstr "Lỗi lưu trữ"
+
+#: apps/documents/models.py:694
+msgid "Integrity error"
+msgstr "Lỗi toàn vẹn"
+
+#: apps/documents/models.py:930
+msgid "The template does not match the document type."
+msgstr "Biểu mẫu không khớp với loại văn bản."
+
+#: apps/documents/models.py:944
+msgid "The template snapshot does not match its reference."
+msgstr "Ảnh chụp biểu mẫu không khớp với tham chiếu."
 
 #: apps/documents/prefill.py:53
 msgid "Case matter"
@@ -1733,10 +1813,6 @@ msgstr "Đang chờ"
 #: templates/components/badges.html:7
 msgid "Info"
 msgstr "Thông tin"
-
-#: templates/components/badges.html:8
-msgid "Failed"
-msgstr "Thất bại"
 
 #: templates/components/badges.html:9
 msgid "Undetermined"

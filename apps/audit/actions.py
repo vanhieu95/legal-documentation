@@ -40,6 +40,7 @@ class AuditAction(StrEnum):
     DOCUMENT_DRAFT_CREATED = "document_draft.created"
     DOCUMENT_DRAFT_UPDATED = "document_draft.updated"
     DOCUMENT_DRAFT_STATE_CHANGED = "document_draft.state_changed"
+    DOCUMENT_GENERATION_RESERVED = "document_generation.reserved"
 
 
 class AuditOutcome(StrEnum):
@@ -65,3 +66,4 @@ class AuditTargetType(StrEnum):
     CASE = "case"
     TEMPLATE_VERSION = "template_version"
     DOCUMENT_DRAFT = "document_draft"
+    GENERATED_DOCUMENT = "generated_document"

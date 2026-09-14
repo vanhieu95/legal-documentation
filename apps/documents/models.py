@@ -12,7 +12,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models, transaction
 from django.db.models import Q
-from django.db.models.functions import Concat
+from django.db.models.functions import Cast, Concat, Replace
+from django.db.models.lookups import StartsWith
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -30,6 +31,10 @@ from apps.documents.storage_keys import (
 
 MAX_VALIDATION_REPORT_BYTES = 4096
 MAX_DRAFT_PAYLOAD_BYTES = 64 * 1024
+MAX_GENERATION_INPUT_SNAPSHOT_BYTES = 64 * 1024
+MAX_GENERATION_RESOLVED_SNAPSHOT_BYTES = 256 * 1024
+MAX_GENERATION_OVERRIDE_SNAPSHOT_BYTES = 64 * 1024
+MAX_GENERATION_TEMPLATE_SNAPSHOT_BYTES = 2 * 1024
 MAX_VALIDATION_REPORT_ITEMS = 50
 MAX_VALIDATION_REPORT_DEPTH = 4
 MAX_VALIDATION_REPORT_STRING_LENGTH = 500
@@ -40,6 +45,15 @@ _STORAGE_KEY_PATTERN = re.compile(
 _VERSION_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _SAFE_REPORT_CODE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _SENSITIVE_REPORT_KEY_PARTS = ("path", "content", "payload", "snapshot", "bytes", "secret")
+_GENERATION_TYPE_KEY_PATTERN = r"^(?:vds-[0-9]{2}|synthetic-[a-z0-9]+(?:-[a-z0-9]+)*)$"
+_SHA256_PATTERN = r"^[0-9a-f]{64}$"
+_SAFE_CORRELATION_PATTERN = r"^(?:|[A-Za-z0-9][A-Za-z0-9._:-]{0,127})$"
+_GENERATED_STORAGE_KEY_PATTERN = (
+    r"^(?:|generated/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/"
+    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/"
+    r"[A-Za-z0-9][A-Za-z0-9._-]{0,144}\.docx)$"
+)
+_GENERATED_FILENAME_PATTERN = r"^(?:|[^/\\\x00-\x1f\x7f]{1,145}\.docx)$"
 
 
 def validate_document_draft_payload(value: object) -> None:
@@ -53,6 +67,89 @@ def validate_document_draft_payload(value: object) -> None:
         raise ValidationError(_("A document draft payload must contain JSON values.")) from error
     if len(encoded) > MAX_DRAFT_PAYLOAD_BYTES:
         raise ValidationError(_("The document draft payload exceeds the allowed size."))
+
+
+def _validate_snapshot_value(
+    value: object, *, depth: int = 0, seen: list[int] | None = None
+) -> None:
+    if seen is None:
+        seen = [0]
+    seen[0] += 1
+    if seen[0] > 5_000:
+        raise ValidationError(_("The generation snapshot has too many values."))
+    if depth > 8:
+        raise ValidationError(_("The generation snapshot is too deeply nested."))
+    if isinstance(value, dict):
+        if len(value) > 500:
+            raise ValidationError(_("The generation snapshot has too many entries."))
+        for key, nested in value.items():
+            if not isinstance(key, str) or not key or len(key) > 128:
+                raise ValidationError(_("The generation snapshot has an invalid field name."))
+            _validate_snapshot_value(nested, depth=depth + 1, seen=seen)
+        return
+    if isinstance(value, list):
+        if len(value) > 500:
+            raise ValidationError(_("The generation snapshot has too many entries."))
+        for nested in value:
+            _validate_snapshot_value(nested, depth=depth + 1, seen=seen)
+        return
+    if isinstance(value, str) and len(value) <= 16_384:
+        return
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValidationError(_("The generation snapshot contains an unsupported value."))
+    if value is None or isinstance(value, (bool, int, float)):
+        return
+    raise ValidationError(_("The generation snapshot contains an unsupported value."))
+
+
+def _validate_snapshot_envelope(value: object, *, maximum: int) -> None:
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"version", "values"}
+        or type(value.get("version")) is not int
+        or value["version"] != 1
+        or not isinstance(value.get("values"), dict)
+    ):
+        raise ValidationError(_("The generation snapshot envelope is invalid."))
+    _validate_snapshot_value(value)
+    try:
+        encoded = json.dumps(
+            value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise ValidationError(_("The generation snapshot must contain JSON values.")) from error
+    if len(encoded) > maximum:
+        raise ValidationError(_("The generation snapshot exceeds the allowed size."))
+
+
+def validate_generation_input_snapshot(value: object) -> None:
+    _validate_snapshot_envelope(value, maximum=MAX_GENERATION_INPUT_SNAPSHOT_BYTES)
+
+
+def validate_generation_resolved_snapshot(value: object) -> None:
+    _validate_snapshot_envelope(value, maximum=MAX_GENERATION_RESOLVED_SNAPSHOT_BYTES)
+
+
+def validate_generation_override_snapshot(value: object) -> None:
+    _validate_snapshot_envelope(value, maximum=MAX_GENERATION_OVERRIDE_SNAPSHOT_BYTES)
+
+
+def validate_generation_template_snapshot(value: object) -> None:
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"version", "identity"}
+        or type(value.get("version")) is not int
+        or value["version"] != 1
+        or not isinstance(value.get("identity"), dict)
+        or set(value["identity"]) != {"id", "type_key", "version", "checksum_sha256"}
+    ):
+        raise ValidationError(_("The generation template snapshot is invalid."))
+    _validate_snapshot_value(value)
+    encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    if len(encoded) > MAX_GENERATION_TEMPLATE_SNAPSHOT_BYTES:
+        raise ValidationError(_("The generation template snapshot exceeds the allowed size."))
 
 
 class ImmutableTemplateVersionError(Exception):
@@ -548,3 +645,316 @@ class DocumentDraft(models.Model):
                 )
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class ImmutableGeneratedDocumentError(Exception):
+    """Raised when immutable generation history is mutated through application APIs."""
+
+
+class GeneratedDocumentQuerySet(models.QuerySet["GeneratedDocument"]):
+    def update(self, **kwargs: Any) -> int:
+        raise ImmutableGeneratedDocumentError(
+            "Generation attempts cannot be updated through bulk application operations."
+        )
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise ImmutableGeneratedDocumentError(
+            "Generation attempts cannot be deleted by the application."
+        )
+
+    def bulk_create(self, *args: Any, **kwargs: Any) -> list[GeneratedDocument]:
+        raise ImmutableGeneratedDocumentError(
+            "Generation attempts must be created by the reservation service."
+        )
+
+    def bulk_update(self, *args: Any, **kwargs: Any) -> int:
+        raise ImmutableGeneratedDocumentError(
+            "Generation attempts cannot be updated through bulk application operations."
+        )
+
+
+class GeneratedDocumentManager(models.Manager["GeneratedDocument"]):
+    def get_queryset(self) -> GeneratedDocumentQuerySet:
+        return GeneratedDocumentQuerySet(self.model, using=self._db)
+
+
+class GeneratedDocument(models.Model):
+    """One immutable reservation plus its future one-way lifecycle outcome."""
+
+    class Status(models.TextChoices):
+        GENERATING = "generating", _("Generating")
+        GENERATED = "generated", _("Generated")
+        FAILED = "failed", _("Failed")
+
+    class FailureCategory(models.TextChoices):
+        TEMPLATE_INVALID = "template_invalid", _("Template invalid")
+        CONTEXT_MISSING = "context_missing", _("Context missing")
+        RENDER_ERROR = "render_error", _("Render error")
+        STORAGE_ERROR = "storage_error", _("Storage error")
+        INTEGRITY_ERROR = "integrity_error", _("Integrity error")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    case = models.ForeignKey(
+        "cases.CaseRecord",
+        on_delete=models.PROTECT,
+        related_name="generated_documents",
+        editable=False,
+    )
+    type_key = models.CharField(max_length=64, editable=False)
+    template_version = models.ForeignKey(
+        TemplateVersion,
+        on_delete=models.PROTECT,
+        related_name="generation_attempts",
+        editable=False,
+    )
+    schema_version = models.CharField(
+        max_length=16,
+        editable=False,
+        validators=[RegexValidator(r"^v[1-9][0-9]*$")],
+    )
+    source_draft_id = models.UUIDField(editable=False)
+    case_revision = models.PositiveBigIntegerField(
+        editable=False, validators=[MinValueValidator(1)]
+    )
+    draft_revision = models.PositiveBigIntegerField(
+        editable=False, validators=[MinValueValidator(1)]
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.GENERATING,
+        editable=False,
+    )
+    input_snapshot = models.JSONField(
+        editable=False, validators=[validate_generation_input_snapshot]
+    )
+    resolved_values_snapshot = models.JSONField(
+        editable=False, validators=[validate_generation_resolved_snapshot]
+    )
+    override_snapshot = models.JSONField(
+        editable=False, validators=[validate_generation_override_snapshot]
+    )
+    template_snapshot = models.JSONField(
+        editable=False, validators=[validate_generation_template_snapshot]
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="generated_document_attempts",
+        editable=False,
+    )
+    reserved_at = models.DateTimeField(auto_now_add=True, editable=False)
+    generated_at = models.DateTimeField(null=True, blank=True, editable=False)
+    failed_at = models.DateTimeField(null=True, blank=True, editable=False)
+    idempotency_key_hash = models.CharField(
+        max_length=64,
+        editable=False,
+        validators=[RegexValidator(_SHA256_PATTERN)],
+    )
+    failure_category = models.CharField(
+        max_length=32,
+        choices=FailureCategory.choices,
+        blank=True,
+        default="",
+        editable=False,
+    )
+    failure_correlation_id = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
+        editable=False,
+        validators=[RegexValidator(_SAFE_CORRELATION_PATTERN)],
+    )
+    output_storage_key = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        editable=False,
+        validators=[RegexValidator(_GENERATED_STORAGE_KEY_PATTERN)],
+    )
+    output_filename = models.CharField(
+        max_length=MAX_DISPLAY_FILENAME_LENGTH,
+        blank=True,
+        default="",
+        editable=False,
+        validators=[RegexValidator(_GENERATED_FILENAME_PATTERN)],
+    )
+    output_size = models.PositiveBigIntegerField(null=True, blank=True, editable=False)
+    output_checksum_sha256 = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        editable=False,
+        validators=[RegexValidator(r"^(?:|[0-9a-f]{64})$")],
+    )
+
+    objects = GeneratedDocumentManager()
+
+    class Meta:
+        ordering = ("-reserved_at", "id")
+        indexes = [
+            models.Index(
+                fields=["case", "-reserved_at"],
+                name="doc_gen_case_history_idx",
+            ),
+            models.Index(
+                fields=["type_key", "status", "-reserved_at"],
+                name="doc_generation_type_status_idx",
+            ),
+            models.Index(
+                fields=["actor", "-reserved_at"],
+                name="doc_gen_actor_history_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["actor", "idempotency_key_hash"],
+                name="documents_generation_actor_idempotency_unique",
+            ),
+            models.CheckConstraint(
+                condition=Q(status__in=("generating", "generated", "failed")),
+                name="documents_generation_status_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(type_key__regex=_GENERATION_TYPE_KEY_PATTERN),
+                name="documents_generation_type_key_format",
+            ),
+            models.CheckConstraint(
+                condition=Q(schema_version__regex=r"^v[1-9][0-9]*$"),
+                name="documents_generation_schema_format",
+            ),
+            models.CheckConstraint(
+                condition=Q(case_revision__gte=1, draft_revision__gte=1),
+                name="documents_generation_revisions_positive",
+            ),
+            models.CheckConstraint(
+                condition=Q(idempotency_key_hash__regex=_SHA256_PATTERN),
+                name="documents_generation_idempotency_hash_valid",
+            ),
+            models.CheckConstraint(
+                condition=Q(failure_correlation_id__regex=_SAFE_CORRELATION_PATTERN),
+                name="documents_generation_failure_correlation_safe",
+            ),
+            models.CheckConstraint(
+                condition=Q(output_storage_key__regex=_GENERATED_STORAGE_KEY_PATTERN),
+                name="documents_generation_storage_key_safe",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(output_storage_key="")
+                    | Q(
+                        StartsWith(
+                            Replace(
+                                models.F("output_storage_key"),
+                                models.Value("-"),
+                                models.Value(""),
+                            ),
+                            Concat(
+                                models.Value("generated/"),
+                                Replace(
+                                    Cast(models.F("case_id"), models.CharField()),
+                                    models.Value("-"),
+                                    models.Value(""),
+                                ),
+                                models.Value("/"),
+                                Replace(
+                                    Cast(models.F("id"), models.CharField()),
+                                    models.Value("-"),
+                                    models.Value(""),
+                                ),
+                                models.Value("/"),
+                            ),
+                        )
+                    )
+                ),
+                name="documents_generation_storage_key_identity",
+            ),
+            models.CheckConstraint(
+                condition=Q(output_filename__regex=_GENERATED_FILENAME_PATTERN),
+                name="documents_generation_filename_safe",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(
+                        status="generating",
+                        generated_at__isnull=True,
+                        failed_at__isnull=True,
+                        failure_category="",
+                        failure_correlation_id="",
+                        output_storage_key="",
+                        output_filename="",
+                        output_size__isnull=True,
+                        output_checksum_sha256="",
+                    )
+                    | Q(
+                        status="generated",
+                        generated_at__isnull=False,
+                        failed_at__isnull=True,
+                        failure_category="",
+                        failure_correlation_id="",
+                        output_size__isnull=False,
+                        output_size__gte=1,
+                        output_checksum_sha256__regex=_SHA256_PATTERN,
+                    )
+                    & ~Q(output_storage_key="")
+                    & ~Q(output_filename="")
+                    | Q(
+                        status="failed",
+                        generated_at__isnull=True,
+                        failed_at__isnull=False,
+                        failure_category__in=(
+                            "template_invalid",
+                            "context_missing",
+                            "render_error",
+                            "storage_error",
+                            "integrity_error",
+                        ),
+                        output_storage_key="",
+                        output_filename="",
+                        output_size__isnull=True,
+                        output_checksum_sha256="",
+                    )
+                    & ~Q(failure_correlation_id="")
+                ),
+                name="documents_generation_status_metadata_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.type_key} generation {self.pk} ({self.status})"
+
+    def clean(self) -> None:
+        super().clean()
+        if self.template_version_id and self.template_version.type_key != self.type_key:
+            raise ValidationError(
+                {"template_version": _("The template does not match the document type.")}
+            )
+        identity = (
+            self.template_snapshot.get("identity", {})
+            if isinstance(self.template_snapshot, dict)
+            else None
+        )
+        if self.template_version_id and identity != {
+            "id": str(self.template_version_id),
+            "type_key": self.template_version.type_key,
+            "version": self.template_version.version,
+            "checksum_sha256": self.template_version.checksum_sha256,
+        }:
+            raise ValidationError(
+                {"template_snapshot": _("The template snapshot does not match its reference.")}
+            )
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self._state.adding:
+            raise ImmutableGeneratedDocumentError(
+                "Generation attempts cannot be changed through the model API."
+            )
+        if self.status != self.Status.GENERATING:
+            raise ImmutableGeneratedDocumentError("New generation attempts must be generating.")
+        self.full_clean(validate_constraints=False)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        raise ImmutableGeneratedDocumentError(
+            "Generation attempts cannot be deleted by the application."
+        )

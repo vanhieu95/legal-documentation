@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.storage import Storage, storages
-from django.db import IntegrityError, connection, transaction
+from django.db import IntegrityError, transaction
 from docxtpl import DocxTemplate  # type: ignore[import-untyped]
 
 from apps.accounts.policies import ApplicationPermission, service_permission_required
@@ -31,6 +31,7 @@ from apps.documents.storage_keys import (
     build_template_storage_key,
     sanitize_template_display_filename,
 )
+from apps.documents.template_locks import acquire_template_type_lock
 from apps.documents.template_validation import (
     TemplateFinding,
     create_restricted_environment,
@@ -179,9 +180,7 @@ def _transition_audit(
 
 def _acquire_type_transition_lock(type_key: str) -> None:
     """Serialize one registered type without locking its unbounded history."""
-    if connection.vendor == "postgresql":
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", [type_key])
+    acquire_template_type_lock(type_key)
 
 
 def _locked_transition_state(

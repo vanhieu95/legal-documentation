@@ -28,7 +28,7 @@ def is_sensitive_module(filename: str) -> bool:
         path.parts[0] == "apps"
         and "tests" not in path.parts
         and (
-            path.name == "legal_formatters.py"
+            path.name in {"generation_reservations.py", "legal_formatters.py"}
             or any(term in path.stem.lower() for term in SENSITIVE_MODULE_TERMS)
         )
     )
