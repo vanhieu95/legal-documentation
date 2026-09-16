@@ -56,6 +56,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-F` — Local checkpoint gates passed on 2026-09-14; human review is pending.
 - [x] `CP-DOC-G` — Approved on 2026-09-16; local checkpoint gates passed on 2026-09-15.
 - [x] `CP-DOC-H` — Local checkpoint gates passed on 2026-09-16; human review is pending.
+- [x] `CP-DOC-I` — Local checkpoint gates passed on 2026-09-16; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -742,7 +743,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** The exact stored binary is the only downloadable artifact and cannot be fetched by guessing or direct storage access.
 - **Size:** M. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-018 — Reconcile database and private template/artifact storage
+### [x] DOC-018 — Reconcile database and private template/artifact storage
 
 - **Outcome:** An idempotent management command verifies SHA-256/size/existence, reports modified/missing/orphaned files safely, quarantines/removes only explicitly authorized staging orphans, and emits operational results.
 - **SPEC:** §§7.1, 12, 18.2, 20.2; **FR:** `FR-GEN-05`; **AC:** `AC-22`, `AC-24`.

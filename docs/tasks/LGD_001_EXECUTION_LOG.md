@@ -1879,3 +1879,59 @@ credentials, generated-document content, or other sensitive payloads.
   UI, audit metadata or logs. No test was weakened or suppressed, and no unrelated refactor was added.
 - **Commit:** Not created; the user did not request commits.
 - **Deviations or blockers:** No implementation or repository-local verification blocker remains.
+
+## DOC-018 — Reconcile database and private template/artifact storage
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added an idempotent `reconcile_private_files` management command and focused service.
+  It streams every referenced template and finalized artifact through bounded chunks, verifies exact
+  size and SHA-256, inventories the configured private root, and emits a single bounded JSON summary.
+  Missing, modified, unreadable, orphaned, unsafe, stale, or partially scanned storage fails closed
+  without exposing storage keys, filenames, file content, user values, or exception details.
+- **Cleanup safety:** The default and `--check` modes are read-only. The explicit
+  `--cleanup-stale-staging` mode removes only regular application staging files with the exact
+  immutable-stage name contract after a fixed 24-hour age threshold and an immediate type/age recheck.
+  It never follows symlinks or deletes final orphans, templates, or artifacts, and repeated cleanup is
+  idempotent.
+- **Incremental slices:** (1) referenced-file streaming integrity checks and bounded command result;
+  (2) full-root orphan/staging inventory, validated root and narrow cleanup; and (3) operator runbook,
+  broader validation and checkpoint closure.
+- **Files:** `apps/documents/reconciliation.py`,
+  `apps/documents/management/commands/reconcile_private_files.py`, management package markers,
+  `apps/documents/tests/test_private_file_reconciliation.py`,
+  `docs/operations/private-file-reconciliation.md`, `docs/tasks/LGD_001_TASKS.md`, and this log.
+- **Verification:** Focused reconciliation tests pass 25 tests at 98.29% branch coverage across the
+  service and command. The broader document/storage profile passed 489 tests with 17 intentional
+  environment-profile skips before the final error-path additions. Ruff lint/format and full mypy pass;
+  Django system and migration-drift checks pass. Repository-wide gates are recorded in the CP-DOC-I
+  closure below.
+- **Acceptance evidence:** Missing and modified template/artifact tests plus operational JSON/nonzero
+  command results cover `AC-22`. The runbook requires coordinated database/private-file restore,
+  post-restore reconciliation, representative checksum/download verification, and recording against
+  the eight-hour RTO and 24-hour RPO portions of `AC-24`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Included in the CP-DOC-I implementation commit at the user's request.
+- **Deviations or blockers:** The incremental skill's referenced standalone Definition of Done file is
+  absent at `.agents/references/definition-of-done.md`; the repository's `AGENT.md` Definition of Done
+  and task-specific gates were applied. No implementation blocker remains.
+
+## CP-DOC-I — Checkpoint closure
+
+- **Completion date:** 2026-09-16
+- **Status:** Local implementation and verification are complete for `DOC-018`; human checkpoint
+  review is pending.
+- **Security and privacy:** The command validates the configured root, treats database/filesystem state
+  as untrusted, rejects symlinks and special entries, performs no broad glob/delete, and discloses only
+  fixed-category aggregate counts. It adds no dependency, endpoint, permission, schema, legal wording,
+  public storage route, or sensitive telemetry.
+- **Operational evidence:** The structured event answers whether the scan completed, its duration, the
+  bounded finding counts, and whether stale staging files were removed. The runbook defines routine
+  scheduling, alert conditions, quiescence, investigation, coordinated restore, and post-restore
+  verification.
+- **Quality gates:** Focused service/command coverage is 98.29%, above the 95% integrity-module target.
+  Exact `Q-TEST` passes 1,118 tests with 29 intentional environment-profile skips at 93.85% branch
+  coverage, above the 85% project threshold. Repository-wide Ruff lint and format, mypy over
+  `apps config`, Django checks, migration drift, diff whitespace checks, command help discovery, and
+  development-server startup pass. CSS, browser and message-catalog gates are not applicable because
+  this checkpoint changes no UI, static asset, translated application copy, or HTTP workflow.
+- **Commit:** Included in the CP-DOC-I implementation commit at the user's request.
