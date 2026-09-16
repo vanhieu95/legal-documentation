@@ -101,6 +101,8 @@ def test_history_lists_safe_metadata_newest_first_for_full_and_fragment(
     body = response.content.decode()
     assert body.index(str(generated.pk)) < body.index(str(failed.pk))
     assert generated.output_filename in body
+    assert reverse("documents:generated-document-download", args=[generated.pk]) in body
+    assert reverse("documents:generated-document-download", args=[failed.pk]) not in body
     assert failed.get_failure_category_display() in body
     assert failed.template_version.version in body
     assert failed.schema_version in body

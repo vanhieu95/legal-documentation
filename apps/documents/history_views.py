@@ -48,6 +48,7 @@ from apps.documents.selectors import (
 class GenerationHistoryRow:
     item: GenerationHistoryItem
     retry_form: GenerationRetryForm | None
+    download_url: str | None
 
 
 def _is_htmx(request: HttpRequest) -> bool:
@@ -91,6 +92,11 @@ def _render_history(
     rows = tuple(
         GenerationHistoryRow(
             item=item,
+            download_url=(
+                reverse("documents:generated-document-download", args=[item.id])
+                if item.status == GeneratedDocument.Status.GENERATED
+                else None
+            ),
             retry_form=(
                 GenerationRetryForm(
                     initial={

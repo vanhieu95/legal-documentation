@@ -1,10 +1,15 @@
 from django.urls import path
 
-from apps.documents import history_views, views, workflow_views
+from apps.documents import download_views, history_views, views, workflow_views
 
 app_name = "documents"
 
 urlpatterns = [
+    path(
+        "documents/generated/<uuid:attempt_id>/download/",
+        download_views.generated_document_download,
+        name="generated-document-download",
+    ),
     path(
         "cases/<uuid:case_id>/documents/",
         workflow_views.case_document_selector,

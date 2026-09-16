@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 07:08+0700\n"
+"POT-Creation-Date: 2026-09-16 08:08+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -1401,7 +1401,7 @@ msgstr "Phân trang nhật ký kiểm tra"
 #: templates/audit/_audit_results.html:144
 #: templates/cases/_case_results.html:63
 #: templates/cases/references/_reference_results.html:62
-#: templates/documents/_generation_history.html:53
+#: templates/documents/_generation_history.html:56
 #: templates/documents/_template_list.html:56
 msgid "Previous"
 msgstr "Trước"
@@ -1420,7 +1420,7 @@ msgstr ""
 #: templates/audit/_audit_results.html:154
 #: templates/cases/_case_results.html:65
 #: templates/cases/references/_reference_results.html:64
-#: templates/documents/_generation_history.html:55
+#: templates/documents/_generation_history.html:58
 #: templates/documents/_template_list.html:58
 msgid "Next"
 msgstr "Sau"
@@ -1590,7 +1590,7 @@ msgstr "Các trang kết quả hồ sơ"
 
 #: templates/cases/_case_results.html:64
 #: templates/cases/references/_reference_results.html:63
-#: templates/documents/_generation_history.html:54
+#: templates/documents/_generation_history.html:57
 #, python-format
 msgid "Page %(page)s of %(pages)s"
 msgstr "Trang %(page)s / %(pages)s"
@@ -2194,19 +2194,23 @@ msgstr "Tên tệp"
 msgid "Failure summary"
 msgstr "Tóm tắt lỗi"
 
-#: templates/documents/_generation_history.html:45
+#: templates/documents/_generation_history.html:42
+msgid "Download document"
+msgstr "Tải văn bản xuống"
+
+#: templates/documents/_generation_history.html:48
 msgid "Retry generation"
 msgstr "Thử tạo lại"
 
-#: templates/documents/_generation_history.html:52
+#: templates/documents/_generation_history.html:55
 msgid "Generation history pages"
 msgstr "Các trang lịch sử tạo văn bản"
 
-#: templates/documents/_generation_history.html:60
+#: templates/documents/_generation_history.html:63
 msgid "No generation attempts yet"
 msgstr "Chưa có lần tạo văn bản nào"
 
-#: templates/documents/_generation_history.html:61
+#: templates/documents/_generation_history.html:64
 msgid "Generated and failed attempts for this case will appear here."
 msgstr "Các lần tạo thành công và thất bại của hồ sơ này sẽ xuất hiện tại đây."
 

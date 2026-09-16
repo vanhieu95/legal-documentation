@@ -1784,11 +1784,10 @@ credentials, generated-document content, or other sensitive payloads.
 - **Commit:** Not created; the user did not request commits.
 - **Deviations or blockers:** None for `DOC-015`.
 
-## DOC-016 — Generation history and retry seeding (in progress)
+## DOC-016 — Generation history and retry seeding
 
-- **Status:** All history/retry behavior is implemented and locally verified except the successful
-  artifact link required by the task breakdown. `DOC-016` and `CP-DOC-H` therefore remain open.
-- **Outcome so far:** Added a case-scoped, permission-protected, newest-first history selector with a
+- **Completion date:** 2026-09-16
+- **Outcome:** Added a case-scoped, permission-protected, newest-first history selector with a
   bounded 25-row page and safe attempt metadata only. Full and HTMX views expose generated/failed
   state, actor/time/template/schema/filename and bounded failure summaries without snapshots, storage
   keys or exceptions. Failed-attempt retry is POST/CSRF-only and creates a distinct token and attempt;
@@ -1810,17 +1809,73 @@ credentials, generated-document content, or other sensitive payloads.
 - **Acceptance evidence:** Tests prove newest-first pagination, safe metadata, full/fragment response
   and `Vary` behavior, permission and cross-case denial, constant query count, immutable source attempts,
   and distinct retry tokens/rows. This supplies the history/retry portions of `AC-14`, `AC-18`, and
-  `AC-20`; the canonical successful-download link is not claimed.
+  `AC-20`. Successful rows now expose the reverse-resolved canonical download supplied by `DOC-017`;
+  failed and in-progress rows do not expose a link.
 - **Pre-existing/transient failures:** An initial browser run contacted a stale process on port 8000.
   A fresh isolated run then exposed an invalid synthetic DOCX fixture and insufficient activation
   candidates; both test-fixture defects were corrected. One intermediate HTMX assertion matched two
   headings and was scoped to its fragment. The final complete browser run is green.
-- **Requirement conflict / follow-up:** The task breakdown says `DOC-016` must link successful attempts
-  to downloads, while the specification, dependency order and `DOC-017` assign the canonical
-  `/documents/generated/<uuid>/download/` endpoint, object authorization, integrity checks and audit
-  behavior to `DOC-017`, which depends on `DOC-016`. A broken URL or an unverified partial download
-  endpoint was not introduced. The smallest safe follow-up is to implement `DOC-017`, then expose its
-  reverse-resolved URL for successful rows and close `DOC-016`/`CP-DOC-H` after focused verification.
+- **Dependency resolution:** `DOC-017` now supplies the complete canonical endpoint before the history
+  template exposes its reverse-resolved URL, resolving the previously documented dependency cycle
+  without introducing a partial or unaudited download route.
 - **Migration:** None. Existing case/reservation ordering indexes are used; the query-count profile did
   not justify another index.
 - **Commit:** Not created; the user did not request commits.
+
+## DOC-017 — Serve only authorized canonical stored artifacts
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added the canonical `GET /documents/generated/<uuid>/download/` endpoint. It authorizes
+  the download permission and case object scope again at the service boundary, selects generated rows
+  only, opens the server-owned private key, verifies exact byte size and SHA-256 before delivery, and
+  serves the stored binary without re-rendering.
+- **Security and headers:** Anonymous, missing-permission, guessed, cross-scope and non-generated
+  attempts fail closed. Missing or modified artifacts return the same generic not-found response after
+  a bounded failure audit. Successful responses use the official DOCX media type, `nosniff`, private
+  no-store/no-cache controls, exact length, and an attachment value containing both a conservative
+  ASCII fallback and RFC 5987 UTF-8 filename. The private storage still has no public URL.
+- **Audit and privacy:** Every endpoint attempt records one generated-document download action with a
+  success, failure or denied outcome. Events contain only actor/system marker, opaque attempt UUID and
+  correlation ID—never filename, storage key, case payload, bytes or exception content.
+- **Files:** `apps/audit/actions.py`, `apps/documents/downloads.py`,
+  `apps/documents/download_views.py`, `apps/documents/urls.py`,
+  `apps/documents/tests/test_generated_document_download.py`,
+  `apps/documents/history_views.py`, `apps/documents/tests/test_generation_history_views.py`,
+  `templates/documents/_generation_history.html`, and `locale/vi/LC_MESSAGES/django.po`.
+- **Verification:** The pre-change history/artifact baseline passed 39 tests. The focused final
+  download/history profile passed 18 tests; the broader generation reservation/artifact/workflow/
+  history/download profile passed 92. `Q-PY`, `Q-DJ`, `Q-I18N`, and `Q-CSS` passed. Exact `Q-TEST`
+  passed 1,093 tests with 29 intentional environment-profile skips at 93.69% branch coverage.
+- **Acceptance evidence:** Exact stored bytes, content type, length, cache and attachment headers cover
+  `AC-16`. Historical generated rows remain immutable and linked to their original bytes for `AC-14`.
+  Authentication, permission, guessed UUID, failed-state and object-scope tests cover `AC-21`.
+  Missing, size-mismatched and checksum-mismatched content is rejected and audited for `AC-22`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None. Browser download/open was not separately rerun because the task's
+  required local gate is the focused stored-byte/header/integrity profile; the existing CP-DOC-H
+  browser history profile remained unchanged apart from the ordinary canonical link.
+
+## CP-DOC-H — Checkpoint closure
+
+- **Completion date:** 2026-09-16
+- **Status:** Local implementation and verification are complete for `DOC-015` through `DOC-017`;
+  human checkpoint review is pending.
+- **Incremental slices:** (1) establish the existing history/artifact baseline; (2) add failing
+  authorization, IDOR, integrity, header, audit and history-link tests; (3) implement the complete
+  canonical stored-artifact path and localized history affordance; and (4) run focused, broader and
+  repository-wide regression gates with diff review between slices.
+- **Acceptance evidence:** `AC-03`, `AC-08`, `AC-09`, `AC-11`, and `AC-17`–`AC-20` retain the existing
+  `DOC-015` evidence. `DOC-016` proves newest-first safe history, immutable retries and recovery for
+  `AC-14`, `AC-18`, and `AC-20`. `DOC-017` adds exact canonical delivery and filename headers for
+  `AC-14`/`AC-16`, deny-by-default UUID/object authorization for `AC-21`, and pre-delivery checksum/
+  size verification for `AC-22`.
+- **Quality gates:** Focused 18/18 and broader 92/92 profiles passed. Ruff lint and format, mypy over
+  `apps config`, Django checks and migration drift, message extraction/compilation, and the production
+  CSS build passed. Exact `Q-TEST` passed 1,093 tests with 29 intentional environment-profile skips at
+  93.69% branch coverage, above the 85% project threshold.
+- **Security, privacy and scope:** No schema, legal wording, registry key, generation snapshot,
+  artifact metadata, public storage configuration or dependency changed. No confidential value enters
+  UI, audit metadata or logs. No test was weakened or suppressed, and no unrelated refactor was added.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** No implementation or repository-local verification blocker remains.

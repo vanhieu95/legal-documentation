@@ -55,7 +55,7 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-E` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 - [x] `CP-DOC-F` — Local checkpoint gates passed on 2026-09-14; human review is pending.
 - [x] `CP-DOC-G` — Approved on 2026-09-16; local checkpoint gates passed on 2026-09-15.
-- [ ] `CP-DOC-H` — `DOC-015` is complete; `DOC-016` awaits its successful-artifact link after `DOC-017` supplies the specified download endpoint.
+- [x] `CP-DOC-H` — Local checkpoint gates passed on 2026-09-16; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -710,7 +710,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Synthetic case → review → one immutable generation works and every failure is recoverable without lost draft.
 - **Size:** L. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `incremental-implementation`, `code-review-and-quality`.
 
-### [ ] DOC-016 — Deliver generation history and retry seeding
+### [x] DOC-016 — Deliver generation history and retry seeding
 
 - **Outcome:** Case history lists every attempt newest-first with safe status/type/actor/time/template/schema/filename/failure summary and can seed a distinct retry draft/attempt.
 - **SPEC:** §§5.4, 6.5, 14, 15.3; **FR:** `FR-GEN-06`, `FR-GEN-08`; **AC:** `AC-14`, `AC-18`, `AC-20`.
@@ -726,7 +726,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Historical attempts remain immutable/readable and retry never rewrites a failed or successful row.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] DOC-017 — Serve only authorized canonical stored artifacts
+### [x] DOC-017 — Serve only authorized canonical stored artifacts
 
 - **Outcome:** Download streams/internal-redirects the stored canonical binary with correct DOCX MIME, `nosniff`, safe ASCII and RFC-compatible UTF-8 attachment names after object authorization and integrity checks.
 - **SPEC:** §§5.3–5.4, 6.5, 16, 18; **FR:** `FR-GEN-07`; **AC:** `AC-14`, `AC-16`, `AC-21`, `AC-22`.

@@ -38,6 +38,9 @@
             {% if row.item.output_filename %}<div><dt>{% translate "Filename" %}</dt><dd>{{ row.item.output_filename }}</dd></div>{% endif %}
             {% if row.item.failure_summary %}<div><dt>{% translate "Failure summary" %}</dt><dd>{{ row.item.failure_summary }}</dd></div>{% endif %}
           </dl>
+          {% if row.download_url %}
+            <a class="button button-secondary" href="{{ row.download_url }}" data-generation-download>{% translate "Download document" %}</a>
+          {% endif %}
           {% if row.retry_form %}
             <form method="post" action="{{ retry_url }}" hx-post="{{ retry_url }}" hx-target="#generation-history" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-generation-retry-form>
               {% csrf_token %}

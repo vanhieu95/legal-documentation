@@ -43,6 +43,7 @@ class AuditAction(StrEnum):
     DOCUMENT_GENERATION_RESERVED = "document_generation.reserved"
     DOCUMENT_GENERATION_SUCCEEDED = "document_generation.succeeded"
     DOCUMENT_GENERATION_FAILED = "document_generation.failed"
+    DOCUMENT_DOWNLOADED = "document_generation.downloaded"
 
 
 class AuditOutcome(StrEnum):
