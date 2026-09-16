@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 16:11+0700\n"
+"POT-Creation-Date: 2026-09-16 07:08+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -74,6 +74,7 @@ msgstr "Tất cả kết quả"
 
 #: apps/audit/forms.py:39 templates/audit/_audit_results.html:34
 #: templates/audit/_audit_results.html:102
+#: templates/documents/_generation_history.html:33
 msgid "Actor"
 msgstr "Người thực hiện"
 
@@ -702,7 +703,7 @@ msgstr "Đã lên lịch"
 msgid "Postponed"
 msgstr "Đã hoãn"
 
-#: apps/cases/models.py:633
+#: apps/cases/models.py:633 templates/documents/_generation_history.html:35
 msgid "Completed"
 msgstr "Đã hoàn thành"
 
@@ -872,37 +873,47 @@ msgstr "Đã ngừng sử dụng dữ liệu tham chiếu."
 msgid "Deactivate %(type)s"
 msgstr "Ngừng sử dụng %(type)s"
 
-#: apps/documents/forms.py:17
+#: apps/documents/forms.py:19 templates/documents/_generation_history.html:36
 msgid "Template version"
 msgstr "Phiên bản biểu mẫu"
 
-#: apps/documents/forms.py:18
+#: apps/documents/forms.py:20
 msgid "Use a unique controlled version, for example v1.0."
 msgstr "Sử dụng phiên bản kiểm soát duy nhất, ví dụ v1.0."
 
-#: apps/documents/forms.py:23
+#: apps/documents/forms.py:25
 msgid "Approval note or reference"
 msgstr "Ghi chú hoặc tham chiếu phê duyệt"
 
-#: apps/documents/forms.py:24
+#: apps/documents/forms.py:26
 msgid "This records provenance and does not activate the template."
 msgstr "Thông tin này ghi nhận nguồn gốc và không kích hoạt biểu mẫu."
 
-#: apps/documents/forms.py:28
+#: apps/documents/forms.py:30
 msgid "DOCX template"
 msgstr "Biểu mẫu DOCX"
 
-#: apps/documents/forms.py:29
+#: apps/documents/forms.py:31
 msgid "Maximum compressed file size: 10 MiB."
 msgstr "Kích thước tệp nén tối đa: 10 MiB."
 
-#: apps/documents/forms.py:36
+#: apps/documents/forms.py:38
 msgid "The uploaded file exceeds the 10 MiB limit."
 msgstr "Tệp tải lên vượt quá giới hạn 10 MiB."
 
-#: apps/documents/forms.py:38
+#: apps/documents/forms.py:40
 msgid "Select a DOCX file."
 msgstr "Chọn tệp DOCX."
+
+#: apps/documents/forms.py:75
+msgid ""
+"I confirm the reviewed draft should be generated with this template version."
+msgstr ""
+"Tôi xác nhận tạo văn bản từ bản nháp đã kiểm tra bằng phiên bản biểu mẫu này."
+
+#: apps/documents/forms.py:81
+msgid "The generation confirmation is invalid."
+msgstr "Xác nhận tạo văn bản không hợp lệ."
 
 #: apps/documents/models.py:61
 msgid "A document draft payload must be a JSON object."
@@ -1139,11 +1150,11 @@ msgstr "Đã kích hoạt phiên bản biểu mẫu."
 msgid "The template version was deactivated."
 msgstr "Đã ngừng sử dụng phiên bản biểu mẫu."
 
-#: apps/documents/workflow_views.py:308
+#: apps/documents/workflow_views.py:587
 msgid "The submitted document values are invalid."
 msgstr "Các giá trị tài liệu đã gửi không hợp lệ."
 
-#: apps/documents/workflow_views.py:340
+#: apps/documents/workflow_views.py:619
 msgid "The document draft was saved."
 msgstr "Đã lưu bản nháp tài liệu."
 
@@ -1242,6 +1253,8 @@ msgstr "Xem hoạt động hồ sơ hiện tại và tiếp tục công việc q
 #: templates/documents/document_draft.html:5
 #: templates/documents/document_selector.html:4
 #: templates/documents/document_selector.html:5
+#: templates/documents/generation_history.html:5
+#: templates/documents/generation_result.html:5
 msgid "Documents"
 msgstr "Tài liệu"
 
@@ -1388,6 +1401,7 @@ msgstr "Phân trang nhật ký kiểm tra"
 #: templates/audit/_audit_results.html:144
 #: templates/cases/_case_results.html:63
 #: templates/cases/references/_reference_results.html:62
+#: templates/documents/_generation_history.html:53
 #: templates/documents/_template_list.html:56
 msgid "Previous"
 msgstr "Trước"
@@ -1406,6 +1420,7 @@ msgstr ""
 #: templates/audit/_audit_results.html:154
 #: templates/cases/_case_results.html:65
 #: templates/cases/references/_reference_results.html:64
+#: templates/documents/_generation_history.html:55
 #: templates/documents/_template_list.html:58
 msgid "Next"
 msgstr "Sau"
@@ -1475,15 +1490,15 @@ msgstr "Tải lại hồ sơ mới nhất"
 #: templates/cases/_case_form.html:13
 #: templates/cases/_case_transition_form.html:12
 #: templates/cases/references/_reference_form.html:6
-#: templates/documents/_document_draft_form.html:30
-#: templates/documents/_document_draft_form.html:41
+#: templates/documents/_document_draft_form.html:36
+#: templates/documents/_document_draft_form.html:47
 #: templates/documents/_template_upload_workflow.html:29
 msgid "Correct the highlighted fields"
 msgstr "Vui lòng sửa các trường được đánh dấu"
 
 #: templates/cases/_case_form.html:33
 #: templates/cases/references/_reference_form.html:24
-#: templates/documents/_document_draft_form.html:86
+#: templates/documents/_document_draft_form.html:92
 msgid "Saving…"
 msgstr "Đang lưu…"
 
@@ -1495,7 +1510,7 @@ msgstr "Đang lưu…"
 #: templates/cases/references/_deactivate_form.html:11
 #: templates/cases/references/_reference_form.html:25
 #: templates/components/buttons.html:7
-#: templates/documents/_document_draft_form.html:88
+#: templates/documents/_document_draft_form.html:94
 #: templates/documents/_template_transition_form.html:39
 #: templates/documents/_template_transition_form.html:40
 #: templates/documents/_template_upload_workflow.html:49
@@ -1575,6 +1590,7 @@ msgstr "Các trang kết quả hồ sơ"
 
 #: templates/cases/_case_results.html:64
 #: templates/cases/references/_reference_results.html:63
+#: templates/documents/_generation_history.html:54
 #, python-format
 msgid "Page %(page)s of %(pages)s"
 msgstr "Trang %(page)s / %(pages)s"
@@ -2014,46 +2030,99 @@ msgstr "Không thể lưu bản nháp."
 msgid "Your values remain below. Try again."
 msgstr "Các giá trị của bạn vẫn được giữ lại bên dưới. Hãy thử lại."
 
-#: templates/documents/_document_draft_form.html:52
+#: templates/documents/_document_draft_form.html:30
+#: templates/documents/_generation_result.html:11
+msgid "The document could not be generated."
+msgstr "Không thể tạo văn bản."
+
+#: templates/documents/_document_draft_form.html:31
+msgid ""
+"The draft remains ready. Reload and review the current case and template "
+"before trying again."
+msgstr ""
+"Bản nháp vẫn ở trạng thái sẵn sàng. Hãy tải lại và kiểm tra hồ sơ cùng biểu "
+"mẫu hiện tại trước khi thử lại."
+
+#: templates/documents/_document_draft_form.html:58
 msgid "Value sources"
 msgstr "Nguồn giá trị"
 
-#: templates/documents/_document_draft_form.html:54
+#: templates/documents/_document_draft_form.html:60
 msgid "Shared case-prefilled values"
 msgstr "Giá trị dùng chung từ hồ sơ"
 
-#: templates/documents/_document_draft_form.html:55
+#: templates/documents/_document_draft_form.html:61
 msgid ""
 "These values come from the case and are not changed by saving this draft."
 msgstr "Các giá trị này lấy từ hồ sơ và không thay đổi khi lưu bản nháp."
 
-#: templates/documents/_document_draft_form.html:58
+#: templates/documents/_document_draft_form.html:64
 msgid "Document-specific values"
 msgstr "Giá trị riêng của tài liệu"
 
-#: templates/documents/_document_draft_form.html:66
+#: templates/documents/_document_draft_form.html:72
 msgid "Source"
 msgstr "Nguồn"
 
-#: templates/documents/_document_draft_form.html:66
+#: templates/documents/_document_draft_form.html:72
 msgid "Overridden in this draft"
 msgstr "Đã ghi đè trong bản nháp này"
 
-#: templates/documents/_document_draft_form.html:86
+#: templates/documents/_document_draft_form.html:92
 msgid "Save draft"
 msgstr "Lưu bản nháp"
 
-#: templates/documents/_document_draft_form.html:87
+#: templates/documents/_document_draft_form.html:93
 msgid "Mark ready"
 msgstr "Đánh dấu sẵn sàng"
 
-#: templates/documents/_document_draft_form.html:94
+#: templates/documents/_document_draft_form.html:100
 msgid "Administrator overrides"
 msgstr "Ghi đè của quản trị viên"
 
-#: templates/documents/_document_draft_form.html:95
+#: templates/documents/_document_draft_form.html:101
 msgid "An override belongs only to this draft and retains its source."
 msgstr "Giá trị ghi đè chỉ thuộc bản nháp này và vẫn lưu nguồn của giá trị."
+
+#: templates/documents/_document_draft_form.html:105
+msgid "Confirm document generation"
+msgstr "Xác nhận tạo văn bản"
+
+#: templates/documents/_document_draft_form.html:106
+#, python-format
+msgid ""
+"Generate %(type_code)s for case %(case_reference)s using template version "
+"%(template_version)s."
+msgstr ""
+"Tạo %(type_code)s cho hồ sơ %(case_reference)s bằng phiên bản biểu mẫu "
+"%(template_version)s."
+
+#: templates/documents/_document_draft_form.html:107
+msgid ""
+"Generation stores an immutable document and snapshot. Later changes require "
+"a new attempt."
+msgstr ""
+"Việc tạo văn bản lưu một văn bản và ảnh chụp dữ liệu bất biến. Các thay đổi "
+"sau này cần một lần tạo mới."
+
+#: templates/documents/_document_draft_form.html:110
+msgid "Confirm generation before continuing"
+msgstr "Xác nhận trước khi tiếp tục tạo văn bản"
+
+#: templates/documents/_document_draft_form.html:115
+msgid ""
+"The generation request could not be completed. Check the connection and try "
+"again."
+msgstr ""
+"Không thể hoàn tất yêu cầu tạo văn bản. Hãy kiểm tra kết nối và thử lại."
+
+#: templates/documents/_document_draft_form.html:124
+msgid "Generate document"
+msgstr "Tạo văn bản"
+
+#: templates/documents/_document_draft_form.html:125
+msgid "Generating…"
+msgstr "Đang tạo…"
 
 #: templates/documents/_document_selector.html:6
 msgid ""
@@ -2078,6 +2147,98 @@ msgid ""
 msgstr ""
 "Loại tài liệu đã bật cần có một biểu mẫu đang hoạt động hợp lệ trước khi có "
 "thể chọn."
+
+#: templates/documents/_generation_history.html:7
+msgid ""
+"Generation history could not be refreshed. Check the connection and try "
+"again."
+msgstr ""
+"Không thể làm mới lịch sử tạo văn bản. Hãy kiểm tra kết nối và thử lại."
+
+#: templates/documents/_generation_history.html:9
+#: templates/documents/generation_history.html:4
+#: templates/documents/generation_history.html:9
+msgid "Generation history"
+msgstr "Lịch sử tạo văn bản"
+
+#: templates/documents/_generation_history.html:12
+msgid "The retry could not be started."
+msgstr "Không thể bắt đầu lần thử tạo lại."
+
+#: templates/documents/_generation_history.html:13
+msgid "Review the current case, draft, and template before trying again."
+msgstr "Hãy kiểm tra hồ sơ, bản nháp và biểu mẫu hiện tại trước khi thử lại."
+
+#: templates/documents/_generation_history.html:18
+msgid "A new generation attempt was created."
+msgstr "Đã tạo một lần tạo văn bản mới."
+
+#: templates/documents/_generation_history.html:22
+msgid "Generation attempts"
+msgstr "Các lần tạo văn bản"
+
+#: templates/documents/_generation_history.html:34
+msgid "Started"
+msgstr "Bắt đầu"
+
+#: templates/documents/_generation_history.html:37
+msgid "Schema version"
+msgstr "Phiên bản lược đồ"
+
+#: templates/documents/_generation_history.html:38
+#: templates/documents/_generation_result.html:7
+msgid "Filename"
+msgstr "Tên tệp"
+
+#: templates/documents/_generation_history.html:39
+msgid "Failure summary"
+msgstr "Tóm tắt lỗi"
+
+#: templates/documents/_generation_history.html:45
+msgid "Retry generation"
+msgstr "Thử tạo lại"
+
+#: templates/documents/_generation_history.html:52
+msgid "Generation history pages"
+msgstr "Các trang lịch sử tạo văn bản"
+
+#: templates/documents/_generation_history.html:60
+msgid "No generation attempts yet"
+msgstr "Chưa có lần tạo văn bản nào"
+
+#: templates/documents/_generation_history.html:61
+msgid "Generated and failed attempts for this case will appear here."
+msgstr "Các lần tạo thành công và thất bại của hồ sơ này sẽ xuất hiện tại đây."
+
+#: templates/documents/_generation_result.html:5
+msgid "The document was generated successfully."
+msgstr "Đã tạo văn bản thành công."
+
+#: templates/documents/_generation_result.html:6
+msgid "The immutable DOCX artifact was stored and verified."
+msgstr "Tệp DOCX bất biến đã được lưu và xác minh."
+
+#: templates/documents/_generation_result.html:12
+msgid "The draft was preserved. Review it and start a new generation attempt."
+msgstr ""
+"Bản nháp đã được giữ nguyên. Hãy kiểm tra và bắt đầu một lần tạo văn bản mới."
+
+#: templates/documents/_generation_result.html:13
+msgid "Failure category"
+msgstr "Loại lỗi"
+
+#: templates/documents/_generation_result.html:14
+msgid "Reference"
+msgstr "Mã tham chiếu"
+
+#: templates/documents/_generation_result.html:18
+msgid "Return to document draft"
+msgstr "Quay lại bản nháp tài liệu"
+
+#: templates/documents/_generation_result.html:19
+#: templates/documents/document_draft.html:10
+msgid "View generation history"
+msgstr "Xem lịch sử tạo văn bản"
 
 #: templates/documents/_template_list.html:2
 msgid "Template information could not be loaded. Try again."
@@ -2221,6 +2382,11 @@ msgstr "Tải lên và xác thực"
 #: templates/documents/document_selector.html:9
 msgid "Select a document"
 msgstr "Chọn tài liệu"
+
+#: templates/documents/generation_result.html:4
+#: templates/documents/generation_result.html:9
+msgid "Generation result"
+msgstr "Kết quả tạo văn bản"
 
 #: templates/documents/template_list.html:9
 msgid "Document administration"

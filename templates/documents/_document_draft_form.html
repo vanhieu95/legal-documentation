@@ -25,6 +25,12 @@
       <p>{% translate "Your values remain below. Try again." %}</p>
     </div>
   {% endif %}
+  {% if generation_unavailable %}
+    <div class="alert alert-danger" role="alert" tabindex="-1" data-generation-unavailable data-conflict-summary>
+      <p class="alert-title">{% translate "The document could not be generated." %}</p>
+      <p>{% translate "The draft remains ready. Reload and review the current case and template before trying again." %}</p>
+    </div>
+  {% endif %}
   {% if form.errors or control_form.errors %}
     <div class="alert alert-danger" role="alert" tabindex="-1" data-error-summary>
       <p class="alert-title">{% translate "Correct the highlighted fields" %}</p>
@@ -94,5 +100,32 @@
       <h2 id="override-values-heading" class="surface-title">{% translate "Administrator overrides" %}</h2>
       <p class="field-help">{% translate "An override belongs only to this draft and retains its source." %}</p>
     </section>
+    {% if generation_form %}
+      <section class="surface" aria-labelledby="generation-confirmation-heading" data-generation-confirmation>
+        <h2 id="generation-confirmation-heading" class="surface-title">{% translate "Confirm document generation" %}</h2>
+        <p>{% blocktranslate with case_reference=case.internal_reference type_code=registration.official_code template_version=active_template.version %}Generate {{ type_code }} for case {{ case_reference }} using template version {{ template_version }}.{% endblocktranslate %}</p>
+        <p class="field-help">{% translate "Generation stores an immutable document and snapshot. Later changes require a new attempt." %}</p>
+        {% if generation_form.errors %}
+          <div class="alert alert-danger" role="alert" tabindex="-1" data-error-summary>
+            <p class="alert-title">{% translate "Confirm generation before continuing" %}</p>
+            {% for field in generation_form.visible_fields %}{% for error in field.errors %}<p><a href="#{{ field.id_for_label }}">{{ error }}</a></p>{% endfor %}{% endfor %}
+            {% for error in generation_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" action="{{ form_action }}" hx-post="{{ form_action }}" hx-target="#document-draft-form" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" class="stack-vertical" data-generation-form data-network-error-message="{% translate 'The generation request could not be completed. Check the connection and try again.' %}">
+          {% csrf_token %}
+          {% for field in generation_form.hidden_fields %}{{ field }}{% endfor %}
+          <div class="field field-checkbox">
+            {{ generation_form.confirmed }}
+            <label class="field-label" for="{{ generation_form.confirmed.id_for_label }}">{{ generation_form.confirmed.label }}</label>
+            {% for error in generation_form.confirmed.errors %}<p id="{{ generation_form.confirmed.id_for_label }}-error" class="field-error">{{ error }}</p>{% endfor %}
+          </div>
+          <button class="button button-primary" type="submit" data-generation-submit>
+            <span>{% translate "Generate document" %}</span>
+            <span class="htmx-indicator" aria-hidden="true">{% translate "Generating…" %}</span>
+          </button>
+        </form>
+      </section>
+    {% endif %}
   </div>
 </div>

@@ -1643,3 +1643,184 @@ credentials, generated-document content, or other sensitive payloads.
   entry.
 - **Deviations or blockers:** No implementation or local-verification blocker remains. External CI
   is not claimed. The next `CP-DOC-G` tasks are `DOC-013` and `DOC-014`; neither was started.
+
+## DOC-013 — Render with restricted context and validate DOCX output structure
+
+- **Completion date:** 2026-09-15
+- **Outcome:** Added a pure renderer for reserved generation attempts. It re-verifies the pinned
+  template identity and checksum, re-runs the registered template contract immediately before use,
+  maps only declared typed snapshot values, rebuilds dotted names into a restricted nested context,
+  renders through docxtpl with the existing StrictUndefined sandbox, and removes its process-private
+  temporary directory on both success and failure. Post-processing remains absent by default and can
+  run only by an approved name already registered in code.
+- **Output integrity:** Added complete DOCX package and Word-part inspection for protected OPC parts,
+  parseable XML, unresolved Jinja tokens or delimiters, paragraphs, tables, headers, footers, styles,
+  sections and page breaks. Each code-owned document registration now declares its minimum output
+  structure so legitimate conditional template branches are not compared to misleading raw-template
+  counts. A dual-render shadow preserves real filter behavior and XML escaping while deriving
+  per-part provenance for literal Jinja-looking user data; unresolved source markup and markup added
+  by a post-processor still fail closed.
+- **Tests and evidence:** Focused tests cover missing/unknown/wrong-shaped mapper values,
+  StrictUndefined-compatible revalidation, checksum and schema mismatch, conditional structures,
+  all supported text parts, lost structures, malformed packages, XML-attribute tokens, exact
+  source-token collisions, complete and unmatched hostile delimiters, XML metacharacters, Unicode,
+  `lower`/`upper`/`length` filter semantics, approved post-processing and temporary cleanup. The final
+  renderer/artifact/registry profile passed 116 tests at 97.17% combined branch coverage; the renderer
+  itself reached 95.77%, above the required 95% gate.
+- **Files:** `apps/documents/generation_rendering.py`, `apps/documents/output_validation.py`,
+  `apps/documents/registry.py`, `apps/documents/tests/test_generation_rendering.py`, and
+  `apps/documents/tests/test_registry.py`.
+- **Migration:** None.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** No implementation blocker remains. The synthetic representative was
+  inspected directly through its OPC/XML structure and reopen checks; a Word desktop visual review
+  is not available in this environment and remains part of the pending human checkpoint review, not
+  legal approval.
+
+## DOC-014 — Finalize immutable artifacts and persist recoverable failures
+
+- **Completion date:** 2026-09-15
+- **Outcome:** Added the authorized artifact pipeline from a reserved attempt through bounded template
+  read, safe render, checksum/size verification, unique private placement and a short locked success
+  transition. Private filesystem writes now stage and fsync a mode-restricted sibling file, publish it
+  with an atomic no-overwrite hard link, and remove staging files in `finally`. Successful metadata is
+  immutable under the existing model/database lifecycle controls and repeated finalization returns the
+  one winning artifact without creating a second success audit.
+- **Failure recovery and naming:** Render, context, template, storage and integrity failures clean only
+  server-generated keys scoped to the attempt, preserve the draft and snapshots, durably transition the
+  attempt to a bounded failed category/correlation identifier, and emit one safe failure audit without
+  payloads or exception causes. Races cannot rewrite a terminal success. Display names are NFC-normalized,
+  bounded to 150 characters, unique per attempt, stripped of controls, separators and Windows-forbidden
+  characters, and protect dotted as well as plain Windows device names. Retries remain new reservation
+  rows/tokens under `DOC-012`.
+- **Tests and evidence:** Failure injection covers template reads, mapping, rendering, output validation,
+  storage writes, altered read-back bytes, invalid returned keys, finalization/audit rollback, cleanup
+  failures, terminal races, permission/scope denial, safe correlations, immutable metadata, retry rows,
+  filenames and private file/directory modes. The final isolated PostgreSQL 18.6 profile passed 118/118,
+  including genuine two-connection success/success and success/storage-failure finalization races; both
+  leave one artifact and one success audit with no failed-state rewrite.
+- **Files:** `apps/audit/actions.py`, `apps/core/storage.py`,
+  `apps/documents/generation_artifacts.py`, `apps/documents/storage_keys.py`,
+  `apps/documents/tests/test_generation_artifacts.py`, and
+  `apps/documents/tests/test_generation_artifact_postgresql.py`.
+- **Migration:** None. Existing `GeneratedDocument` states, output constraints and failure categories
+  from `documents.0003` are reused; Django reported no migration drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None.
+
+## CP-DOC-G — Checkpoint closure
+
+- **Completion date:** 2026-09-15
+- **Status:** Approved by the user on 2026-09-16. Local implementation and verification are complete
+  for `DOC-013` and `DOC-014`.
+- **Incremental slices:** (1) restricted snapshot context, template identity revalidation and safe
+  rendering; (2) code-owned output structure contracts plus OPC/XML/token verification; (3) atomic
+  immutable storage, checksums, safe filenames and recoverable failure transitions; and (4) concurrency,
+  hostile-input provenance, privacy and cross-platform hardening. Each slice received focused tests and
+  diff review before the next slice.
+- **Required quality gates:** The pre-change baseline passed 111 tests with one expected profile skip.
+  Final Ruff lint and format, mypy over `apps config`, Django system and migration-drift checks passed.
+  The checkpoint-sensitive profile passed 116 tests at 97.17% combined branch coverage. The broader
+  application regression profile passed 937 tests with 28 profile skips. The exact `Q-TEST` command
+  passed 1,059 tests with 29 intentional environment-profile skips at 93.56% overall branch coverage,
+  above the 85% project threshold. The real-PostgreSQL focused profile passed 118/118. `Q-DEPLOY`
+  exited successfully and collectstatic copied 133 files; its sole diagnostic was the intentionally
+  deferred `security.W004` HSTS warning already documented by the production-settings plan.
+- **Acceptance evidence:** `AC-12` and `AC-15` are covered by pre-render contract revalidation,
+  StrictUndefined rendering, hostile-value tests and deep output OPC/XML/structure assertions. `AC-16`
+  is covered by bounded unique NFC and Windows/macOS/Linux-safe names. `AC-17` through `AC-20` are
+  covered by pinned snapshots/template identity, output SHA-256/size/key/name metadata, authorized
+  server-side execution, terminal row locks, safe success/failure audits, durable recoverable failure
+  states and new-row retries. `AC-22` is covered by private mode-restricted atomic placement,
+  post-write checksum verification and partial/orphan cleanup tests.
+- **Security, privacy and scope:** No payload, snapshot value, generated text, raw exception, private
+  path or unsafe correlation value is logged or audited. No suppressions, skipped acceptance tests,
+  hardcoded Vietnamese UI strings, schema changes, UI/download workflow, real VDS type, legal wording,
+  queue, network integration or unrelated refactor was introduced. `Q-CSS` and `Q-I18N` are not
+  applicable because this checkpoint changes no UI assets or localized messages.
+- **Review:** Multiple fresh-context adversarial cycles found and drove fixes for conditional structure
+  validation, Windows dotted device names, per-part literal provenance, chained sensitive causes,
+  real PostgreSQL concurrency, filter-preserving/XML-safe literal handling and standalone delimiters.
+  No high-severity blocker remains. External CI and Word desktop are not claimed.
+- **Files changed:** `apps/audit/actions.py`, `apps/core/storage.py`,
+  `apps/documents/generation_artifacts.py`, `apps/documents/generation_rendering.py`,
+  `apps/documents/output_validation.py`, `apps/documents/registry.py`,
+  `apps/documents/storage_keys.py`, `apps/documents/tests/test_generation_artifact_postgresql.py`,
+  `apps/documents/tests/test_generation_artifacts.py`,
+  `apps/documents/tests/test_generation_rendering.py`, `apps/documents/tests/test_registry.py`,
+  `docs/tasks/LGD_001_TASKS.md`, and this execution log.
+- **Deviations or blockers:** The first broad regression invocation named a nonexistent
+  `apps/core/tests` path and collected no tests; the corrected application profile passed and is the
+  result reported above. An initial PostgreSQL socket-style URL was rejected by the repository's
+  complete-URL parser; the corrected isolated TCP profile passed. No implementation or local automated
+  verification blocker remains. External CI and Word desktop review are not claimed.
+
+## DOC-015 — Deliver confirmed generation through full and HTMX workflows
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added a server-authorized synchronous generation workflow with an explicit confirmation,
+  a fresh random idempotency token, named case/type/template details, full-page fallback and narrowly
+  targeted HTMX results. The view revalidates case, draft revision, registry contract and active
+  template immediately before reservation and generation. Duplicate submissions reuse the same
+  attempt; invalid forms return `422`, stale/unavailable state returns recoverable `409`, and durable
+  generation failures return a safe result without losing the draft.
+- **Incremental slices:** (1) confirmation and normal/HTMX success paths; (2) validation, conflict,
+  failure, authorization, CSRF and archived-case recovery; and (3) busy, focus/live-region, network,
+  responsive and no-JavaScript behavior.
+- **Files:** `apps/documents/forms.py`, `apps/documents/urls.py`,
+  `apps/documents/workflow_views.py`, `apps/documents/tests/test_generation_workflow_views.py`,
+  `templates/documents/_document_draft_form.html`, `templates/documents/document_draft.html`,
+  `templates/documents/_generation_result.html`, `templates/documents/generation_result.html`,
+  `static/js/app.js`, `locale/vi/LC_MESSAGES/django.po`,
+  `scripts/prepare_browser_test_database.py`, and `tests/browser/smoke.spec.js`.
+- **Acceptance evidence:** Focused workflow tests cover full and fragment success, idempotent duplicate
+  POST, preserved invalid values, stale draft/template conflicts, archived cases, anonymous/session
+  behavior, permission denial, CSRF and recoverable artifact failure. Existing generation-service tests
+  cover mapper, render, validation, storage and finalization failure transitions. Browser coverage
+  exercises HTMX generation, JavaScript-disabled fallback, keyboard-visible status and responsive
+  layouts. These provide the `DOC-015` portions of `AC-03`, `AC-08`, `AC-09`, `AC-11`, and
+  `AC-17`–`AC-20`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None for `DOC-015`.
+
+## DOC-016 — Generation history and retry seeding (in progress)
+
+- **Status:** All history/retry behavior is implemented and locally verified except the successful
+  artifact link required by the task breakdown. `DOC-016` and `CP-DOC-H` therefore remain open.
+- **Outcome so far:** Added a case-scoped, permission-protected, newest-first history selector with a
+  bounded 25-row page and safe attempt metadata only. Full and HTMX views expose generated/failed
+  state, actor/time/template/schema/filename and bounded failure summaries without snapshots, storage
+  keys or exceptions. Failed-attempt retry is POST/CSRF-only and creates a distinct token and attempt;
+  no GET mutates data and no finalized row is rewritten.
+- **Incremental slices:** (1) safe bounded selector and full/fragment history; (2) authorized retry
+  seeding and idempotency; and (3) empty, loading/network, conflict, responsive and no-JavaScript
+  presentation.
+- **Files:** `apps/documents/forms.py`, `apps/documents/history_views.py`,
+  `apps/documents/selectors.py`, `apps/documents/urls.py`,
+  `apps/documents/tests/test_generation_history_views.py`,
+  `templates/documents/_generation_history.html`, `templates/documents/generation_history.html`,
+  `static/js/app.js`, `locale/vi/LC_MESSAGES/django.po`,
+  `scripts/prepare_browser_test_database.py`, and `tests/browser/smoke.spec.js`.
+- **Verification:** The initial focused baseline passed 69 tests. The generation workflow/history
+  profile now passes 25 tests; the broader generation reservation/artifact/view profile passes 83.
+  Ruff lint and format, mypy over `apps config`, `Q-CSS`, message extraction/compilation, Django system
+  checks and migration-drift checks pass. Exact `Q-TEST` passes 1,084 tests with 29 intentional profile
+  skips at 93.63% branch coverage. The final isolated Playwright run passes all 83 browser tests.
+- **Acceptance evidence:** Tests prove newest-first pagination, safe metadata, full/fragment response
+  and `Vary` behavior, permission and cross-case denial, constant query count, immutable source attempts,
+  and distinct retry tokens/rows. This supplies the history/retry portions of `AC-14`, `AC-18`, and
+  `AC-20`; the canonical successful-download link is not claimed.
+- **Pre-existing/transient failures:** An initial browser run contacted a stale process on port 8000.
+  A fresh isolated run then exposed an invalid synthetic DOCX fixture and insufficient activation
+  candidates; both test-fixture defects were corrected. One intermediate HTMX assertion matched two
+  headings and was scoped to its fragment. The final complete browser run is green.
+- **Requirement conflict / follow-up:** The task breakdown says `DOC-016` must link successful attempts
+  to downloads, while the specification, dependency order and `DOC-017` assign the canonical
+  `/documents/generated/<uuid>/download/` endpoint, object authorization, integrity checks and audit
+  behavior to `DOC-017`, which depends on `DOC-016`. A broken URL or an unverified partial download
+  endpoint was not introduced. The smallest safe follow-up is to implement `DOC-017`, then expose its
+  reverse-resolved URL for successful rows and close `DOC-016`/`CP-DOC-H` after focused verification.
+- **Migration:** None. Existing case/reservation ordering indexes are used; the query-count profile did
+  not justify another index.
+- **Commit:** Not created; the user did not request commits.

@@ -257,10 +257,81 @@ test("document draft works without JavaScript at 200 percent zoom", async ({ bro
 
   await expect(page).toHaveURL(/\/documents\/synthetic-platform-test\/$/);
   await expect(page.locator('[name="title"]')).toHaveValue("Bản nháp thử nghiệm");
+  await page.getByRole("button", { name: "Đánh dấu sẵn sàng" }).click();
+  await expect(page.locator("[data-generation-confirmation]")).toBeVisible();
+  await page.locator('[name="confirmed"]').check();
+  await page.locator("[data-generation-submit]").click();
+  await expect(page.locator("[data-generation-success]")).toBeVisible();
   await expect(page.locator("html")).toHaveClass("no-js");
   await expectNoPageOverflow(page);
   await context.close();
 });
+
+test("confirmed generation exposes busy state and immutable history through HTMX", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  const caseUrl = await createSyntheticCase(page, "GENERATION-HTMX");
+  await page.goto(`${new URL(caseUrl).pathname}documents/`);
+  await page.getByRole("link", { name: "Mở biểu mẫu tài liệu" }).click();
+  await page.locator('[name="title"]').fill("Văn bản thử nghiệm tạo đồng bộ");
+  await page.locator('[name="notes"]').fill("Nội dung kiểm thử lịch sử");
+  await page.getByRole("button", { name: "Đánh dấu sẵn sàng" }).click();
+
+  const confirmation = page.locator("[data-generation-confirmation]");
+  await expect(confirmation).toBeVisible();
+  await page.locator('[name="confirmed"]').check();
+  let releaseRequest;
+  const requestReleased = new Promise((resolve) => {
+    releaseRequest = resolve;
+  });
+  let observeRequest;
+  const requestObserved = new Promise((resolve) => {
+    observeRequest = resolve;
+  });
+  await page.route("**/documents/synthetic-platform-test/", async (route) => {
+    if (route.request().method() !== "POST" || !route.request().postData()?.includes("generate")) {
+      await route.continue();
+      return;
+    }
+    observeRequest();
+    await requestReleased;
+    await route.continue();
+  });
+  const submission = page.locator("[data-generation-submit]").click();
+  await requestObserved;
+  await expect(page.locator("#document-draft-form")).toHaveAttribute("aria-busy", "true");
+  releaseRequest();
+  await submission;
+
+  await expect(page.locator("[data-generation-success]")).toBeVisible();
+  await expect(page.locator("[data-generation-result]")).toBeFocused();
+  await page
+    .locator("[data-generation-result]")
+    .getByRole("link", { name: "Xem lịch sử tạo văn bản" })
+    .click();
+  await expect(page.locator("[data-generation-history]")).toBeVisible();
+  await expect(page.locator("[data-generation-attempt]")).toHaveCount(1);
+  await expect(page.locator("body")).not.toContainText("input_snapshot");
+  await expectNoPageOverflow(page);
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`generation history empty state reflows at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const caseUrl = await createSyntheticCase(page, `HISTORY-${viewport.name}`);
+    await page.goto(`${new URL(caseUrl).pathname}generation-history/`);
+
+    await expect(page.locator("[data-generation-history-empty]")).toBeVisible();
+    await expectNoPageOverflow(page);
+  });
+}
 
 for (const viewport of [
   { name: "compact", width: 375, height: 812 },

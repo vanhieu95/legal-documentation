@@ -155,6 +155,8 @@
     document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
     document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
     document.getElementById("template-upload-workflow")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("document-draft-form")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("generation-history")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
@@ -165,7 +167,10 @@
     const caseResults = requestElement?.closest("#case-results");
     const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
     const templateWorkflow = requestElement?.closest("#template-upload-workflow");
-    const affectedRegion = caseResults || dashboardActivity || templateWorkflow;
+    const generationForm = requestElement?.closest("[data-generation-form]");
+    const generationHistory = requestElement?.closest("[data-generation-history]");
+    const affectedRegion =
+      generationForm || generationHistory || caseResults || dashboardActivity || templateWorkflow;
     if (affectedRegion && errorRegion) {
       affectedRegion.setAttribute("aria-busy", "false");
       errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
@@ -211,7 +216,7 @@
       return;
     }
     const templateOutcome = document.querySelector(
-      "[data-template-result], [data-template-server-error]",
+      "[data-template-result], [data-template-server-error], [data-generation-result]",
     );
     if (templateOutcome instanceof HTMLElement) {
       templateOutcome.focus();

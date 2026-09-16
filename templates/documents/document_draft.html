@@ -7,6 +7,7 @@
 {% block main_content %}
   <section class="surface template-page" aria-labelledby="document-draft-title">
     <h1 id="document-draft-title" class="gallery-title">{{ registration.official_code }} — {{ registration.vietnamese_name }}</h1>
+    <p><a class="button button-quiet" href="{% url 'documents:case-generation-history' case.pk %}">{% translate "View generation history" %}</a></p>
     {% include "documents/_document_draft_form.html" %}
   </section>
 {% endblock %}

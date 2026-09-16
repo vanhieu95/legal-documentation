@@ -1,0 +1,13 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Generation history" %} · {{ case.internal_reference }}{% endblock %}
+{% block page_context %}{% translate "Documents" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface template-page" aria-labelledby="generation-history-title">
+    <h1 id="generation-history-title" class="gallery-title">{% translate "Generation history" %}</h1>
+    <p class="field-help">{{ case.internal_reference }} · {{ case.court.name }}</p>
+    {% include "documents/_generation_history.html" %}
+  </section>
+{% endblock %}

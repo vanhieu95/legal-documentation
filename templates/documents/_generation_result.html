@@ -1,0 +1,21 @@
+{% load i18n %}
+<div id="document-draft-form" hx-history="false" tabindex="-1" role="status" data-generation-result>
+  {% if attempt.status == "generated" %}
+    <div class="alert alert-success" data-generation-success>
+      <p class="alert-title">{% translate "The document was generated successfully." %}</p>
+      <p>{% translate "The immutable DOCX artifact was stored and verified." %}</p>
+      <p><strong>{% translate "Filename" %}:</strong> {{ attempt.output_filename }}</p>
+    </div>
+  {% else %}
+    <div class="alert alert-danger" role="alert" data-generation-failure>
+      <p class="alert-title">{% translate "The document could not be generated." %}</p>
+      <p>{% translate "The draft was preserved. Review it and start a new generation attempt." %}</p>
+      <p><strong>{% translate "Failure category" %}:</strong> {{ attempt.get_failure_category_display }}</p>
+      <p><strong>{% translate "Reference" %}:</strong> {{ attempt.failure_correlation_id }}</p>
+    </div>
+  {% endif %}
+  <div class="reference-actions">
+    <a class="button button-secondary" href="{{ draft_url }}">{% translate "Return to document draft" %}</a>
+    <a class="button button-quiet" href="{{ history_url }}">{% translate "View generation history" %}</a>
+  </div>
+</div>

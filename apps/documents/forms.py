@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 from apps.documents.limits import MAX_TEMPLATE_BYTES
 from apps.documents.models import DocumentDraft, TemplateVersion
 
+_IDEMPOTENCY_KEY_PATTERN = r"^[A-Za-z0-9_-]{43}$"
+
 
 class TemplateUploadForm(forms.Form):
     version = forms.RegexField(
@@ -54,3 +56,37 @@ class DocumentDraftControlForm(forms.Form):
         regex=r"^v[1-9][0-9]*$", required=False, widget=forms.HiddenInput
     )
     state = forms.ChoiceField(choices=DocumentDraft.State.choices, widget=forms.HiddenInput)
+
+
+class GenerationConfirmationForm(forms.Form):
+    intent = forms.CharField(widget=forms.HiddenInput, initial="generate")
+    draft_id = forms.UUIDField(widget=forms.HiddenInput)
+    expected_case_revision = forms.IntegerField(min_value=1, widget=forms.HiddenInput)
+    expected_draft_revision = forms.IntegerField(min_value=1, widget=forms.HiddenInput)
+    schema_version = forms.RegexField(regex=r"^v[1-9][0-9]*$", widget=forms.HiddenInput)
+    expected_template_id = forms.UUIDField(widget=forms.HiddenInput)
+    idempotency_key = forms.RegexField(
+        regex=_IDEMPOTENCY_KEY_PATTERN,
+        min_length=43,
+        max_length=43,
+        widget=forms.HiddenInput,
+    )
+    confirmed = forms.BooleanField(
+        label=_("I confirm the reviewed draft should be generated with this template version."),
+    )
+
+    def clean_intent(self) -> str:
+        intent = self.cleaned_data["intent"]
+        if intent != "generate":
+            raise forms.ValidationError(_("The generation confirmation is invalid."))
+        return intent
+
+
+class GenerationRetryForm(forms.Form):
+    attempt_id = forms.UUIDField(widget=forms.HiddenInput)
+    idempotency_key = forms.RegexField(
+        regex=_IDEMPOTENCY_KEY_PATTERN,
+        min_length=43,
+        max_length=43,
+        widget=forms.HiddenInput,
+    )

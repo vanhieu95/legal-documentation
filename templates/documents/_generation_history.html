@@ -1,0 +1,64 @@
+{% load i18n %}
+<div
+  id="generation-history"
+  data-generation-history
+  hx-history="false"
+  aria-busy="false"
+  data-network-error-message="{% translate 'Generation history could not be refreshed. Check the connection and try again.' %}"
+>
+  {% if is_htmx %}<h2 class="surface-title" tabindex="-1" data-generation-history-heading>{% translate "Generation history" %}</h2>{% endif %}
+  {% if retry_error %}
+    <div class="alert alert-danger" role="alert" tabindex="-1" data-generation-retry-error data-conflict-summary>
+      <p class="alert-title">{% translate "The retry could not be started." %}</p>
+      <p>{% translate "Review the current case, draft, and template before trying again." %}</p>
+    </div>
+  {% endif %}
+  {% if retry_attempt_id %}
+    <div class="alert alert-success" role="status" tabindex="-1" data-generation-retry-success>
+      <p class="alert-title">{% translate "A new generation attempt was created." %}</p>
+    </div>
+  {% endif %}
+  {% if history_rows %}
+    <div class="stack-vertical" role="list" aria-label="{% translate 'Generation attempts' %}">
+      {% for row in history_rows %}
+        <article class="surface" role="listitem" data-generation-attempt="{{ row.item.id }}">
+          <div class="reference-actions">
+            <div>
+              <h3 class="surface-title">{{ row.item.type_code }} — {{ row.item.type_name }}</h3>
+              <p class="field-help">{{ row.item.id }}</p>
+            </div>
+            <span class="badge {% if row.item.status == 'generated' %}badge-success{% elif row.item.status == 'failed' %}badge-danger{% else %}badge-info{% endif %}">{{ row.item.status_label }}</span>
+          </div>
+          <dl class="case-details">
+            <div><dt>{% translate "Actor" %}</dt><dd>{{ row.item.actor_name }}</dd></div>
+            <div><dt>{% translate "Started" %}</dt><dd>{{ row.item.reserved_at|date:"SHORT_DATETIME_FORMAT" }}</dd></div>
+            <div><dt>{% translate "Completed" %}</dt><dd>{% if row.item.result_at %}{{ row.item.result_at|date:"SHORT_DATETIME_FORMAT" }}{% else %}—{% endif %}</dd></div>
+            <div><dt>{% translate "Template version" %}</dt><dd>{{ row.item.template_version }}</dd></div>
+            <div><dt>{% translate "Schema version" %}</dt><dd>{{ row.item.schema_version }}</dd></div>
+            {% if row.item.output_filename %}<div><dt>{% translate "Filename" %}</dt><dd>{{ row.item.output_filename }}</dd></div>{% endif %}
+            {% if row.item.failure_summary %}<div><dt>{% translate "Failure summary" %}</dt><dd>{{ row.item.failure_summary }}</dd></div>{% endif %}
+          </dl>
+          {% if row.retry_form %}
+            <form method="post" action="{{ retry_url }}" hx-post="{{ retry_url }}" hx-target="#generation-history" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" data-generation-retry-form>
+              {% csrf_token %}
+              {% for field in row.retry_form.hidden_fields %}{{ field }}{% endfor %}
+              <button class="button button-secondary" type="submit">{% translate "Retry generation" %}</button>
+            </form>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+    {% if history.num_pages > 1 %}
+      <nav class="pagination" aria-label="{% translate 'Generation history pages' %}">
+        {% if history.has_previous %}<a class="button button-quiet" href="{{ history_url }}?page={{ history.previous_page_number }}" hx-get="{{ history_url }}?page={{ history.previous_page_number }}" hx-target="#generation-history" hx-swap="outerHTML">{% translate "Previous" %}</a>{% endif %}
+        <span>{% blocktranslate with page=history.number pages=history.num_pages %}Page {{ page }} of {{ pages }}{% endblocktranslate %}</span>
+        {% if history.has_next %}<a class="button button-quiet" href="{{ history_url }}?page={{ history.next_page_number }}" hx-get="{{ history_url }}?page={{ history.next_page_number }}" hx-target="#generation-history" hx-swap="outerHTML">{% translate "Next" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="state" data-generation-history-empty>
+      <h3 class="state-title">{% translate "No generation attempts yet" %}</h3>
+      <p class="state-message">{% translate "Generated and failed attempts for this case will appear here." %}</p>
+    </div>
+  {% endif %}
+</div>

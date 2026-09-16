@@ -54,6 +54,8 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-DOC-D` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 - [x] `CP-DOC-E` — Local checkpoint gates passed on 2026-09-13; human review is pending.
 - [x] `CP-DOC-F` — Local checkpoint gates passed on 2026-09-14; human review is pending.
+- [x] `CP-DOC-G` — Approved on 2026-09-16; local checkpoint gates passed on 2026-09-15.
+- [ ] `CP-DOC-H` — `DOC-015` is complete; `DOC-016` awaits its successful-artifact link after `DOC-017` supplies the specified download endpoint.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -660,7 +662,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** One token produces one attempt and a later case/template edit cannot alter its reserved facts.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-013 — Render with restricted context and validate DOCX output structure
+### [x] DOC-013 — Render with restricted context and validate DOCX output structure
 
 - **Outcome:** The generation core builds only allowlisted context, rechecks template contract, renders via docxtpl/StrictUndefined, and inspects the full output OPC/XML structure and unresolved tokens.
 - **SPEC:** §§6.5, 11–12, 19; **FR:** `FR-GEN-01`–`FR-GEN-04`; **AC:** `AC-12`, `AC-15`, `AC-17`, `AC-20`.
@@ -676,7 +678,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Rendering cannot escape the contract and success requires programmatically verified DOCX structure, not mere file existence.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-014 — Finalize immutable artifacts and persist recoverable failures
+### [x] DOC-014 — Finalize immutable artifacts and persist recoverable failures
 
 - **Outcome:** Valid output is atomically stored under a unique private key then finalized with SHA/size/name; every failure cleans partials, preserves draft, persists safe failed state and permits a new retry.
 - **SPEC:** §§6.5, 12, 15.3, 18; **FR:** `FR-GEN-05`, `FR-GEN-06`; **AC:** `AC-17`–`AC-20`, `AC-22`.
@@ -692,7 +694,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** No failed attempt exposes a usable partial and no successful artifact/snapshot can be overwritten.
 - **Size:** L. **Blockers/skills:** **Security skill**, `debugging-and-error-recovery`, `code-review-and-quality`.
 
-### [ ] DOC-015 — Deliver confirmed generation through full and HTMX workflows
+### [x] DOC-015 — Deliver confirmed generation through full and HTMX workflows
 
 - **Outcome:** Reviewed valid drafts generate synchronously through POST confirmation/idempotency, display busy/success/failure recovery, and never duplicate on resubmit.
 - **SPEC:** §§4.3, 5.3, 12–15; **FR:** `FR-DOC-06`, `FR-GEN-01`–`FR-GEN-06`; **AC:** `AC-03`, `AC-08`, `AC-09`, `AC-11`, `AC-17`–`AC-20`.

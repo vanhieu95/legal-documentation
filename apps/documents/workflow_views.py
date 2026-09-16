@@ -17,6 +17,7 @@ from django.utils.translation import gettext
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_http_methods
 
+from apps.accounts.audit import record_identity_access_denied
 from apps.accounts.policies import (
     ApplicationPermission,
     application_access_policy,
@@ -36,8 +37,19 @@ from apps.documents.draft_services import (
     get_document_draft,
     update_document_draft,
 )
-from apps.documents.forms import DocumentDraftControlForm
-from apps.documents.models import DocumentDraft
+from apps.documents.forms import DocumentDraftControlForm, GenerationConfirmationForm
+from apps.documents.generation_artifacts import (
+    GenerationAttemptFailed,
+    GenerationFailurePersistenceError,
+    generate_artifact,
+)
+from apps.documents.generation_reservations import (
+    GenerationReservationConflict,
+    GenerationReservationUnavailable,
+    issue_generation_idempotency_key,
+    reserve_generation,
+)
+from apps.documents.models import DocumentDraft, GeneratedDocument, TemplateVersion
 from apps.documents.prefill import DocumentPrefill, map_case_transfer
 from apps.documents.registry import DocumentRegistration, UnknownDocumentTypeKey, document_registry
 from apps.documents.selectors import (
@@ -67,12 +79,14 @@ def _case(request: HttpRequest, case_id: UUID) -> CaseRecord:
     )
 
 
-def _registration(type_key: str) -> DocumentRegistration:
+def _registration(type_key: str, *, require_active: bool = True) -> DocumentRegistration:
     try:
         registration = document_registry.get(type_key)
     except UnknownDocumentTypeKey as error:
         raise Http404("Requested content was not found.") from error
-    if not registration.enabled or get_active_template(registration.key) is None:
+    if not registration.enabled or (
+        require_active and get_active_template(registration.key) is None
+    ):
         raise Http404("Requested content was not found.")
     return registration
 
@@ -137,6 +151,9 @@ def _render_draft(
     control_form: DocumentDraftControlForm,
     draft: DocumentDraft | None,
     prefill: DocumentPrefill,
+    generation_form: GenerationConfirmationForm | None = None,
+    active_template: TemplateVersion | None = None,
+    generation_unavailable: bool = False,
     conflict: bool = False,
     server_error: bool = False,
     status: int = 200,
@@ -158,6 +175,9 @@ def _render_draft(
         ),
         "conflict": conflict,
         "server_error": server_error,
+        "generation_form": generation_form,
+        "active_template": active_template,
+        "generation_unavailable": generation_unavailable,
         "can_write": case.status == CaseRecord.Status.ACTIVE,
         "form_action": reverse("documents:case-document-draft", args=[case.pk, registration.key]),
         "selector_url": reverse("documents:case-document-selector", args=[case.pk]),
@@ -171,12 +191,253 @@ def _render_draft(
     return _vary(render(request, template_name, context, status=status))
 
 
+def _generation_form(
+    *,
+    actor: User,
+    case: CaseRecord,
+    draft: DocumentDraft | None,
+    template: TemplateVersion | None,
+) -> GenerationConfirmationForm | None:
+    if (
+        draft is None
+        or draft.state != DocumentDraft.State.READY
+        or case.status != CaseRecord.Status.ACTIVE
+        or template is None
+        or not application_access_policy.has_permission(
+            actor, ApplicationPermission.GENERATE_DOCUMENTS
+        )
+    ):
+        return None
+    return GenerationConfirmationForm(
+        initial={
+            "intent": "generate",
+            "draft_id": draft.pk,
+            "expected_case_revision": case.revision,
+            "expected_draft_revision": draft.revision,
+            "schema_version": draft.schema_version,
+            "expected_template_id": template.pk,
+            "idempotency_key": issue_generation_idempotency_key(),
+        }
+    )
+
+
+def _require_generation_permission(request: HttpRequest) -> None:
+    if application_access_policy.has_permission(
+        request.user, ApplicationPermission.GENERATE_DOCUMENTS
+    ):
+        return
+    record_identity_access_denied(
+        request=request,
+        actor=cast(User, request.user),
+        permission=ApplicationPermission.GENERATE_DOCUMENTS.value,
+        correlation_id=get_request_correlation_id(request),
+        route_name=request.resolver_match.view_name if request.resolver_match else "",
+        is_htmx=_is_htmx(request),
+    )
+    raise PermissionDenied
+
+
+def _render_generation_result(
+    request: HttpRequest,
+    *,
+    case: CaseRecord,
+    registration: DocumentRegistration,
+    attempt: GeneratedDocument,
+    status: int = 200,
+) -> HttpResponse:
+    context = {
+        "case": case,
+        "registration": registration,
+        "attempt": attempt,
+        "draft_url": reverse("documents:case-document-draft", args=[case.pk, registration.key]),
+        "history_url": reverse("documents:case-generation-history", args=[case.pk]),
+        "is_htmx": _is_htmx(request),
+    }
+    template_name = (
+        "documents/_generation_result.html"
+        if _is_htmx(request)
+        else "documents/generation_result.html"
+    )
+    return _vary(render(request, template_name, context, status=status))
+
+
+def _confirmed_generation(
+    request: HttpRequest,
+    *,
+    case: CaseRecord,
+    registration: DocumentRegistration,
+    draft: DocumentDraft | None,
+    prefill: DocumentPrefill,
+    active_template: TemplateVersion | None,
+) -> HttpResponse:
+    _require_generation_permission(request)
+    if case.status != CaseRecord.Status.ACTIVE:
+        raise PermissionDenied
+    confirmation = GenerationConfirmationForm(request.POST)
+    if active_template is None:
+        if draft is None:
+            raise PermissionDenied
+        return _render_generation_conflict(
+            request,
+            case=case,
+            registration=registration,
+            draft=draft,
+            prefill=prefill,
+            active_template=None,
+            unavailable=True,
+        )
+    if not confirmation.is_valid() or draft is None:
+        bundle = registration.form_provider()
+        form = bundle.form_class(initial=dict(prefill.form_initial))
+        formsets = _formsets(
+            registration,
+            data=None,
+            initial_payload=prefill.formset_initial,
+        )
+        control = DocumentDraftControlForm(
+            initial={
+                "draft_id": draft.pk if draft else None,
+                "revision": draft.revision if draft else None,
+                "schema_version": registration.schema_version,
+                "state": draft.state if draft else DocumentDraft.State.DRAFT,
+            }
+        )
+        return _render_draft(
+            request,
+            case=case,
+            registration=registration,
+            form=form,
+            formsets=formsets,
+            control_form=control,
+            draft=draft,
+            prefill=prefill,
+            generation_form=confirmation,
+            active_template=active_template,
+            status=422,
+        )
+    cleaned = confirmation.cleaned_data
+    if cleaned["draft_id"] != draft.pk or cleaned["schema_version"] != registration.schema_version:
+        return _render_generation_conflict(
+            request,
+            case=case,
+            registration=registration,
+            draft=draft,
+            prefill=prefill,
+            active_template=active_template,
+        )
+    try:
+        attempt = reserve_generation(
+            actor=cast(User, request.user),
+            case_id=case.pk,
+            draft_id=draft.pk,
+            type_key=registration.key,
+            schema_version=registration.schema_version,
+            expected_case_revision=cleaned["expected_case_revision"],
+            expected_draft_revision=cleaned["expected_draft_revision"],
+            expected_template_id=cleaned["expected_template_id"],
+            idempotency_key=cleaned["idempotency_key"],
+            correlation_id=get_request_correlation_id(request),
+        )
+        generated = generate_artifact(
+            actor=cast(User, request.user),
+            attempt_id=attempt.pk,
+            correlation_id=get_request_correlation_id(request),
+        )
+    except GenerationReservationConflict:
+        return _render_generation_conflict(
+            request,
+            case=case,
+            registration=registration,
+            draft=draft,
+            prefill=prefill,
+            active_template=active_template,
+        )
+    except GenerationReservationUnavailable:
+        return _render_generation_conflict(
+            request,
+            case=case,
+            registration=registration,
+            draft=draft,
+            prefill=prefill,
+            active_template=active_template,
+            unavailable=True,
+        )
+    except GenerationAttemptFailed as error:
+        failed = GeneratedDocument.objects.get(
+            pk=error.attempt_id,
+            actor=cast(User, request.user),
+        )
+        return _render_generation_result(
+            request,
+            case=case,
+            registration=registration,
+            attempt=failed,
+        )
+    except (DatabaseError, GenerationFailurePersistenceError):
+        return _render_generation_conflict(
+            request,
+            case=case,
+            registration=registration,
+            draft=draft,
+            prefill=prefill,
+            active_template=active_template,
+            unavailable=True,
+            status=500,
+        )
+    return _render_generation_result(
+        request,
+        case=case,
+        registration=registration,
+        attempt=generated,
+    )
+
+
+def _render_generation_conflict(
+    request: HttpRequest,
+    *,
+    case: CaseRecord,
+    registration: DocumentRegistration,
+    draft: DocumentDraft,
+    prefill: DocumentPrefill,
+    active_template: TemplateVersion | None,
+    unavailable: bool = False,
+    status: int = 409,
+) -> HttpResponse:
+    bundle = registration.form_provider()
+    return _render_draft(
+        request,
+        case=case,
+        registration=registration,
+        form=bundle.form_class(initial=dict(prefill.form_initial)),
+        formsets=_formsets(
+            registration,
+            data=None,
+            initial_payload=prefill.formset_initial,
+        ),
+        control_form=DocumentDraftControlForm(
+            initial={
+                "draft_id": draft.pk,
+                "revision": draft.revision,
+                "schema_version": registration.schema_version,
+                "state": draft.state,
+            }
+        ),
+        draft=draft,
+        prefill=prefill,
+        active_template=active_template,
+        conflict=not unavailable,
+        generation_unavailable=unavailable,
+        status=status,
+    )
+
+
 @never_cache
 @require_http_methods(["GET", "POST"])
 @application_permission_required(ApplicationPermission.VIEW_DOCUMENT_DRAFTS)
 def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> HttpResponse:
     case = _case(request, case_id)
-    registration = _registration(type_key)
+    generation_request = request.method == "POST" and request.POST.get("intent") == "generate"
+    registration = _registration(type_key, require_active=not generation_request)
     found = compatible_case_draft(case_id=case.pk, registration=registration)
     if found is not None:
         found = get_document_draft(
@@ -194,6 +455,7 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
         transfer=transfer,
         draft_payload=initial_payload,
     )
+    active_template = get_active_template(registration.key)
 
     if request.method == "GET":
         form = bundle.form_class(initial=dict(prefill.form_initial))
@@ -215,6 +477,23 @@ def case_document_draft(request: HttpRequest, case_id: UUID, type_key: str) -> H
             control_form=control,
             draft=found,
             prefill=prefill,
+            generation_form=_generation_form(
+                actor=cast(User, request.user),
+                case=case,
+                draft=found,
+                template=active_template,
+            ),
+            active_template=active_template,
+        )
+
+    if generation_request:
+        return _confirmed_generation(
+            request,
+            case=case,
+            registration=registration,
+            draft=found,
+            prefill=prefill,
+            active_template=active_template,
         )
 
     if case.status != CaseRecord.Status.ACTIVE:

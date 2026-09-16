@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.documents import views, workflow_views
+from apps.documents import history_views, views, workflow_views
 
 app_name = "documents"
 
@@ -9,6 +9,16 @@ urlpatterns = [
         "cases/<uuid:case_id>/documents/",
         workflow_views.case_document_selector,
         name="case-document-selector",
+    ),
+    path(
+        "cases/<uuid:case_id>/generation-history/",
+        history_views.case_generation_history,
+        name="case-generation-history",
+    ),
+    path(
+        "cases/<uuid:case_id>/generation-history/retry/",
+        history_views.retry_generation,
+        name="retry-generation",
     ),
     path(
         "cases/<uuid:case_id>/documents/<slug:type_key>/",
