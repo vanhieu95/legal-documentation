@@ -41,6 +41,8 @@ class AuditAction(StrEnum):
     DOCUMENT_DRAFT_UPDATED = "document_draft.updated"
     DOCUMENT_DRAFT_STATE_CHANGED = "document_draft.state_changed"
     DOCUMENT_GENERATION_RESERVED = "document_generation.reserved"
+    DOCUMENT_GENERATION_SUCCEEDED = "document_generation.succeeded"
+    DOCUMENT_GENERATION_FAILED = "document_generation.failed"
 
 
 class AuditOutcome(StrEnum):

@@ -67,6 +67,17 @@ class PlaceholderContract:
 
 
 @dataclass(frozen=True, slots=True)
+class OutputStructureContract:
+    minimum_paragraphs: int = 1
+    minimum_tables: int = 0
+    minimum_headers: int = 0
+    minimum_footers: int = 0
+    minimum_sections: int = 1
+    minimum_page_breaks: int = 0
+    required_parts: frozenset[str] = frozenset({"word/document.xml"})
+
+
+@dataclass(frozen=True, slots=True)
 class DocumentFormBundle:
     form_class: type[forms.Form]
     formset_classes: tuple[type[BaseFormSet[forms.Form]], ...] = ()
@@ -106,6 +117,7 @@ class DocumentRegistration:
     placeholder_contract: PlaceholderContract
     minimal_fixture: FixtureProvider
     representative_fixture: FixtureProvider
+    output_structure_contract: OutputStructureContract = OutputStructureContract()
     is_synthetic: bool = False
     post_processor_name: str | None = None
     related_fields: tuple[RelatedFieldDefinition, ...] = ()
@@ -134,7 +146,7 @@ RESERVED_DRAFT_FIELD_NAMES = frozenset(
 )
 
 
-def _matches_value_kind(value: object, kind: PlaceholderValueKind) -> bool:
+def matches_placeholder_value_kind(value: object, kind: PlaceholderValueKind) -> bool:
     if kind is PlaceholderValueKind.TEXT:
         return isinstance(value, str)
     if kind is PlaceholderValueKind.BOOLEAN:
@@ -203,6 +215,26 @@ class DocumentRegistry:
             raise InvalidDocumentRegistration("Registry state flags must be boolean values.")
         if not isinstance(registration.english_name, (str, type(None))):
             raise InvalidDocumentRegistration("The optional English name must be text.")
+        structure = registration.output_structure_contract
+        if not isinstance(structure, OutputStructureContract):
+            raise InvalidDocumentRegistration("The output structure contract is invalid.")
+        structure_minimums = (
+            structure.minimum_paragraphs,
+            structure.minimum_tables,
+            structure.minimum_headers,
+            structure.minimum_footers,
+            structure.minimum_sections,
+            structure.minimum_page_breaks,
+        )
+        if (
+            any(type(value) is not int or value < 0 for value in structure_minimums)
+            or not structure.required_parts
+            or any(
+                not part.startswith("word/") or ".." in part or "\\" in part
+                for part in structure.required_parts
+            )
+        ):
+            raise InvalidDocumentRegistration("The output structure contract is invalid.")
         valid_key = (registration.is_synthetic and _SYNTHETIC_KEY.fullmatch(registration.key)) or (
             not registration.is_synthetic and _PRODUCTION_KEY.fullmatch(registration.key)
         )
@@ -358,7 +390,7 @@ class DocumentRegistry:
                     "The context mapper and placeholder contract are incomplete."
                 )
             for name, value in context.items():
-                if not _matches_value_kind(value, contract.expected_kinds[name]):
+                if not matches_placeholder_value_kind(value, contract.expected_kinds[name]):
                     raise InvalidDocumentRegistration(
                         "The context mapper returned a value with the wrong declared value kind."
                     )
@@ -375,6 +407,15 @@ class DocumentRegistry:
             return self._registrations[key]
         except KeyError as error:
             raise UnknownDocumentTypeKey(key) from error
+
+    def get_post_processor(self, name: str) -> PostProcessor:
+        """Resolve only a post-processor declared when the registry was built."""
+        try:
+            return self._post_processors[name]
+        except KeyError as error:
+            raise InvalidDocumentRegistration(
+                "The named post-processor is not declared."
+            ) from error
 
     def describe(self) -> tuple[dict[str, object], ...]:
         return tuple(
@@ -453,6 +494,18 @@ document_registry = DocumentRegistry(
             ),
             minimal_fixture=_synthetic_minimal_fixture,
             representative_fixture=_synthetic_representative_fixture,
+            output_structure_contract=OutputStructureContract(
+                minimum_paragraphs=3,
+                minimum_tables=1,
+                minimum_sections=1,
+                minimum_page_breaks=1,
+                required_parts=frozenset(
+                    {
+                        "word/document.xml",
+                        "word/styles.xml",
+                    }
+                ),
+            ),
             is_synthetic=True,
             related_fields=(
                 RelatedFieldDefinition("participant_id", RelatedObjectKind.CASE_PARTICIPANT),

@@ -16,6 +16,7 @@ from apps.documents.registry import (
     DocumentRegistration,
     DocumentRegistry,
     InvalidDocumentRegistration,
+    OutputStructureContract,
     PlaceholderContract,
     PlaceholderDefinition,
     PlaceholderValueKind,
@@ -45,6 +46,9 @@ def test_synthetic_registration_is_complete_immutable_and_not_production() -> No
         "document.title": PlaceholderValueKind.TEXT,
         "document.notes": PlaceholderValueKind.TEXT,
     }
+    assert registration.output_structure_contract.minimum_tables == 1
+    assert registration.output_structure_contract.minimum_page_breaks == 1
+    assert "word/styles.xml" in registration.output_structure_contract.required_parts
 
     with pytest.raises(FrozenInstanceError):
         registration.enabled = False  # type: ignore[misc]
@@ -120,6 +124,31 @@ def test_registry_rejects_invalid_or_missing_contract_members(
 def test_registry_rejects_untyped_registration_metadata(registration: object) -> None:
     with pytest.raises(InvalidDocumentRegistration):
         DocumentRegistry(cast(Any, (registration,)))
+
+
+@pytest.mark.parametrize(
+    "structure_contract",
+    [
+        cast(Any, object()),
+        OutputStructureContract(minimum_tables=-1),
+        OutputStructureContract(required_parts=frozenset()),
+        OutputStructureContract(required_parts=frozenset({"../word/document.xml"})),
+    ],
+)
+def test_registry_rejects_invalid_output_structure_contracts(
+    structure_contract: object,
+) -> None:
+    registration = document_registry.get("synthetic-platform-test")
+
+    with pytest.raises(InvalidDocumentRegistration, match="output structure"):
+        DocumentRegistry(
+            (
+                replace(
+                    registration,
+                    output_structure_contract=cast(Any, structure_contract),
+                ),
+            )
+        )
 
 
 def test_registry_rejects_incomplete_placeholder_contracts() -> None:
