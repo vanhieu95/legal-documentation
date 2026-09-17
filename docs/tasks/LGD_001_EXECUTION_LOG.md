@@ -1915,6 +1915,50 @@ credentials, generated-document content, or other sensitive payloads.
   absent at `.agents/references/definition-of-done.md`; the repository's `AGENT.md` Definition of Done
   and task-specific gates were applied. No implementation blocker remains.
 
+## DASH-001 — Complete document-aware dashboard panels and Milestone 5
+
+- **Completion date:** 2026-09-17
+- **Outcome:** Replaced the reserved dashboard placeholder with policy-scoped recent generation
+  results, failed-attempt attention, and a fixed 12-slot MVP template-readiness view. Results are
+  bounded to five rows per list, ordered and labelled by reservation time, and link only to canonical
+  case history. Coverage intersects deployed non-synthetic registry entries with active template
+  versions; the synthetic platform type remains available as Milestone 5 generation evidence but is
+  excluded from the production denominator.
+- **Authorization and privacy:** The existing case-dashboard permission contract remains intact.
+  Document facts require both template-view and document-history permissions; full pages show a
+  data-free unavailable state when those permissions are absent, while direct document fragments deny
+  access. Selectors retain case-object policy scope and project only safe category/status fields—never
+  snapshots, private storage keys, filenames, failure correlations, or exception details.
+- **Progressive enhancement:** Added ordinary canonical template/history anchors, localized empty and
+  unavailable states, a narrow HTMX document refresh with independent busy state, safe `503` fragment
+  swapping, and responsive two-panel/coverage layouts. JavaScript-disabled navigation, keyboard focus,
+  three viewport widths, 200% reflow through the shared shell suite, and storage-free HTMX behavior are
+  covered by browser tests.
+- **Tests and scale evidence:** Selector/view tests cover positive and missing 12-type coverage,
+  bounded recent/failed results, canonical links, object and application permissions, safe rendering,
+  full/fragment/error/empty states, and a fixed three generation-query budget without per-row growth.
+  No schema or index was added because `DASH-001` permits indexes only from query-plan evidence; the
+  later dedicated performance milestone retains the production-volume plan work.
+- **Quality gates:** Focused dashboard tests pass 20 tests with one intentional PostgreSQL-plan skip.
+  Exact `Q-TEST` passes 1,124 tests with 29 intentional environment-profile skips at 93.93% branch
+  coverage. The final complete Playwright suite passes 85/85. Repository-wide Ruff lint/format, mypy,
+  Django system and migration-drift checks, message extraction/compilation, production CSS build,
+  frontend asset checksum verification, and diff whitespace checks pass.
+- **Milestone status:** Both M5 checkpoints are complete. Existing `DOC-001` through `DOC-018`
+  evidence plus the final full Python/browser regression covers the synthetic vertical slice and its
+  `422`, `409`, session-expiry, CSRF, IDOR, idempotency, activation-race, forced-failure, audit,
+  private-artifact, download, and reconciliation paths. Milestone 6 was not started.
+- **Review:** A fresh-context single-model adversarial review identified and drove fixes for preserving
+  case-only dashboard access, positive coverage evidence, canonical failed-history navigation,
+  timestamp/order consistency, independently scoped busy states, swappable `503` fragments, and an
+  architecture-boundary test import. No high-severity blocker remains.
+- **Files:** `apps/documents/dashboard.py`, `apps/accounts/views.py`, dashboard templates and styles,
+  shared HTMX behavior, Vietnamese messages, focused selector/view tests, browser smoke tests, the M5
+  task checklist, and this execution log.
+- **Migration / commit / blockers:** No migration and no commit. No implementation or repository-local
+  verification blocker remains; real production-volume PostgreSQL query-plan/load validation remains
+  assigned to `PERF-001`/`PERF-002`, not `DASH-001`.
+
 ## CP-DOC-I — Checkpoint closure
 
 - **Completion date:** 2026-09-16

@@ -124,7 +124,11 @@
   });
 
   document.addEventListener("htmx:beforeSwap", (event) => {
-    if (event.detail.xhr.status === 422 || event.detail.xhr.status === 409) {
+    const targetId = event.detail.target?.id;
+    const isDashboardUnavailable =
+      event.detail.xhr.status === 503 &&
+      (targetId === "dashboard-case-activity" || targetId === "dashboard-documents");
+    if (event.detail.xhr.status === 422 || event.detail.xhr.status === 409 || isDashboardUnavailable) {
       event.detail.shouldSwap = true;
       event.detail.isError = false;
     }
@@ -153,19 +157,32 @@
       mainContent.setAttribute("aria-busy", String(isBusy));
     }
     document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
-    document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
     document.getElementById("template-upload-workflow")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("document-draft-form")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("generation-history")?.setAttribute("aria-busy", String(isBusy));
   };
-  document.addEventListener("htmx:beforeRequest", () => {
+  const requestDashboardRegion = (requestElement) =>
+    requestElement?.closest("#dashboard-case-activity, #dashboard-documents");
+  document.addEventListener("htmx:beforeRequest", (event) => {
     activeHtmxRequests += 1;
     updateBusyPresentation();
+    requestDashboardRegion(event.detail?.elt)?.setAttribute("aria-busy", "true");
   });
   const announceHtmxNetworkError = (requestElement) => {
     const errorRegion = document.getElementById("global-error");
     const caseResults = requestElement?.closest("#case-results");
     const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
+    const dashboardDocuments = requestElement?.closest("#dashboard-documents");
     const templateWorkflow = requestElement?.closest("#template-upload-workflow");
-    const affectedRegion = caseResults || dashboardActivity || templateWorkflow;
+    const generationForm = requestElement?.closest("[data-generation-form]");
+    const generationHistory = requestElement?.closest("[data-generation-history]");
+    const affectedRegion =
+      generationForm ||
+      generationHistory ||
+      caseResults ||
+      dashboardActivity ||
+      dashboardDocuments ||
+      templateWorkflow;
     if (affectedRegion && errorRegion) {
       affectedRegion.setAttribute("aria-busy", "false");
       errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
@@ -174,8 +191,9 @@
   document.addEventListener("htmx:afterRequest", (event) => {
     activeHtmxRequests = Math.max(0, activeHtmxRequests - 1);
     updateBusyPresentation();
-    if (event.detail.successful === false) {
-      announceHtmxNetworkError(event.detail.elt);
+    requestDashboardRegion(event.detail?.elt)?.setAttribute("aria-busy", "false");
+    if (event.detail?.successful === false) {
+      announceHtmxNetworkError(event.detail?.elt);
     }
   });
   document.addEventListener("htmx:sendError", (event) => {
@@ -211,7 +229,7 @@
       return;
     }
     const templateOutcome = document.querySelector(
-      "[data-template-result], [data-template-server-error]",
+      "[data-template-result], [data-template-server-error], [data-generation-result]",
     );
     if (templateOutcome instanceof HTMLElement) {
       templateOutcome.focus();
