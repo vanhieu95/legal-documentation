@@ -49,6 +49,295 @@ for (const viewport of [
   { name: "tablet", width: 768, height: 1024 },
   { name: "wide", width: 1440, height: 900 },
 ]) {
+  test(`template upload reflows and supports keyboard navigation at the ${viewport.name} viewport`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    await page.goto("/templates/");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Các phiên bản biểu mẫu" })).toBeVisible();
+    await expect(page.getByText("SYNTHETIC-DOC", { exact: true })).toBeVisible();
+    await expectNoPageOverflow(page);
+
+    const uploadLink = page.getByRole("link", { name: "Tải lên phiên bản mới" });
+    await uploadLink.focus();
+    await expect(uploadLink).toBeFocused();
+    await expect(uploadLink).toHaveCSS("outline-style", "solid");
+    await page.keyboard.press("Enter");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Tải lên phiên bản biểu mẫu" })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Phiên bản biểu mẫu" })).toBeVisible();
+    await expectNoPageOverflow(page);
+  });
+}
+
+test("template upload announces HTMX errors, preserves safe text, and reports an invalid package", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  await page.goto("/templates/synthetic-platform-test/upload/");
+  const approvalReference = `SYN-BROWSER-UPLOAD-${Date.now()}`;
+
+  await page.getByLabel("Ghi chú hoặc tham chiếu phê duyệt").fill(approvalReference);
+  await page.getByRole("textbox", { name: "Phiên bản biểu mẫu" }).fill("!");
+  await page.getByLabel("Biểu mẫu DOCX").setInputFiles({
+    name: "invalid-form.docx",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    buffer: Buffer.from("synthetic-invalid-form-docx"),
+  });
+  await page.getByRole("button", { name: "Tải lên và xác thực" }).click();
+
+  const summary = page.locator("[data-error-summary]");
+  await expect(summary).toBeVisible();
+  await expect(summary).toBeFocused();
+  await expect(page.getByLabel("Ghi chú hoặc tham chiếu phê duyệt")).toHaveValue(
+    approvalReference,
+  );
+
+  await page.getByRole("textbox", { name: "Phiên bản biểu mẫu" }).fill(`browser-${Date.now()}`);
+  await page.getByLabel("Biểu mẫu DOCX").setInputFiles({
+    name: "../../unsafe-browser-name.docx",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    buffer: Buffer.from("synthetic-invalid-docx"),
+  });
+  let releaseRequest;
+  const requestReleased = new Promise((resolve) => {
+    releaseRequest = resolve;
+  });
+  let observeRequest;
+  const requestObserved = new Promise((resolve) => {
+    observeRequest = resolve;
+  });
+  await page.route("**/templates/synthetic-platform-test/upload/", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    observeRequest();
+    await requestReleased;
+    await route.continue();
+  });
+  const submission = page.getByRole("button", { name: "Tải lên và xác thực" }).click();
+  await requestObserved;
+  await expect(page.locator("#template-upload-workflow")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator("#template-upload-busy")).toBeVisible();
+  releaseRequest();
+  await submission;
+
+  const result = page.locator("[data-template-result]");
+  await expect(result).toBeVisible();
+  await expect(result).toBeFocused();
+  await expect(result).toContainText("Xác thực tự động không đạt yêu cầu");
+  await expect(result).toContainText("Tệp không phải là gói DOCX có thể đọc.");
+  await expect(page.locator("body")).not.toContainText("unsafe-browser-name.docx");
+  await expectNoPageOverflow(page);
+});
+
+test("template upload remains usable without JavaScript at 200 percent zoom", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 640, height: 900 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/templates/synthetic-platform-test/upload/");
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
+  await page.getByRole("textbox", { name: "Phiên bản biểu mẫu" }).fill("!");
+  await page.getByLabel("Ghi chú hoặc tham chiếu phê duyệt").fill("SYN-BROWSER-NOJS");
+  await page.getByLabel("Biểu mẫu DOCX").setInputFiles({
+    name: "invalid-nojs-form.docx",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    buffer: Buffer.from("synthetic-invalid-nojs-form-docx"),
+  });
+  await page.getByRole("button", { name: "Tải lên và xác thực" }).click();
+
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expect(page.getByLabel("Ghi chú hoặc tham chiếu phê duyệt")).toHaveValue(
+    "SYN-BROWSER-NOJS",
+  );
+  await expect(page.locator("[data-error-summary]")).toBeVisible();
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
+test("template activation confirmation traps focus and activates through HTMX", async ({ page }) => {
+  await signInAsAdministrator(page);
+  await page.goto("/templates/");
+  const activationLink = page.getByRole("link", { name: "Kích hoạt" }).first();
+  await activationLink.focus();
+  await activationLink.press("Enter");
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Kích hoạt phiên bản biểu mẫu" })).toBeVisible();
+  const confirmButton = page.getByRole("button", { name: "Xác nhận kích hoạt" });
+  await expect(confirmButton).toBeFocused();
+  const activationResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/activate/") && response.request().method() === "POST",
+  );
+  await confirmButton.click();
+  expect((await activationResponse).status()).toBe(204);
+
+  await expect(page).toHaveURL(/\/templates\/$/);
+  await expect(page.getByRole("link", { name: "Ngừng sử dụng" }).first()).toBeVisible();
+});
+
+test("template activation has a JavaScript-disabled confirmation fallback", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  await page.goto("/templates/");
+  await page.getByRole("link", { name: "Kích hoạt" }).first().click();
+
+  await expect(page).toHaveURL(/\/activate\/$/);
+  await expect(page.getByRole("heading", { name: "Kích hoạt phiên bản biểu mẫu" })).toBeVisible();
+  await page.getByRole("button", { name: "Xác nhận kích hoạt" }).click();
+  await expect(page).toHaveURL(/\/templates\/$/);
+  await context.close();
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`document draft framework reflows at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const caseUrl = await createSyntheticCase(page, `DOCUMENT-${viewport.name}`);
+    const selectorUrl = `${new URL(caseUrl).pathname}documents/`;
+    await page.goto(selectorUrl);
+
+    await expect(page.getByRole("heading", { level: 1, name: "Chọn tài liệu" })).toBeVisible();
+    const openForm = page.getByRole("link", { name: "Mở biểu mẫu tài liệu" });
+    await openForm.focus();
+    await expect(openForm).toBeFocused();
+    await openForm.press("Enter");
+    await expect(page.getByRole("heading", { name: "Giá trị riêng của tài liệu" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Giá trị dùng chung từ hồ sơ" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ghi đè của quản trị viên" })).toBeVisible();
+    const storedValues = await page.evaluate(() => ({
+      local: { ...localStorage },
+      session: { ...sessionStorage },
+    }));
+    expect(JSON.stringify(storedValues)).not.toContain("Yêu cầu dân sự ban đầu");
+    await expectNoPageOverflow(page);
+
+    await page.locator('[name="notes"]').fill(
+      Array.from({ length: 24 }, (_, index) => `Dòng nội dung dài ${index + 1}`).join("\n"),
+    );
+    await page.locator('[name="title"]').fill("");
+    await page.getByRole("button", { name: "Lưu bản nháp" }).click();
+    const summary = page.locator("[data-error-summary]");
+    await expect(summary).toBeVisible();
+    await expect(summary).toBeFocused();
+  });
+}
+
+test("document draft works without JavaScript at 200 percent zoom", async ({ browser }) => {
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { width: 640, height: 900 },
+  });
+  const page = await context.newPage();
+  await signInAsAdministrator(page);
+  const caseUrl = await createSyntheticCase(page, "DOCUMENT-NOJS");
+  await page.goto(`${new URL(caseUrl).pathname}documents/`);
+  await page.evaluate(() => {
+    document.documentElement.style.zoom = "2";
+  });
+  await page.getByRole("link", { name: "Mở biểu mẫu tài liệu" }).click();
+  await page.locator('[name="title"]').fill("Bản nháp thử nghiệm");
+  await page.getByRole("button", { name: "Lưu bản nháp" }).click();
+
+  await expect(page).toHaveURL(/\/documents\/synthetic-platform-test\/$/);
+  await expect(page.locator('[name="title"]')).toHaveValue("Bản nháp thử nghiệm");
+  await page.getByRole("button", { name: "Đánh dấu sẵn sàng" }).click();
+  await expect(page.locator("[data-generation-confirmation]")).toBeVisible();
+  await page.locator('[name="confirmed"]').check();
+  await page.locator("[data-generation-submit]").click();
+  await expect(page.locator("[data-generation-success]")).toBeVisible();
+  await expect(page.locator("html")).toHaveClass("no-js");
+  await expectNoPageOverflow(page);
+  await context.close();
+});
+
+test("confirmed generation exposes busy state and immutable history through HTMX", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await signInAsAdministrator(page);
+  const caseUrl = await createSyntheticCase(page, "GENERATION-HTMX");
+  await page.goto(`${new URL(caseUrl).pathname}documents/`);
+  await page.getByRole("link", { name: "Mở biểu mẫu tài liệu" }).click();
+  await page.locator('[name="title"]').fill("Văn bản thử nghiệm tạo đồng bộ");
+  await page.locator('[name="notes"]').fill("Nội dung kiểm thử lịch sử");
+  await page.getByRole("button", { name: "Đánh dấu sẵn sàng" }).click();
+
+  const confirmation = page.locator("[data-generation-confirmation]");
+  await expect(confirmation).toBeVisible();
+  await page.locator('[name="confirmed"]').check();
+  let releaseRequest;
+  const requestReleased = new Promise((resolve) => {
+    releaseRequest = resolve;
+  });
+  let observeRequest;
+  const requestObserved = new Promise((resolve) => {
+    observeRequest = resolve;
+  });
+  await page.route("**/documents/synthetic-platform-test/", async (route) => {
+    if (route.request().method() !== "POST" || !route.request().postData()?.includes("generate")) {
+      await route.continue();
+      return;
+    }
+    observeRequest();
+    await requestReleased;
+    await route.continue();
+  });
+  const submission = page.locator("[data-generation-submit]").click();
+  await requestObserved;
+  await expect(page.locator("#document-draft-form")).toHaveAttribute("aria-busy", "true");
+  releaseRequest();
+  await submission;
+
+  await expect(page.locator("[data-generation-success]")).toBeVisible();
+  await expect(page.locator("[data-generation-result]")).toBeFocused();
+  await page
+    .locator("[data-generation-result]")
+    .getByRole("link", { name: "Xem lịch sử tạo văn bản" })
+    .click();
+  await expect(page.locator("[data-generation-history]")).toBeVisible();
+  await expect(page.locator("[data-generation-attempt]")).toHaveCount(1);
+  await expect(page.locator("body")).not.toContainText("input_snapshot");
+  await expectNoPageOverflow(page);
+});
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
+  test(`generation history empty state reflows at the ${viewport.name} viewport`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await signInAsAdministrator(page);
+    const caseUrl = await createSyntheticCase(page, `HISTORY-${viewport.name}`);
+    await page.goto(`${new URL(caseUrl).pathname}generation-history/`);
+
+    await expect(page.locator("[data-generation-history-empty]")).toBeVisible();
+    await expectNoPageOverflow(page);
+  });
+}
+
+for (const viewport of [
+  { name: "compact", width: 375, height: 812 },
+  { name: "tablet", width: 768, height: 1024 },
+  { name: "wide", width: 1440, height: 900 },
+]) {
   test(`case dashboard reflows at the ${viewport.name} viewport`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await signInAsAdministrator(page);

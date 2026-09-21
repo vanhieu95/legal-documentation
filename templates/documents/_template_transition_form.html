@@ -1,0 +1,44 @@
+{% load i18n %}
+<div id="template-transition-form">
+  <h1 id="template-transition-title" class="gallery-title">
+    {% if action == "activate" %}{% translate "Activate template version" %}{% else %}{% translate "Deactivate template version" %}{% endif %}
+  </h1>
+  {% if conflict %}
+    <div class="alert alert-warning" role="alert" tabindex="-1" data-conflict-summary>
+      <h2>{% translate "Template state changed" %}</h2>
+      <p>{% translate "Reload the version list and review the current state before trying again." %}</p>
+    </div>
+    <div class="dialog-actions">
+      <a class="button button-primary" href="{{ cancel_url }}">{% translate "Reload version list" %}</a>
+      {% if is_htmx %}<button class="button button-quiet js-only" type="button" data-template-dialog-close>{% translate "Close" %}</button>{% endif %}
+    </div>
+  {% else %}
+    <p><strong>{{ registration.official_code }}</strong> · {{ template.version }}</p>
+    <p>
+      {% if action == "activate" %}
+        {% translate "This version will be used only for future document selections. Earlier versions and generated documents remain unchanged." %}
+      {% else %}
+        {% translate "This version will no longer be available for future document selections. Historical files and metadata remain available." %}
+      {% endif %}
+    </p>
+    <form method="post" action="{{ form_action }}" hx-post="{{ form_action }}" hx-target="#template-transition-form" hx-swap="outerHTML" hx-disabled-elt="find button[type='submit']" class="stack-vertical" data-submit-form>
+      {% csrf_token %}
+      {{ form.expected_status }}
+      {{ form.expected_active_id }}
+      {% if form.errors %}
+        <div class="alert alert-warning" role="alert">
+          {{ form.non_field_errors }}
+          {{ form.expected_status.errors }}
+          {{ form.expected_active_id.errors }}
+        </div>
+      {% endif %}
+      <div class="dialog-actions">
+        <button class="button {% if action == 'activate' %}button-primary{% else %}button-danger{% endif %}" type="submit" data-submit-button autofocus>
+          {% if action == "activate" %}{% translate "Confirm activation" %}{% else %}{% translate "Confirm deactivation" %}{% endif %}
+        </button>
+        <a class="button button-quiet no-js-only" href="{{ cancel_url }}">{% translate "Cancel" %}</a>
+        {% if is_htmx %}<button class="button button-quiet js-only" type="button" data-template-dialog-close>{% translate "Cancel" %}</button>{% endif %}
+      </div>
+    </form>
+  {% endif %}
+</div>

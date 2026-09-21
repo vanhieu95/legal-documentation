@@ -154,6 +154,9 @@
     }
     document.getElementById("case-results")?.setAttribute("aria-busy", String(isBusy));
     document.getElementById("dashboard-case-activity")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("template-upload-workflow")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("document-draft-form")?.setAttribute("aria-busy", String(isBusy));
+    document.getElementById("generation-history")?.setAttribute("aria-busy", String(isBusy));
   };
   document.addEventListener("htmx:beforeRequest", () => {
     activeHtmxRequests += 1;
@@ -163,7 +166,11 @@
     const errorRegion = document.getElementById("global-error");
     const caseResults = requestElement?.closest("#case-results");
     const dashboardActivity = requestElement?.closest("#dashboard-case-activity");
-    const affectedRegion = caseResults || dashboardActivity;
+    const templateWorkflow = requestElement?.closest("#template-upload-workflow");
+    const generationForm = requestElement?.closest("[data-generation-form]");
+    const generationHistory = requestElement?.closest("[data-generation-history]");
+    const affectedRegion =
+      generationForm || generationHistory || caseResults || dashboardActivity || templateWorkflow;
     if (affectedRegion && errorRegion) {
       affectedRegion.setAttribute("aria-busy", "false");
       errorRegion.textContent = affectedRegion.dataset.networkErrorMessage || "";
@@ -206,6 +213,13 @@
     const summary = document.querySelector("[data-error-summary], [data-conflict-summary]");
     if (summary instanceof HTMLElement) {
       summary.focus();
+      return;
+    }
+    const templateOutcome = document.querySelector(
+      "[data-template-result], [data-template-server-error], [data-generation-result]",
+    );
+    if (templateOutcome instanceof HTMLElement) {
+      templateOutcome.focus();
       return;
     }
     const relationshipSuccess = document.querySelector("#relationship-form .alert-success");
@@ -258,6 +272,31 @@
   document.getElementById("reference-dialog")?.addEventListener("close", () => {
     referenceDialogTrigger?.focus();
     referenceDialogTrigger = null;
+  });
+
+  let templateDialogTrigger = null;
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-template-dialog-trigger]");
+    if (trigger instanceof HTMLElement) {
+      templateDialogTrigger = trigger;
+    }
+    if (event.target.closest("[data-template-dialog-close]")) {
+      document.getElementById("template-transition-dialog")?.close();
+    }
+  });
+  document.addEventListener("htmx:afterSwap", (event) => {
+    if (event.detail.target?.id !== "template-transition-dialog-content") {
+      return;
+    }
+    const dialog = document.getElementById("template-transition-dialog");
+    if (dialog instanceof HTMLDialogElement) {
+      dialog.showModal();
+      dialog.querySelector('button, a, input:not([type="hidden"])')?.focus();
+    }
+  });
+  document.getElementById("template-transition-dialog")?.addEventListener("close", () => {
+    templateDialogTrigger?.focus();
+    templateDialogTrigger = null;
   });
 
   let caseDialogTrigger = null;

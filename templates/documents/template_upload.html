@@ -1,0 +1,17 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+{% block title %}{% translate "Upload template version" %} · VDS{% endblock %}
+{% block page_context %}{% translate "Templates" %}{% endblock %}
+{% block main_content %}
+  <section class="template-page" aria-labelledby="template-upload-heading">
+    <header class="gallery-header">
+      <div>
+        <p class="eyebrow">{{ registration.official_code }}</p>
+        <h1 id="template-upload-heading" class="gallery-title">{% translate "Upload template version" %}</h1>
+        <p class="gallery-description">{{ registration.vietnamese_name }}</p>
+      </div>
+      <a class="button button-quiet" href="{% url 'documents:template-list' %}">{% translate "Back to templates" %}</a>
+    </header>
+    {% include "documents/_template_upload_workflow.html" %}
+  </section>
+{% endblock %}

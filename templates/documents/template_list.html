@@ -1,0 +1,17 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+{% block title %}{% translate "Templates" %} · VDS{% endblock %}
+{% block page_context %}{% translate "Templates" %}{% endblock %}
+{% block main_content %}
+  <section class="template-page" aria-labelledby="template-list-heading">
+    <header class="gallery-header">
+      <div>
+        <p class="eyebrow">{% translate "Document administration" %}</p>
+        <h1 id="template-list-heading" class="gallery-title">{% translate "Template versions" %}</h1>
+        <p class="gallery-description">{% translate "Review automated validation outcomes for deployed document types. Activation is a separate confirmed action." %}</p>
+      </div>
+    </header>
+    {% if messages %}{% for message in messages %}<div class="alert alert-success" role="status" aria-live="polite">{{ message }}</div>{% endfor %}{% endif %}
+    {% include "documents/_template_list.html" %}
+  </section>
+{% endblock %}

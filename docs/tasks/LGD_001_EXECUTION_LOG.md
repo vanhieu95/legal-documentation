@@ -1079,3 +1079,859 @@ credentials, generated-document content, or other sensitive payloads.
   design-target plan remains evidenced by its approved checkpoint and was not rerun; CASE-012's
   new 10,000-row PostgreSQL plan was measured in this checkpoint. No M4 blocker remains. The next
   eligible task is `DOC-001`, which was not started.
+
+## DOC-001 — Define the stable registry and synthetic test document type
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added a frozen, typed, code-owned registry contract for stable keys, official and
+  localized names, enabled/schema state, Django form and formset providers, context and filename
+  providers, required/optional placeholders with value kinds, filter/global allowlists, synthetic
+  fixture providers, and explicitly named post-processors. The only entry is
+  `synthetic-platform-test`; it is marked non-production and cannot count toward MVP VDS coverage.
+- **Contract enforcement:** Construction rejects malformed or duplicate keys/codes, mutable or
+  incomplete contracts, missing/invalid providers, invalid fixtures or formsets, mapper name/kind
+  mismatches, unsafe filenames, and undeclared/non-callable post-processors. No mapping loader,
+  runtime registration, import resolver, or expression evaluator exists. Lookup explicitly conveys
+  neither authorization nor active-template availability.
+- **Architecture and privacy:** Automated import guards prove that `cases` imports no `documents`
+  code and `audit` imports no document models. Fixtures contain synthetic platform text only; no
+  case, legal, credential, path, or file-byte data was added.
+
+## DOC-002 — Model immutable template versions and private storage keys
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added immutable `TemplateVersion` metadata with UUID identity, registry key and
+  version, opaque server-generated private key, sanitized display filename, SHA-256, bounded byte
+  size, lifecycle status, fixed-schema bounded validation report, uploader/time, protected
+  activation actor/time, and approval reference.
+- **Durable invariants:** PostgreSQL enforces unique type/version, a partial unique active version
+  per type, status/key/version/storage/checksum/size/display-name/activation checks, and exact
+  storage-key identity. A PostgreSQL history trigger requires initial `uploaded` state, permits only
+  declared transitions, bounds report writes, freezes completed reports and identity/file/approval
+  metadata, preserves first activation metadata, and rejects deletion. Model transitions lock and
+  re-read the row so stale instances cannot overwrite committed state; supported ORM update,
+  bulk-create, bulk-update, and delete paths are blocked.
+- **Private storage:** Keys contain only validated server-owned components and random UUID material.
+  Existing private filesystem storage produced `0600` files and `0700` directories, exposes no URL,
+  and never derives a storage path from the sanitized display filename.
+
+## CP-DOC-A — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local implementation and verification complete; `DOC-001` and `DOC-002` are complete.
+  Work stopped before `DOC-003` as required; human approval is pending.
+- **Focused and coverage evidence:** The final focused SQLite profile passed 77 tests with two
+  intentional PostgreSQL-only skips. The final PostgreSQL 18.6 profile passed all 79 tests. The
+  mandated full coverage command passed 606 tests with 14 intentional environment-profile skips at
+  94.89% branch coverage; `apps/documents/registry.py` reached 98.59%, above the 95% sensitive-module
+  threshold.
+- **Migration and schema evidence:** PostgreSQL applied the complete migration graph from an empty
+  database, reversed `documents.0001_initial` to zero, and reapplied it successfully. Direct schema
+  inspection confirmed the history trigger, both uniqueness guarantees, all declared checks and the
+  bounded lookup index. Migration drift is empty.
+- **Quality commands:** Ruff lint and format, mypy over `apps config`, Django system and migration
+  checks, Tailwind build, vendored-asset verification, message extraction, Vietnamese compilation,
+  sensitive-module coverage, and diff checks passed. English gettext source and Vietnamese catalog
+  entries were added together.
+- **Security and adversarial review:** Tests cover unknown/request-like identifiers, traversal and
+  Windows filename hazards, storage-prefix wildcard attacks, checksums and 10 MiB size bounds,
+  report shape/size/sensitive-field rejection, stale transitions, activation metadata injection,
+  raw-SQL immutable updates/deletion, unsupported ORM bulk writes, and restrictive filesystem
+  permissions. Two fresh-context review cycles found and drove fixes for lifecycle locking,
+  database history durability, placeholder kinds, formsets, report safety, storage-key equality and
+  bulk-write bypasses. The authorized Codex CLI second-opinion attempt remained read-only but failed
+  to return findings because it recursively paused for another review choice; no external finding
+  was treated as verification.
+- **HTTP, authorization, CSRF, IDOR, audit and DOCX:** Not applicable at this metadata-only
+  checkpoint: no views, unsafe endpoints, object selectors, audit workflow, upload handling, or DOCX
+  parsing/rendering was introduced. Those gates begin with `DOC-003` through `DOC-006`. Registry
+  lookup remains deliberately separate from authorization and template availability.
+- **Full-page, HTMX, no-JavaScript and browser evidence:** Not applicable because CP-DOC-A adds no
+  user-facing route or interactive behavior. Existing frontend assets and full application tests
+  remain green.
+- **Commit:** Checkpoint implementation commit follows this entry.
+- **Deviations or blockers:** No implementation blocker remains. PostgreSQL-only durability is
+  additionally protected by application checks under SQLite. The next eligible checkpoint is
+  `CP-DOC-B` (`DOC-003`, `DOC-004`), which was not started.
+
+## DOC-003 — Validate hostile OPC/ZIP packages and relationships
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added a pure byte/bounded-stream validator that authenticates ZIP structure and the
+  readable central directory, validates required OPC and WordprocessingML parts, normalizes entry
+  and relationship targets, parses bounded XML without DTD/entity resolution, and returns only
+  stable categories with bounded structural locations. It performs no extraction, persistence,
+  request/user lookup, rendering, activation, logging, or temporary-file creation.
+- **Explicit limits:** 10 MiB compressed input, 512 entries, 50 MiB total expanded data, 10 MiB per
+  expanded entry, 100:1 per-entry compression ratio, 2 MiB per XML part, XML depth 64, and at most
+  50 returned findings. Limits are immutable, centrally declared, reject fail-open values, and are
+  tested below, at, and above applicable boundaries.
+- **Threat coverage:** Synthetic fixtures cover renamed/corrupt/truncated packages, required-part
+  loss, absolute/traversing/backslash/encoded/NUL/unsafe names, duplicates and case collisions,
+  entry/expanded/compression limits, encrypted flags, macro/VBA, ActiveX, OLE, embedded packages,
+  executables and prohibited binaries, disguised binary magic, malformed/ambiguous content types,
+  malformed/internal/external/unsafe/missing relationship targets, DTD/entities/network references,
+  UTF-16/32 evasion, malformed/oversized/deep XML, interrupted or non-byte streams, deterministic
+  output, bounded reports, and absence of content in logs.
+- **Important files changed:** `apps/documents/{limits.py,package_validation.py,models.py}`,
+  `apps/documents/tests/{docx_fixtures.py,test_package_validation.py}`, and
+  `docs/architecture/TEMPLATE_VALIDATION.md`.
+- **Verification and security review:** 86 focused threat tests passed. Focused combined coverage
+  reported 95.81% for the package module; the dedicated branch-only gate reported 95.21%. The
+  documents suite, Ruff, mypy, Django checks, migration drift, and the then-current 693-test full
+  suite passed. An adversarial review produced actionable fixes for wide-encoding entity bypasses,
+  magic/content-type ambiguity, relationship semantics, Word root/body structure, recursive path
+  decoding, bounded findings, pre-tree XML depth, limit validation, stream failures, OPC declaration
+  coverage, and optional relationship semantics.
+- **Commit:** `fb0e663e8de4f346a82e89f1d9d78a05e67873b0` (`DOC-003`).
+- **Deviations or blockers:** No implementation blocker remains. No temporary resources exist to
+  leak on success or failure. Only synthetic generated packages were used; the repository's legal
+  DOCX source was not opened or processed.
+
+## DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added package-first placeholder discovery and contract validation across the main
+  document, table paragraphs/rows/cells, numbered headers and footers, footnotes, and endnotes.
+  Supported parts are an explicit allowlist; template syntax in other XML parts or outside supported
+  visible run text is rejected rather than ignored. The same pure validator is reusable immediately
+  before future generation.
+- **Jinja restrictions:** The sandbox uses `StrictUndefined`, always-on XML autoescaping, no loader,
+  no tests or default globals, fixed registry-and-platform filter/global intersections, no callable
+  or Python attribute access, and finalization that converts pre-marked safe values back to escaped
+  data. Validation rejects missing/unknown variables, unsafe or loop-local attributes, calls,
+  imports, includes/inheritance, assignments/macros, subscripts, tests, disallowed filters/globals,
+  type-incompatible filters/loops, dynamic arithmetic/collection expressions, malformed syntax,
+  and malformed delimiters. Case values are data and are never reparsed as source.
+- **Parser limits:** Per supported part: 256 KiB reconstructed source, 4,096 tokens, 4,096
+  characters per token, 32 control/expression nesting levels, 8,192 AST nodes, and AST depth 64.
+  Limit failure returns the stable bounded `complexity_limit` category.
+- **Run and structure coverage:** Paragraph text is reconstructed with run/style boundaries,
+  including compatible tab and break nodes. Tests reject split opening/closing delimiters, split
+  variable names, partial styling, hidden/non-visible tokens, and invalid/multiple paragraph, row,
+  cell, or run structural tags without rewriting source; whole-token formatting and valid
+  structural containers pass.
+- **Important files changed:** `apps/documents/{limits.py,template_validation.py}`,
+  `apps/documents/tests/test_template_validation.py`,
+  `docs/{architecture/TEMPLATE_VALIDATION.md,templates/TEMPLATE_AUTHORING_GUIDE.md}`, and the
+  sensitive coverage selector/tests.
+- **Verification and security review:** 53 focused template tests and 139 combined package/template
+  tests passed. Focused combined coverage reported 99.59% for the template module; the dedicated
+  branch-only gate reported 99.21%. The final documents suite passed 216 tests with two expected
+  environment-profile skips. Adversarial TDD cycles closed hidden UTF-16 part syntax, non-visible
+  XML tokens, local attribute traversal, parser complexity, value-kind/filter mismatches, empty-tag
+  exception escape, coverage-gate selection, and pre-marked safe-value bypasses.
+- **Commit:** `dbdc34bc50d15f5c430b5e16fefce11728a96d5d` (`DOC-004`).
+- **Deviations or blockers:** No implementation blocker remains. A requested fresh-context final
+  reviewer could not run because its model account hit a usage limit; the earlier fresh-context
+  review and subsequent single-model adversarial TDD cycles were completed, and the user explicitly
+  directed continuation with a single model.
+
+## CP-DOC-B — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local CP-DOC-B implementation and verification are complete. `DOC-003` and `DOC-004`
+  are complete, and work stopped before `DOC-005`.
+- **Quality and coverage:** Ruff lint and format, mypy over `apps config`, Django system and migration
+  drift checks, and diff checks passed. The required full coverage command passed 749 tests with 14
+  expected environment-profile skips at 95.34% overall combined branch coverage. The dedicated
+  branch-only gate passed package validation at 95.21%, the registry at 97.56%, and template/Jinja
+  validation at 99.21%. The gate now includes validator modules while excluding test modules.
+- **Cross-task security:** Package validation is called before any Jinja environment is created or
+  source parsed; an invalid package test proves that short circuit. Validators accept no paths,
+  actors, requests, cases, drafts, or database rows. No archive extraction, network/entity access,
+  arbitrary import/call/global/attribute traversal, uploaded-byte/XML/placeholder logging, document
+  content in reports, or temporary resources exist. External relationships, macros, VBA, ActiveX,
+  OLE, embedded packages/executables, encryption, and unsupported split runs all fail closed.
+- **Privacy, scope, and dependencies:** Every fixture is synthetic and no real legal template or
+  personal data was used. No upload orchestration, persistence transition, UI, activation, draft,
+  rendering, or generation behavior was introduced. `cases` imports no `documents` code. No
+  migrations, dependency changes, secrets, debug output, broad ignores, test suppression, hardcoded
+  Vietnamese application strings, or unrelated cleanup were added.
+- **Temporary cleanup:** Both validators operate in memory and create no temporary directories or
+  files, so success and every tested failure leave no temporary resource. Stream interruption and
+  failure paths return safe deterministic categories without exception or content leakage.
+- **Commits:** `fb0e663e8de4f346a82e89f1d9d78a05e67873b0` (`DOC-003`);
+  `dbdc34bc50d15f5c430b5e16fefce11728a96d5d` (`DOC-004`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** The final fresh-context reviewer was unavailable because of its model
+  usage limit; this is recorded rather than treated as review evidence. The user chose single-model
+  continuation. No implementation or verification blocker remains. The next tasks are `DOC-005`
+  and `DOC-006` for `CP-DOC-C`; neither was started.
+
+## DOC-005 — Orchestrate upload validation and synthetic renders
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Added an explicit authorized upload service for enabled code-registry types. It
+  validates version and approval provenance, bounded-streams at the 10 MiB compressed limit into a
+  process-private temporary directory while calculating SHA-256 and size, assigns an opaque
+  server-generated private storage key, and preserves accepted bytes plus immutable identity facts.
+- **Validation order and lifecycle:** The service invokes the existing OPC/ZIP security validator
+  before the existing restricted Jinja/placeholder validator, then renders both registry-supplied
+  minimal and representative synthetic contexts. Every output is reopened and rechecked as DOCX,
+  including relevant Word parts, unresolved template tokens, and expected Vietnamese Unicode.
+  Outcomes persist only as `uploaded` to `valid` or `uploaded` to inactive `invalid`; no version is
+  activated or made available to case generation.
+- **Storage, reports and audit:** Invalid accepted uploads follow the configured private-retention
+  policy. Reports contain only fixed schema, bounded categories and counts. Upload and validation
+  each produce exactly one bounded audit event without bytes, paths, filenames, exception text, or
+  rendered content. Tests force interrupted input, storage and rendering and confirm temporary-file
+  cleanup on every success and failure path.
+- **Tests and review:** Fifteen orchestration integration tests cover valid/invalid outcomes,
+  unknown/disabled types, duplicate versions, absent approval references, both service permissions,
+  exact bytes/checksum, safe report/audit cardinality, storage/render interruption, hostile package
+  short-circuiting, split-run ordering, and meaningful inspection of both synthetic outputs. The
+  complete documents suite later passed 249 tests with two environment-profile skips, and the
+  PostgreSQL documents profile passed all 252 tests.
+- **Migration:** None. Existing `TemplateVersion` constraints and private storage contract are
+  reused unchanged.
+- **Commit:** `0073172b936311530eeb5884225d47c3950ef61b` (`DOC-005`).
+- **Deviations or blockers:** None. Only the non-production synthetic registry entry and generated
+  synthetic DOCX fixtures were used; no approved VDS template was read or uploaded.
+
+## DOC-006 — Deliver template list, upload, and validation UI
+
+- **Completion date:** 2026-09-12
+- **Outcome:** Replaced the document placeholder with Vietnamese Administrator pages for enabled
+  registry types: a paginated type/version list, selected-type upload form, validation outcome, and
+  bounded safe report. Valid, invalid, unavailable/empty, busy, success, field-error and generic
+  server-error states are explicit. Valid versions are labelled only as candidates for later
+  activation, and the UI exposes no activation action.
+- **Progressive enhancement and authorization:** Ordinary navigation and multipart POST/redirect/get
+  work without JavaScript. HTMX responses use narrow fragments, `Vary: HX-Request`, no-store,
+  swappable `422` errors, CSRF, disabled submit/busy presentation, live regions, and focusable linked
+  error summaries and outcomes. View permissions cover list/upload/validation while the service
+  repeats upload/validation authorization. Unknown keys return the established generic not-found
+  policy, and expired sessions redirect without processing an upload.
+- **Privacy and safe presentation:** Views call the `DOC-005` service and never write
+  `TemplateVersion` directly. Templates display translated allowlisted category summaries only;
+  they do not expose storage keys, private paths or URLs, uploaded filenames, package content,
+  tracebacks, raw findings, or exception strings. Safe version and approval text survives form
+  correction, while file inputs are not repopulated.
+- **Tests, coverage and browser:** Eighteen focused view/form tests passed; focused forms/views branch
+  coverage was 93.60%. Five focused Chromium tests passed across compact, tablet and wide layouts,
+  covering keyboard focus, HTMX busy/error/outcome announcements, safe value preservation, invalid
+  package presentation, no page overflow, JavaScript-disabled submission, and 200% zoom. The final
+  full pinned-Chromium suite passed all 73 tests.
+- **Migration:** None. The existing registry, model lifecycle and constraints are unchanged.
+- **Commit:** `15aeda1723dbae269eb6782749d7d5fc6923a252` (`DOC-006`).
+- **Deviations or blockers:** Chrome DevTools MCP was not available in this environment; the
+  repository's pinned Playwright/Chromium fallback supplied the browser evidence.
+
+## CP-DOC-C — Checkpoint closure
+
+- **Completion date:** 2026-09-12
+- **Status:** Local implementation and verification are complete for `DOC-005` and `DOC-006`.
+  Work stopped before `DOC-007`; no template was activated. Human review is pending.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind build, gettext extraction and Vietnamese message compilation all
+  passed. Vendored frontend asset pins/checksums and diff checks also passed. The mandated full
+  branch-coverage command passed 782 tests with 14 intentional environment-profile skips at 95.34%
+  overall coverage.
+- **PostgreSQL and migrations:** A disposable UTF-8 PostgreSQL 18.6 database applied the complete
+  migration graph from zero and reported no drift. The complete documents plus PostgreSQL
+  integration profile passed all 252 tests, exercising existing registry/template uniqueness,
+  lifecycle, immutability, report, private-key and database constraints. No checkpoint migration was
+  created.
+- **Validation, storage and audit:** Regression tests prove package validation precedes Jinja parsing
+  and rendering, hostile and split-run packages fail on the established paths, minimal and
+  representative outputs reopen and pass structural/Unicode/token checks, and all process-private
+  temporary files are cleaned after success and forced read/storage/render failures. Valid immutable
+  versions alone become later activation candidates; invalid versions remain inactive and
+  unavailable. Audit/report assertions exclude uploaded content, filenames, private paths and raw
+  errors and prove one upload plus one validation event per accepted outcome.
+- **HTTP and browser security:** Full-page, HTMX and JavaScript-disabled flows pass alongside
+  permission-matrix, direct-service denial, normal/HTMX CSRF, expired-session, duplicate/version,
+  file-size boundary, generic not-found, safe `422`, safe `500`, focus, reflow and no-horizontal-
+  overflow checks. The full Playwright suite passed 73 tests. No direct private-file URL or public
+  template storage exists.
+- **Scope and repository review:** No activation/deactivation, document-type creation, real VDS
+  onboarding, draft, generation, PDF, background-job, object-storage, case dependency, schema
+  change, secret, personal data, test suppression, debug artifact, or unrelated edit was added.
+  `cases` remains independent of `documents`, and audit remains independent of business models.
+- **Commits:** `0073172b936311530eeb5884225d47c3950ef61b` (`DOC-005`);
+  `15aeda1723dbae269eb6782749d7d5fc6923a252` (`DOC-006`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local verification blocker remains. Chrome
+  DevTools MCP and external CI were unavailable and are not claimed; pinned local Chromium and the
+  complete local quality/PostgreSQL gates passed. The next `CP-DOC-D` tasks are `DOC-007` and
+  `DOC-008`; neither was started.
+
+## DOC-007 — Implement atomic activation and confirmed deactivation
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added explicit activation and deactivation services plus purpose-built confirmation
+  views. Transitions resolve deployed registry keys, require distinct permissions at both HTTP and
+  service boundaries, validate lifecycle and approval state, preserve immutable version identity
+  and bytes, and expose only committed active versions to future selection.
+- **Concurrency and recovery:** PostgreSQL advisory transaction locking serializes each registry
+  type without locking its complete history. The existing conditional unique constraint remains the
+  final zero-or-one-active invariant. A type-level expected-active token detects stale requests;
+  ordinary and HTMX callers receive recoverable conflict handling, while repeated transitions are
+  deterministic. No migration was required because real concurrent service and HTTP races proved
+  the lock and existing constraint sufficient.
+- **HTTP, security and audit:** Mutations are POST-only and CSRF-protected. Full-page, HTMX and
+  JavaScript-disabled confirmation flows identify only the type and safe version label. Audit events
+  include actor, time, safe version identity, outcome and approval-reference identifier, including
+  replacement deactivation, without storage keys, private paths, filenames or package content.
+- **Tests and browser:** Focused service/view testing passed 28 tests with two PostgreSQL-profile
+  skips; the broader document regression profile passed 89 tests with four profile skips. The final
+  PostgreSQL checkpoint profile passed all four selected database tests, including different-version
+  activation races and concurrent HTMX requests. Focused Playwright/Chromium confirmation checks
+  passed 2/2 for HTMX focus and no-JavaScript fallback.
+- **Commit:** `570bd84` (`DOC-007`).
+- **Deviations or blockers:** None. A cross-model Codex CLI review and fresh-context adversarial
+  review were applied; their actionable concurrency, bounded-lock, audit and recovery findings were
+  resolved before completion.
+
+## DOC-008 — Model versioned mutable drafts and form contracts
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added `DocumentDraft` and a version-aware service contract for bounded, validated
+  document-specific JSON in `draft` and `ready` states. Stable case/type/schema identity, revision,
+  creator/editor and timestamps are explicit; finalized snapshots and generation remain separate.
+- **Validation, authorization and concurrency:** Every create, update and ready transition resolves
+  the exact registry form/formsets, rejects unknown or incompatible schema, revalidates normalized
+  data, batch re-queries declared related identifiers within the case, rechecks case permission and
+  archive state, and performs a direct atomic revision-guarded update. Concurrent PostgreSQL updates
+  prove one success and one recoverable stale conflict with no lost write.
+- **Migration and storage:** `apps/documents/migrations/0002_add_document_drafts.py` creates the
+  draft table, case/type/schema indexes, one-draft identity policy, state/revision/type/schema
+  constraints, and PostgreSQL JSON-object and 65,536-byte payload checks. The linear graph applied
+  successfully both to an empty PostgreSQL 17 database and as an upgrade from the committed
+  `CP-DOC-C` schema. Inspection confirmed all expected constraints and indexes. A stored synthetic
+  draft contained only the approved document-specific fields.
+- **Security and audit:** Writes require draft add/change permission plus case access; reads require
+  draft view permission plus case access. Archived or inaccessible cases, cross-case related IDs,
+  prohibited graph/snapshot keys and direct unauthorized service calls are rejected. Audit events
+  contain bounded field names or categories only; forced validation and audit failures roll back,
+  and tests exclude payload values and personal case data from logs.
+- **Tests:** Focused registry/model/service testing passed 84 tests with two PostgreSQL-profile skips;
+  the complete documents/storage regression profile passed 316 tests with six profile skips. The
+  final PostgreSQL checkpoint profile passed its draft JSON-constraint and concurrent-revision tests
+  alongside the DOC-007 races.
+- **Commit:** `8dfa93f` (`DOC-008`).
+- **Deviations or blockers:** None. Fresh-context review findings for disabled historical schemas,
+  identity immutability, batch related-ID validation and formset error preservation were resolved.
+
+## CP-DOC-D — Checkpoint closure
+
+- **Completion date:** 2026-09-13
+- **Status:** Local implementation and verification are complete for `DOC-007` and `DOC-008`;
+  human review is pending. Work stopped before `DOC-009` and `DOC-010`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind CSS build, and the mandated full branch-coverage command passed.
+  The full suite reported 845 passed, 18 intentional environment-profile skips, and 94.48% overall
+  branch coverage, above the 85% project threshold.
+- **PostgreSQL and migrations:** The final real-PostgreSQL profile passed 4/4 selected tests covering
+  database payload enforcement, service activation races, concurrent HTMX activation and optimistic
+  draft updates. Empty-database and `CP-DOC-C`-schema upgrade paths both applied the linear graph
+  through documents migration `0002`; Django reported no migration drift.
+- **Security and scope review:** Separate transition and draft permissions are enforced at service
+  and view boundaries; CSRF and POST-only behavior pass; historical template identity, checksum and
+  bytes remain unchanged; audit, response and log assertions exclude private paths, package content,
+  draft payload and sensitive case data. `cases` imports no `documents` code. No selector UI,
+  generation workflow, finalized snapshot, real VDS form or other `CP-DOC-E` work was introduced.
+- **Browser and review evidence:** The final focused Playwright suite passed both activation
+  confirmation checks. Cross-model Codex CLI and independent fresh-context reviews were completed
+  and all accepted findings were retested. External CI and Chrome DevTools MCP were unavailable and
+  are not claimed.
+- **Commits:** `570bd84` (`DOC-007`); `8dfa93f` (`DOC-008`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local-verification blocker remains. The next
+  `CP-DOC-E` tasks are `DOC-009` and `DOC-010`; neither was started.
+
+## DOC-009 — Deliver document selector and draft form framework
+
+- **Completion date:** 2026-09-13
+- **Outcome:** Added stable case-scoped selector and draft routes. The selector intersects the
+  immutable code registry with enabled registrations and the database-enforced single active
+  template version. Unknown, disabled, invalid, inactive and template-less types remain absent and
+  direct access returns the established generic unavailable behavior without resolving executable
+  behavior from request data.
+- **Draft workflow:** Full pages and narrow HTMX fragments load the registry-owned versioned form
+  and formsets, create or update the one compatible draft through the `DOC-008` service, preserve
+  submitted field and repeated-row values, support `draft` and `ready`, and return intentional
+  `422` validation, recoverable `409` revision/schema, and generic recoverable `500` fragments.
+  Responses vary on `HX-Request`, disable caching and HTMX history, retain server/URL ownership,
+  and keep ordinary navigation and submission functional without JavaScript.
+- **Authorization, privacy and accessibility:** Views require case-object access and draft-view
+  permission; services repeat add/change/view enforcement, related UUID case scoping, schema
+  validation and archive restrictions. Normal and HTMX unsafe requests remain CSRF protected.
+  Audit metadata contains safe type/schema/state/revision and field names or categories only.
+  Source sections, semantic formset fieldsets, linked summaries, focusable conflict/server states,
+  busy labels, empty/unavailable states and translated Vietnamese copy were verified without
+  persisting case or draft values in browser storage or query strings.
+- **Tests and browser:** TDD began with nine expected route failures. The completed focused profile
+  passed 84 tests with one environment-profile skip; the documents regression profile passed 321
+  with six profile skips. Four pinned Chromium tests covered compact, tablet and wide long-content
+  draft layouts, keyboard focus, server-side validation, Vietnamese expansion, reflow/no horizontal
+  overflow, and a no-JavaScript 200% workflow.
+- **Migration:** None. Existing `TemplateVersion` and `DocumentDraft` lifecycle, uniqueness and
+  schema contracts are reused.
+- **Commit:** `d134e5a` (`DOC-009`).
+- **Deviations or blockers:** Chrome DevTools MCP was unavailable; the repository's pinned local
+  Playwright/Chromium suite supplied browser evidence. No generation, snapshot, artifact, download,
+  legal formatter or real VDS form was added.
+
+## DOC-010 — Define the case transfer value and explicit prefill boundary
+
+- **Completion date:** 2026-09-13
+- **Outcome:** `cases` now exports frozen, slotted Court, Case, Participant, Representation,
+  OfficialAssignment and Hearing transfer values from an already authorized case context.
+  `documents` consumes that typed value through an explicit type/schema mapper for form/formset
+  initial data, field source labels and override comparisons. Draft overrides remain isolated from
+  ORM case state and future snapshot behavior remains outside this checkpoint.
+- **Determinism and query behavior:** The selector preserves Vietnamese Unicode, prefers
+  case-specific participant address/contact values, and orders participants, representations,
+  assignments and hearings explicitly. It performs a fixed seven queries after authorization with
+  eight participants, including a defense-in-depth permission/object-policy recheck; participant
+  growth adds no queries. No query-plan evidence justified a new index or migration.
+- **Dependency and privacy boundary:** `cases` imports no `documents` module; an AST dependency guard
+  proves the one-way edge and absence of a circular application import. Mapping uses no reflection,
+  `model_to_dict`, naming coincidence or arbitrary ORM traversal. Tests prove no case write service,
+  ORM mutation, cache, logging or browser storage receives transfer or draft values; no sensitive
+  value appears in audit metadata or captured logs.
+- **Tests and review:** TDD began with expected missing-module import failures. The final focused
+  transfer/mapping/workflow profile passed 29 tests; the combined cases/documents profile passed 677
+  with 16 environment-profile skips. Coverage includes minimal and complete cases, all core roles,
+  deterministic multiples, addresses/contacts, representations, officials, hearings, archived read,
+  forged/unauthorized contexts, immutability, Unicode, overrides, formsets, cross-case identifiers,
+  schema/revision conflicts and service/view permission agreement. Multi-axis code, API, security,
+  privacy, query and accessibility review found no remaining actionable issue.
+- **Migration:** None. PostgreSQL query-count evidence did not justify an index.
+- **Commit:** `70af71a` (`DOC-010`).
+- **Deviations or blockers:** None in implementation. The final review corrected valid-formset error
+  summary detection before this commit and its 11 workflow tests passed.
+
+## CP-DOC-E — Checkpoint closure
+
+- **Completion date:** 2026-09-13
+- **Status:** Local implementation and verification are complete for `DOC-009` and `DOC-010`;
+  human review is pending. Work stopped before `DOC-011` and `DOC-012`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, Tailwind CSS build, gettext extraction and Vietnamese catalog compilation
+  passed. The mandated final branch-coverage command passed 874 tests with 18 intentional
+  environment-profile skips at 94.64% overall, above the 85% project gate. The sensitive-module
+  guard separately passed every measured module at or above 95% branch coverage.
+- **PostgreSQL and migrations:** An isolated UTF-8 PostgreSQL 18.6 database applied all migrations
+  from zero through `documents.0002`, reversed the documents leaf to zero, reapplied it, and then
+  reported no migrations to apply. The selected transfer, workflow, draft and PostgreSQL integration
+  profile passed 57/57. Django reports no migration drift; no checkpoint migration was created.
+- **Browser and progressive enhancement:** The complete pinned Chromium suite passed 79/79,
+  including the four new document tests at compact/tablet/wide widths and no-JavaScript 200% zoom.
+  It verified keyboard activation, linked/focused summaries, long Vietnamese content, reflow,
+  `422` behavior, ordinary redirects and absence of case-prefill values from local/session storage.
+  The complete suite preceded a final one-line formset error-count correction; that correction then
+  passed all 11 workflow tests. A redundant browser rerun was attempted but could not launch because
+  the execution tool reported its usage limit, so no post-correction browser rerun is claimed.
+- **Security, privacy and scope:** Registry/type allowlisting, single-valid-active availability,
+  draft/schema/revision recovery, view/service permissions, case-object policy, CSRF, archived-case
+  write denial and cross-case related-ID rejection pass. Prefill and draft data are absent from logs,
+  audit metadata, cache, cookies, browser storage and query strings. No database-defined executable
+  mapping, cross-application case write, generation reservation, renderer, artifact, download,
+  formatter or real legal form was introduced.
+- **Commits:** `d134e5a` (`DOC-009`); `70af71a` (`DOC-010`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** Chrome DevTools MCP, external CI and the redundant final browser rerun
+  were unavailable and are not claimed. Pinned Chromium already passed the complete pre-correction
+  suite, and focused post-correction behavior is green. No implementation blocker remains. The next
+  `CP-DOC-F` tasks are `DOC-011` and `DOC-012`; neither was started.
+
+## DOC-011 — Implement deterministic Vietnamese legal formatters
+
+- **Completion date:** 2026-09-14
+- **Outcome:** Added the explicit `vi-legal-v1` formatter contract for legal dates, date-only values,
+  Ho Chi Minh City datetimes, personal and organization names, addresses, generic identifiers,
+  numeric currency, Vietnamese currency words, reviewed word overrides, and controlled multiline
+  Word XML text. Frozen result values retain independently reviewable raw input and deterministic
+  formatted output without database, actor, network, audit, or locale state.
+- **Formatting decisions:** Date-only inputs never receive timezone conversion; aware datetimes are
+  converted to `Asia/Ho_Chi_Minh` and reject unsupported precision. Authoritative Unicode spelling,
+  normalization, diacritics, uppercase, and mixed case are preserved. Only contract-declared
+  whitespace is normalized; address components are joined without guessing missing administrative
+  units. Currency keeps `Decimal` numeric facts separate from Vietnamese words and from an explicit
+  reviewed override; no currency or template suffix is guessed.
+- **XML and privacy:** The typed multiline adapter rejects arbitrary construction, validates XML 1.0
+  characters and bounded input, escapes XML-sensitive characters, encodes Jinja delimiters as data,
+  and preserves only approved line or paragraph breaks. It does not use `safe`, `mark_safe`, template
+  execution, database access, logging, or other side effects.
+- **Tests and coverage:** TDD covered Vietnamese dates and edge cases, timezone conversion and
+  date-only invariance, locale independence, Unicode/name casing, addresses, identifiers, currency
+  boundaries and overrides, multiline/XML/Jinja input, length bounds, raw-value retention, and
+  representative synthetic Vietnamese strings. The final focused formatter profile passed 83 tests;
+  `apps/core/legal_formatters.py` reached 99.01% branch coverage in the checkpoint-wide run.
+- **Review and legal boundary:** Two fresh-context reviews and an authorized cross-model Codex CLI
+  review found and corrected typed-adapter, XML-character, datetime-precision, raw-override, and
+  paragraph-break issues. Exact template-specific wording, identifier patterns, suffixes, and legal
+  approval remain deferred to each later VDS onboarding contract.
+- **Migration:** None.
+- **Commit:** `7588496` (`DOC-011`).
+- **Deviations or blockers:** No implementation blocker remains. No real VDS form, legal wording, or
+  generated document was introduced.
+
+## DOC-012 — Model generation attempts and reserve idempotently
+
+- **Completion date:** 2026-09-14
+- **Outcome:** Added `GeneratedDocument` with UUID identity, protected case/template/actor references,
+  stable type and schema, source revisions, lifecycle timestamps, versioned input/resolved/override/
+  template snapshots, actor-scoped SHA-256 idempotency identity, safe failure fields, future output
+  metadata, and case/type/status/actor history indexes. Supported model/query paths cannot rewrite or
+  delete reservation history; retries use a new token and row.
+- **Reservation and idempotency:** `reserve_generation` enforces generation permission and scoped case
+  access, rejects archived cases, resolves the enabled registry schema, locks case and draft in a
+  consistent order, revalidates the exact ready draft, serializes template activation through the
+  shared type advisory lock, and pins the expected active valid template. It freezes exact cleaned
+  input, resolved shared values, override provenance, template identity/checksum, revisions, and
+  actor. A 256-bit URL-safe opaque token is validated and stored only as an actor-scoped hash;
+  repeats return the original authorized row and audit event without refreshing facts.
+- **Migration and database invariants:** `documents.0003_generated_document` creates the table,
+  protected foreign keys, unique actor/token-hash scope, lookup indexes, status/output/path/checksum
+  checks, strict numeric versioned JSON envelopes, and PostgreSQL triggers that enforce immutable
+  reservation facts, one-way lifecycle changes, protected template type/identity/version/checksum
+  agreement, and delete denial. Output-key identity works consistently with PostgreSQL and SQLite
+  UUID representations. The graph remains linear.
+- **Concurrency and snapshots:** A disposable PostgreSQL 18.6 database applied the full graph from
+  zero and the migration test upgraded from the committed `CP-DOC-E` leaf. The final 53-test
+  PostgreSQL profile passed sequential and genuine concurrent duplicate tokens, distinct tokens,
+  cross-case token reuse, activation races, case/draft edit races, the draft-service lock-order race,
+  stale revisions, malformed raw inserts, lifecycle constraints, immutability, and migration graph
+  checks. Successful attempts remained pinned after later case, draft, and template changes.
+- **Authorization, audit, and privacy:** Direct permission denial and object-scope denial pass at the
+  service boundary. Reservation creates exactly one bounded audit event. Correlation identifiers are
+  normalized and replaced when they equal a token, case/draft identifier, or reserved snapshot
+  value; raw database exception causes are suppressed. Tests prove tokens, snapshots, payloads, case
+  values, and resolved values are absent from logs and audit metadata. Reservation imports no render,
+  parser, temporary-file, checksum, or artifact-storage work.
+- **Tests, coverage, and review:** The final combined document/formatter/sensitive profile passed 453
+  tests with 15 environment-profile skips. `apps/documents/generation_reservations.py` reached 97.22%
+  branch coverage in the full run. Fresh-context, security, and authorized cross-model Codex CLI
+  reviews found and corrected generated-size NULL handling, weak JSON checks, a cross-case uniqueness
+  race, correlation/token leakage, raw database exception chaining, case/draft lock inversion,
+  database template inconsistency, and SQLite UUID constraint portability. The final third-cycle
+  review found no PostgreSQL blocker.
+- **Commit:** `75b5da1` (`DOC-012`).
+- **Deviations or blockers:** The first exploratory empty-schema command accidentally targeted the
+  ignored development SQLite database because test settings were omitted; it is not counted as
+  PostgreSQL evidence. The corrected isolated PostgreSQL runner set test settings explicitly and
+  passed from zero. Two early external CLI review attempts produced incomplete captured output; the
+  authorized compact replacement completed after transient websocket retries. Template placeholder
+  compatibility is deliberately rechecked immediately before rendering in `DOC-013`; no rendering
+  occurred here. No implementation blocker remains.
+
+## CP-DOC-F — Checkpoint closure
+
+- **Completion date:** 2026-09-14
+- **Status:** Local implementation and verification are complete for `DOC-011` and `DOC-012`; human
+  review is pending. Work stopped before `DOC-013` and `DOC-014`.
+- **Required quality gates:** Ruff lint and format, mypy over `apps config`, Django system and
+  migration-drift checks, gettext extraction and Vietnamese catalog compilation all passed. The
+  mandated full branch-coverage command passed 992 tests with 27 intentional environment-profile
+  skips at 93.48% overall, above the 85% project threshold. The sensitive-module gate passed, with
+  legal formatters at 99.01% and generation reservation at 97.22% branch coverage.
+- **PostgreSQL evidence:** PostgreSQL 18.6 applied every migration from an empty database through
+  `documents.0003`; the committed-schema upgrade and linear leaf were verified. The final focused
+  PostgreSQL profile passed 53/53, including genuine idempotency, activation, case-edit, draft-edit,
+  lock-order, immutable-snapshot, protected-reference, and status/output constraint cases.
+- **Security, privacy, and scope:** Legal formatting is pure, versioned, locale-independent, bounded,
+  and escaped. Reservation rechecks service and object permissions, freezes raw/resolved/provenance
+  facts without rendering, and creates one attempt/audit per actor-scoped token. Audit and logs contain
+  no tokens or snapshot values. `cases` imports no `documents` code. No filesystem artifact, DOCX
+  render, checksum, download route, generation UI, real VDS implementation, or legal wording was
+  added; no successful artifact exists yet.
+- **Commits:** `7588496` (`DOC-011`); `75b5da1` (`DOC-012`). Checkpoint record commit follows this
+  entry.
+- **Deviations or blockers:** No implementation or local-verification blocker remains. External CI
+  is not claimed. The next `CP-DOC-G` tasks are `DOC-013` and `DOC-014`; neither was started.
+
+## DOC-013 — Render with restricted context and validate DOCX output structure
+
+- **Completion date:** 2026-09-15
+- **Outcome:** Added a pure renderer for reserved generation attempts. It re-verifies the pinned
+  template identity and checksum, re-runs the registered template contract immediately before use,
+  maps only declared typed snapshot values, rebuilds dotted names into a restricted nested context,
+  renders through docxtpl with the existing StrictUndefined sandbox, and removes its process-private
+  temporary directory on both success and failure. Post-processing remains absent by default and can
+  run only by an approved name already registered in code.
+- **Output integrity:** Added complete DOCX package and Word-part inspection for protected OPC parts,
+  parseable XML, unresolved Jinja tokens or delimiters, paragraphs, tables, headers, footers, styles,
+  sections and page breaks. Each code-owned document registration now declares its minimum output
+  structure so legitimate conditional template branches are not compared to misleading raw-template
+  counts. A dual-render shadow preserves real filter behavior and XML escaping while deriving
+  per-part provenance for literal Jinja-looking user data; unresolved source markup and markup added
+  by a post-processor still fail closed.
+- **Tests and evidence:** Focused tests cover missing/unknown/wrong-shaped mapper values,
+  StrictUndefined-compatible revalidation, checksum and schema mismatch, conditional structures,
+  all supported text parts, lost structures, malformed packages, XML-attribute tokens, exact
+  source-token collisions, complete and unmatched hostile delimiters, XML metacharacters, Unicode,
+  `lower`/`upper`/`length` filter semantics, approved post-processing and temporary cleanup. The final
+  renderer/artifact/registry profile passed 116 tests at 97.17% combined branch coverage; the renderer
+  itself reached 95.77%, above the required 95% gate.
+- **Files:** `apps/documents/generation_rendering.py`, `apps/documents/output_validation.py`,
+  `apps/documents/registry.py`, `apps/documents/tests/test_generation_rendering.py`, and
+  `apps/documents/tests/test_registry.py`.
+- **Migration:** None.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** No implementation blocker remains. The synthetic representative was
+  inspected directly through its OPC/XML structure and reopen checks; a Word desktop visual review
+  is not available in this environment and remains part of the pending human checkpoint review, not
+  legal approval.
+
+## DOC-014 — Finalize immutable artifacts and persist recoverable failures
+
+- **Completion date:** 2026-09-15
+- **Outcome:** Added the authorized artifact pipeline from a reserved attempt through bounded template
+  read, safe render, checksum/size verification, unique private placement and a short locked success
+  transition. Private filesystem writes now stage and fsync a mode-restricted sibling file, publish it
+  with an atomic no-overwrite hard link, and remove staging files in `finally`. Successful metadata is
+  immutable under the existing model/database lifecycle controls and repeated finalization returns the
+  one winning artifact without creating a second success audit.
+- **Failure recovery and naming:** Render, context, template, storage and integrity failures clean only
+  server-generated keys scoped to the attempt, preserve the draft and snapshots, durably transition the
+  attempt to a bounded failed category/correlation identifier, and emit one safe failure audit without
+  payloads or exception causes. Races cannot rewrite a terminal success. Display names are NFC-normalized,
+  bounded to 150 characters, unique per attempt, stripped of controls, separators and Windows-forbidden
+  characters, and protect dotted as well as plain Windows device names. Retries remain new reservation
+  rows/tokens under `DOC-012`.
+- **Tests and evidence:** Failure injection covers template reads, mapping, rendering, output validation,
+  storage writes, altered read-back bytes, invalid returned keys, finalization/audit rollback, cleanup
+  failures, terminal races, permission/scope denial, safe correlations, immutable metadata, retry rows,
+  filenames and private file/directory modes. The final isolated PostgreSQL 18.6 profile passed 118/118,
+  including genuine two-connection success/success and success/storage-failure finalization races; both
+  leave one artifact and one success audit with no failed-state rewrite.
+- **Files:** `apps/audit/actions.py`, `apps/core/storage.py`,
+  `apps/documents/generation_artifacts.py`, `apps/documents/storage_keys.py`,
+  `apps/documents/tests/test_generation_artifacts.py`, and
+  `apps/documents/tests/test_generation_artifact_postgresql.py`.
+- **Migration:** None. Existing `GeneratedDocument` states, output constraints and failure categories
+  from `documents.0003` are reused; Django reported no migration drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None.
+
+## CP-DOC-G — Checkpoint closure
+
+- **Completion date:** 2026-09-15
+- **Status:** Approved by the user on 2026-09-16. Local implementation and verification are complete
+  for `DOC-013` and `DOC-014`.
+- **Incremental slices:** (1) restricted snapshot context, template identity revalidation and safe
+  rendering; (2) code-owned output structure contracts plus OPC/XML/token verification; (3) atomic
+  immutable storage, checksums, safe filenames and recoverable failure transitions; and (4) concurrency,
+  hostile-input provenance, privacy and cross-platform hardening. Each slice received focused tests and
+  diff review before the next slice.
+- **Required quality gates:** The pre-change baseline passed 111 tests with one expected profile skip.
+  Final Ruff lint and format, mypy over `apps config`, Django system and migration-drift checks passed.
+  The checkpoint-sensitive profile passed 116 tests at 97.17% combined branch coverage. The broader
+  application regression profile passed 937 tests with 28 profile skips. The exact `Q-TEST` command
+  passed 1,059 tests with 29 intentional environment-profile skips at 93.56% overall branch coverage,
+  above the 85% project threshold. The real-PostgreSQL focused profile passed 118/118. `Q-DEPLOY`
+  exited successfully and collectstatic copied 133 files; its sole diagnostic was the intentionally
+  deferred `security.W004` HSTS warning already documented by the production-settings plan.
+- **Acceptance evidence:** `AC-12` and `AC-15` are covered by pre-render contract revalidation,
+  StrictUndefined rendering, hostile-value tests and deep output OPC/XML/structure assertions. `AC-16`
+  is covered by bounded unique NFC and Windows/macOS/Linux-safe names. `AC-17` through `AC-20` are
+  covered by pinned snapshots/template identity, output SHA-256/size/key/name metadata, authorized
+  server-side execution, terminal row locks, safe success/failure audits, durable recoverable failure
+  states and new-row retries. `AC-22` is covered by private mode-restricted atomic placement,
+  post-write checksum verification and partial/orphan cleanup tests.
+- **Security, privacy and scope:** No payload, snapshot value, generated text, raw exception, private
+  path or unsafe correlation value is logged or audited. No suppressions, skipped acceptance tests,
+  hardcoded Vietnamese UI strings, schema changes, UI/download workflow, real VDS type, legal wording,
+  queue, network integration or unrelated refactor was introduced. `Q-CSS` and `Q-I18N` are not
+  applicable because this checkpoint changes no UI assets or localized messages.
+- **Review:** Multiple fresh-context adversarial cycles found and drove fixes for conditional structure
+  validation, Windows dotted device names, per-part literal provenance, chained sensitive causes,
+  real PostgreSQL concurrency, filter-preserving/XML-safe literal handling and standalone delimiters.
+  No high-severity blocker remains. External CI and Word desktop are not claimed.
+- **Files changed:** `apps/audit/actions.py`, `apps/core/storage.py`,
+  `apps/documents/generation_artifacts.py`, `apps/documents/generation_rendering.py`,
+  `apps/documents/output_validation.py`, `apps/documents/registry.py`,
+  `apps/documents/storage_keys.py`, `apps/documents/tests/test_generation_artifact_postgresql.py`,
+  `apps/documents/tests/test_generation_artifacts.py`,
+  `apps/documents/tests/test_generation_rendering.py`, `apps/documents/tests/test_registry.py`,
+  `docs/tasks/LGD_001_TASKS.md`, and this execution log.
+- **Deviations or blockers:** The first broad regression invocation named a nonexistent
+  `apps/core/tests` path and collected no tests; the corrected application profile passed and is the
+  result reported above. An initial PostgreSQL socket-style URL was rejected by the repository's
+  complete-URL parser; the corrected isolated TCP profile passed. No implementation or local automated
+  verification blocker remains. External CI and Word desktop review are not claimed.
+
+## DOC-015 — Deliver confirmed generation through full and HTMX workflows
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added a server-authorized synchronous generation workflow with an explicit confirmation,
+  a fresh random idempotency token, named case/type/template details, full-page fallback and narrowly
+  targeted HTMX results. The view revalidates case, draft revision, registry contract and active
+  template immediately before reservation and generation. Duplicate submissions reuse the same
+  attempt; invalid forms return `422`, stale/unavailable state returns recoverable `409`, and durable
+  generation failures return a safe result without losing the draft.
+- **Incremental slices:** (1) confirmation and normal/HTMX success paths; (2) validation, conflict,
+  failure, authorization, CSRF and archived-case recovery; and (3) busy, focus/live-region, network,
+  responsive and no-JavaScript behavior.
+- **Files:** `apps/documents/forms.py`, `apps/documents/urls.py`,
+  `apps/documents/workflow_views.py`, `apps/documents/tests/test_generation_workflow_views.py`,
+  `templates/documents/_document_draft_form.html`, `templates/documents/document_draft.html`,
+  `templates/documents/_generation_result.html`, `templates/documents/generation_result.html`,
+  `static/js/app.js`, `locale/vi/LC_MESSAGES/django.po`,
+  `scripts/prepare_browser_test_database.py`, and `tests/browser/smoke.spec.js`.
+- **Acceptance evidence:** Focused workflow tests cover full and fragment success, idempotent duplicate
+  POST, preserved invalid values, stale draft/template conflicts, archived cases, anonymous/session
+  behavior, permission denial, CSRF and recoverable artifact failure. Existing generation-service tests
+  cover mapper, render, validation, storage and finalization failure transitions. Browser coverage
+  exercises HTMX generation, JavaScript-disabled fallback, keyboard-visible status and responsive
+  layouts. These provide the `DOC-015` portions of `AC-03`, `AC-08`, `AC-09`, `AC-11`, and
+  `AC-17`–`AC-20`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None for `DOC-015`.
+
+## DOC-016 — Generation history and retry seeding
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added a case-scoped, permission-protected, newest-first history selector with a
+  bounded 25-row page and safe attempt metadata only. Full and HTMX views expose generated/failed
+  state, actor/time/template/schema/filename and bounded failure summaries without snapshots, storage
+  keys or exceptions. Failed-attempt retry is POST/CSRF-only and creates a distinct token and attempt;
+  no GET mutates data and no finalized row is rewritten.
+- **Incremental slices:** (1) safe bounded selector and full/fragment history; (2) authorized retry
+  seeding and idempotency; and (3) empty, loading/network, conflict, responsive and no-JavaScript
+  presentation.
+- **Files:** `apps/documents/forms.py`, `apps/documents/history_views.py`,
+  `apps/documents/selectors.py`, `apps/documents/urls.py`,
+  `apps/documents/tests/test_generation_history_views.py`,
+  `templates/documents/_generation_history.html`, `templates/documents/generation_history.html`,
+  `static/js/app.js`, `locale/vi/LC_MESSAGES/django.po`,
+  `scripts/prepare_browser_test_database.py`, and `tests/browser/smoke.spec.js`.
+- **Verification:** The initial focused baseline passed 69 tests. The generation workflow/history
+  profile now passes 25 tests; the broader generation reservation/artifact/view profile passes 83.
+  Ruff lint and format, mypy over `apps config`, `Q-CSS`, message extraction/compilation, Django system
+  checks and migration-drift checks pass. Exact `Q-TEST` passes 1,084 tests with 29 intentional profile
+  skips at 93.63% branch coverage. The final isolated Playwright run passes all 83 browser tests.
+- **Acceptance evidence:** Tests prove newest-first pagination, safe metadata, full/fragment response
+  and `Vary` behavior, permission and cross-case denial, constant query count, immutable source attempts,
+  and distinct retry tokens/rows. This supplies the history/retry portions of `AC-14`, `AC-18`, and
+  `AC-20`. Successful rows now expose the reverse-resolved canonical download supplied by `DOC-017`;
+  failed and in-progress rows do not expose a link.
+- **Pre-existing/transient failures:** An initial browser run contacted a stale process on port 8000.
+  A fresh isolated run then exposed an invalid synthetic DOCX fixture and insufficient activation
+  candidates; both test-fixture defects were corrected. One intermediate HTMX assertion matched two
+  headings and was scoped to its fragment. The final complete browser run is green.
+- **Dependency resolution:** `DOC-017` now supplies the complete canonical endpoint before the history
+  template exposes its reverse-resolved URL, resolving the previously documented dependency cycle
+  without introducing a partial or unaudited download route.
+- **Migration:** None. Existing case/reservation ordering indexes are used; the query-count profile did
+  not justify another index.
+- **Commit:** Not created; the user did not request commits.
+
+## DOC-017 — Serve only authorized canonical stored artifacts
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added the canonical `GET /documents/generated/<uuid>/download/` endpoint. It authorizes
+  the download permission and case object scope again at the service boundary, selects generated rows
+  only, opens the server-owned private key, verifies exact byte size and SHA-256 before delivery, and
+  serves the stored binary without re-rendering.
+- **Security and headers:** Anonymous, missing-permission, guessed, cross-scope and non-generated
+  attempts fail closed. Missing or modified artifacts return the same generic not-found response after
+  a bounded failure audit. Successful responses use the official DOCX media type, `nosniff`, private
+  no-store/no-cache controls, exact length, and an attachment value containing both a conservative
+  ASCII fallback and RFC 5987 UTF-8 filename. The private storage still has no public URL.
+- **Audit and privacy:** Every endpoint attempt records one generated-document download action with a
+  success, failure or denied outcome. Events contain only actor/system marker, opaque attempt UUID and
+  correlation ID—never filename, storage key, case payload, bytes or exception content.
+- **Files:** `apps/audit/actions.py`, `apps/documents/downloads.py`,
+  `apps/documents/download_views.py`, `apps/documents/urls.py`,
+  `apps/documents/tests/test_generated_document_download.py`,
+  `apps/documents/history_views.py`, `apps/documents/tests/test_generation_history_views.py`,
+  `templates/documents/_generation_history.html`, and `locale/vi/LC_MESSAGES/django.po`.
+- **Verification:** The pre-change history/artifact baseline passed 39 tests. The focused final
+  download/history profile passed 18 tests; the broader generation reservation/artifact/workflow/
+  history/download profile passed 92. `Q-PY`, `Q-DJ`, `Q-I18N`, and `Q-CSS` passed. Exact `Q-TEST`
+  passed 1,093 tests with 29 intentional environment-profile skips at 93.69% branch coverage.
+- **Acceptance evidence:** Exact stored bytes, content type, length, cache and attachment headers cover
+  `AC-16`. Historical generated rows remain immutable and linked to their original bytes for `AC-14`.
+  Authentication, permission, guessed UUID, failed-state and object-scope tests cover `AC-21`.
+  Missing, size-mismatched and checksum-mismatched content is rejected and audited for `AC-22`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** None. Browser download/open was not separately rerun because the task's
+  required local gate is the focused stored-byte/header/integrity profile; the existing CP-DOC-H
+  browser history profile remained unchanged apart from the ordinary canonical link.
+
+## CP-DOC-H — Checkpoint closure
+
+- **Completion date:** 2026-09-16
+- **Status:** Local implementation and verification are complete for `DOC-015` through `DOC-017`;
+  human checkpoint review is pending.
+- **Incremental slices:** (1) establish the existing history/artifact baseline; (2) add failing
+  authorization, IDOR, integrity, header, audit and history-link tests; (3) implement the complete
+  canonical stored-artifact path and localized history affordance; and (4) run focused, broader and
+  repository-wide regression gates with diff review between slices.
+- **Acceptance evidence:** `AC-03`, `AC-08`, `AC-09`, `AC-11`, and `AC-17`–`AC-20` retain the existing
+  `DOC-015` evidence. `DOC-016` proves newest-first safe history, immutable retries and recovery for
+  `AC-14`, `AC-18`, and `AC-20`. `DOC-017` adds exact canonical delivery and filename headers for
+  `AC-14`/`AC-16`, deny-by-default UUID/object authorization for `AC-21`, and pre-delivery checksum/
+  size verification for `AC-22`.
+- **Quality gates:** Focused 18/18 and broader 92/92 profiles passed. Ruff lint and format, mypy over
+  `apps config`, Django checks and migration drift, message extraction/compilation, and the production
+  CSS build passed. Exact `Q-TEST` passed 1,093 tests with 29 intentional environment-profile skips at
+  93.69% branch coverage, above the 85% project threshold.
+- **Security, privacy and scope:** No schema, legal wording, registry key, generation snapshot,
+  artifact metadata, public storage configuration or dependency changed. No confidential value enters
+  UI, audit metadata or logs. No test was weakened or suppressed, and no unrelated refactor was added.
+- **Commit:** Not created; the user did not request commits.
+- **Deviations or blockers:** No implementation or repository-local verification blocker remains.
+
+## DOC-018 — Reconcile database and private template/artifact storage
+
+- **Completion date:** 2026-09-16
+- **Outcome:** Added an idempotent `reconcile_private_files` management command and focused service.
+  It streams every referenced template and finalized artifact through bounded chunks, verifies exact
+  size and SHA-256, inventories the configured private root, and emits a single bounded JSON summary.
+  Missing, modified, unreadable, orphaned, unsafe, stale, or partially scanned storage fails closed
+  without exposing storage keys, filenames, file content, user values, or exception details.
+- **Cleanup safety:** The default and `--check` modes are read-only. The explicit
+  `--cleanup-stale-staging` mode removes only regular application staging files with the exact
+  immutable-stage name contract after a fixed 24-hour age threshold and an immediate type/age recheck.
+  It never follows symlinks or deletes final orphans, templates, or artifacts, and repeated cleanup is
+  idempotent.
+- **Incremental slices:** (1) referenced-file streaming integrity checks and bounded command result;
+  (2) full-root orphan/staging inventory, validated root and narrow cleanup; and (3) operator runbook,
+  broader validation and checkpoint closure.
+- **Files:** `apps/documents/reconciliation.py`,
+  `apps/documents/management/commands/reconcile_private_files.py`, management package markers,
+  `apps/documents/tests/test_private_file_reconciliation.py`,
+  `docs/operations/private-file-reconciliation.md`, `docs/tasks/LGD_001_TASKS.md`, and this log.
+- **Verification:** Focused reconciliation tests pass 25 tests at 98.29% branch coverage across the
+  service and command. The broader document/storage profile passed 489 tests with 17 intentional
+  environment-profile skips before the final error-path additions. Ruff lint/format and full mypy pass;
+  Django system and migration-drift checks pass. Repository-wide gates are recorded in the CP-DOC-I
+  closure below.
+- **Acceptance evidence:** Missing and modified template/artifact tests plus operational JSON/nonzero
+  command results cover `AC-22`. The runbook requires coordinated database/private-file restore,
+  post-restore reconciliation, representative checksum/download verification, and recording against
+  the eight-hour RTO and 24-hour RPO portions of `AC-24`.
+- **Migration:** None; Django reported no model drift.
+- **Commit:** Included in the CP-DOC-I implementation commit at the user's request.
+- **Deviations or blockers:** The incremental skill's referenced standalone Definition of Done file is
+  absent at `.agents/references/definition-of-done.md`; the repository's `AGENT.md` Definition of Done
+  and task-specific gates were applied. No implementation blocker remains.
+
+## CP-DOC-I — Checkpoint closure
+
+- **Completion date:** 2026-09-16
+- **Status:** Local implementation and verification are complete for `DOC-018`; human checkpoint
+  review is pending.
+- **Security and privacy:** The command validates the configured root, treats database/filesystem state
+  as untrusted, rejects symlinks and special entries, performs no broad glob/delete, and discloses only
+  fixed-category aggregate counts. It adds no dependency, endpoint, permission, schema, legal wording,
+  public storage route, or sensitive telemetry.
+- **Operational evidence:** The structured event answers whether the scan completed, its duration, the
+  bounded finding counts, and whether stale staging files were removed. The runbook defines routine
+  scheduling, alert conditions, quiescence, investigation, coordinated restore, and post-restore
+  verification.
+- **Quality gates:** Focused service/command coverage is 98.29%, above the 95% integrity-module target.
+  Exact `Q-TEST` passes 1,118 tests with 29 intentional environment-profile skips at 93.85% branch
+  coverage, above the 85% project threshold. Repository-wide Ruff lint and format, mypy over
+  `apps config`, Django checks, migration drift, diff whitespace checks, command help discovery, and
+  development-server startup pass. CSS, browser and message-catalog gates are not applicable because
+  this checkpoint changes no UI, static asset, translated application copy, or HTTP workflow.
+- **Commit:** Included in the CP-DOC-I implementation commit at the user's request.

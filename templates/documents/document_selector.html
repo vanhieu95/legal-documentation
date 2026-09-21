@@ -1,0 +1,12 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Documents" %} · VDS{% endblock %}
+{% block page_context %}{% translate "Documents" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface template-page" aria-labelledby="document-selector-title">
+    <h1 id="document-selector-title" class="gallery-title">{% translate "Select a document" %}</h1>
+    {% include "documents/_document_selector.html" %}
+  </section>
+{% endblock %}

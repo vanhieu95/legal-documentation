@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import sys
+import uuid
+from hashlib import sha256
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -18,9 +20,14 @@ django.setup()
 from django.conf import settings  # noqa: E402
 from django.contrib.auth.models import User  # noqa: E402
 from django.contrib.sessions.models import Session  # noqa: E402
+from django.core.files.base import ContentFile  # noqa: E402
+from django.core.files.storage import storages  # noqa: E402
 
 from apps.accounts.permissions import seed_administrator_permissions  # noqa: E402
 from apps.cases.models import Court, Entity, Official  # noqa: E402
+from apps.documents.models import TemplateVersion  # noqa: E402
+from apps.documents.storage_keys import build_template_storage_key  # noqa: E402
+from apps.documents.tests.test_generation_rendering import _template_bytes  # noqa: E402
 
 if settings.SETTINGS_MODULE != "config.settings.browser_test":
     raise RuntimeError("Browser fixtures may only be created with browser-test settings.")
@@ -51,6 +58,41 @@ administrator = replace_synthetic_user(
     "synthetic-browser-password-123!",
 )
 administrator.groups.add(administrator_group)
+
+template_package = _template_bytes()
+
+for _index in range(3):
+    version = f"browser-confirm-{uuid.uuid4().hex[:12]}"
+    storage_key = build_template_storage_key("synthetic-platform-test", version)
+    storages["private"].save(storage_key, ContentFile(template_package))
+    confirmation_template = TemplateVersion.objects.create(
+        type_key="synthetic-platform-test",
+        version=version,
+        original_filename="synthetic-browser-template.docx",
+        storage_key=storage_key,
+        checksum_sha256=sha256(template_package).hexdigest(),
+        byte_size=len(template_package),
+        uploader=administrator,
+        approval_reference="SYNTHETIC-BROWSER-APPROVAL",
+    )
+    confirmation_template.validation_report = {
+        "schema_version": 1,
+        "result": "valid",
+        "categories": [],
+        "counts": {"synthetic_renders": 2},
+    }
+    confirmation_template.save(update_fields=("validation_report",))
+    confirmation_template.transition_to(TemplateVersion.Status.VALID)
+
+for active_template in TemplateVersion.objects.filter(
+    type_key="synthetic-platform-test", status=TemplateVersion.Status.ACTIVE
+):
+    active_template.transition_to(TemplateVersion.Status.INACTIVE)
+active_template = TemplateVersion.objects.filter(
+    type_key="synthetic-platform-test", status=TemplateVersion.Status.VALID
+).first()
+if active_template is not None:
+    active_template.transition_to(TemplateVersion.Status.ACTIVE, actor=administrator)
 
 replace_synthetic_user(
     "synthetic-browser-superuser",

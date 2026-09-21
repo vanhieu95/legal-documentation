@@ -48,6 +48,15 @@ Implementation pauses after each 2–3 task batch below. At every pause: (1) foc
 - [x] `CP-CASE-D` — Local checkpoint gates passed on 2026-09-08; human review is pending.
 - [x] `CP-CASE-E` — Local checkpoint gates passed on 2026-09-09; human review is pending.
 - [x] `CP-CASE-F` — Local checkpoint and Milestone 4 gates passed on 2026-09-10; human review is pending.
+- [x] `CP-DOC-A` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-B` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-C` — Local checkpoint gates passed on 2026-09-12; human review is pending.
+- [x] `CP-DOC-D` — Local checkpoint gates passed on 2026-09-13; human review is pending.
+- [x] `CP-DOC-E` — Local checkpoint gates passed on 2026-09-13; human review is pending.
+- [x] `CP-DOC-F` — Local checkpoint gates passed on 2026-09-14; human review is pending.
+- [x] `CP-DOC-G` — Approved on 2026-09-16; local checkpoint gates passed on 2026-09-15.
+- [x] `CP-DOC-H` — Local checkpoint gates passed on 2026-09-16; human review is pending.
+- [x] `CP-DOC-I` — Local checkpoint gates passed on 2026-09-16; human review is pending.
 
 The per-milestone checkpoints below are additional outcome gates, not replacements for these micro-checkpoints.
 
@@ -462,7 +471,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ## Milestone 5 — Document-platform vertical slice
 
-### [ ] DOC-001 — Define the stable registry and synthetic test document type
+### [x] DOC-001 — Define the stable registry and synthetic test document type
 
 - **Outcome:** Code owns an immutable registry protocol for stable keys, labels, schema/form provider, mapper, filename, placeholder/value-kind contract, allowlists, fixtures and optional named post-processor.
 - **SPEC:** §§6.3, 6.5–6.6, 11.1–11.2; **FR:** `FR-DOC-01`, `FR-DOC-02`, `FR-GEN-01`, `FR-TPL-01`; **AC:** `AC-10`, `AC-11`, `AC-12`.
@@ -478,7 +487,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** A new type cannot exist without an explicit reviewable code contract; `cases` imports nothing from `documents`.
 - **Size:** M. **Blockers/skills:** `api-and-interface-design`, **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-002 — Model immutable template versions and private storage keys
+### [x] DOC-002 — Model immutable template versions and private storage keys
 
 - **Outcome:** Uploaded template identity/bytes metadata is immutable; lifecycle states and zero-or-one active version per registry key are durably represented on PostgreSQL.
 - **SPEC:** §§10.2, 11.1, 11.5, 17.2, 18; **FR:** `FR-TPL-02`–`FR-TPL-05`; **AC:** `AC-13`, `AC-14`, `AC-17`, `AC-18`, `AC-22`.
@@ -494,7 +503,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Template identity and lifecycle invariants survive concurrent/direct model misuse through supported services and DB constraints.
 - **Size:** M. **Blockers/skills:** **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-003 — Validate hostile OPC/ZIP packages and relationships
+### [x] DOC-003 — Validate hostile OPC/ZIP packages and relationships
 
 - **Outcome:** A bounded byte-level validator rejects renamed/non-DOCX, oversized, traversal, duplicate-dangerous, encrypted, macro/ActiveX/OLE/executable, unsafe XML and prohibited external-relationship packages.
 - **SPEC:** §§11.3, 15.2, 16; **FR:** `FR-TPL-02`, `FR-TPL-04`; **AC:** `AC-12`, `AC-13`.
@@ -510,7 +519,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** All `AC-13` package threats fail safely before Jinja/rendering and valid packages proceed.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
+### [x] DOC-004 — Validate Jinja syntax, contracts, related text parts, and split runs
 
 - **Outcome:** Validator discovers placeholders/control tags across body, tables, headers, footers, and supported footnote/endnote parts; rejects malformed/split/unknown/missing/disallowed expressions.
 - **SPEC:** §§11.2–11.3, 15.2; **FR:** `FR-GEN-02`, `FR-TPL-04`; **AC:** `AC-12`, `AC-13`, `AC-15`.
@@ -526,7 +535,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `AC-12` contract/run failures are detected before activation and the same checks are reusable immediately before generation.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-005 — Orchestrate upload validation and synthetic renders
+### [x] DOC-005 — Orchestrate upload validation and synthetic renders
 
 - **Outcome:** Proposed bytes are checksummed/stored immutably, validated through package/Jinja gates, minimally and representatively rendered, reopened/inspected, and persisted as valid or inactive-invalid with safe report.
 - **SPEC:** §§5.5, 11, 15.2, 17.2; **FR:** `FR-TPL-02`–`FR-TPL-04`; **AC:** `AC-12`, `AC-13`, `AC-15`.
@@ -542,7 +551,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Only fully valid immutable versions can become activation candidates; failures are safe, durable and recoverable.
 - **Size:** L. **Blockers/skills:** **Security skill**, `incremental-implementation`, `code-review-and-quality`.
 
-### [ ] DOC-006 — Deliver template list, upload, and validation UI
+### [x] DOC-006 — Deliver template list, upload, and validation UI
 
 - **Outcome:** Administrators manage versions only for deployed registry keys through accessible full/HTMX pages showing safe status/report/unavailable/error states.
 - **SPEC:** §§4.2–4.3, 5.5, 6.6, 13–15; **FR:** `FR-TPL-02`, `FR-TPL-03`; **AC:** `AC-02`, `AC-03`, `AC-08`, `AC-09`, `AC-13`.
@@ -558,7 +567,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Upload/validation is usable and secure without JavaScript and exposes no private path/content.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] DOC-007 — Implement atomic activation and confirmed deactivation
+### [x] DOC-007 — Implement atomic activation and confirmed deactivation
 
 - **Outcome:** Valid approved versions activate atomically under concurrency, leaving zero or one active per type; deactivation blocks future selection but preserves history.
 - **SPEC:** §§4.3, 5.5, 6.6, 17.2; **FR:** `FR-DOC-01`, `FR-TPL-04`, `FR-TPL-05`; **AC:** `AC-03`, `AC-14`.
@@ -574,7 +583,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Future selection observes a single committed active version and old metadata/bytes are unchanged.
 - **Size:** M. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-008 — Model versioned mutable drafts and form contracts
+### [x] DOC-008 — Model versioned mutable drafts and form contracts
 
 - **Outcome:** `DocumentDraft` stores only revalidated document-specific payload under stable type/schema, explicit revision and draft/ready states; incompatible schemas are rejected.
 - **SPEC:** §§6.3, 10.2, 11.5, 15.1; **FR:** `FR-DOC-02`, `FR-DOC-05`–`FR-DOC-07`; **AC:** `AC-11`, `AC-18`, `AC-20`.
@@ -590,7 +599,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Drafts are mutable, versioned and validated, while finalized snapshots remain outside this model.
 - **Size:** M. **Blockers/skills:** **Security skill**, `api-and-interface-design`, `code-review-and-quality`.
 
-### [ ] DOC-009 — Deliver document selector and draft form framework
+### [x] DOC-009 — Deliver document selector and draft form framework
 
 - **Outcome:** A case shows only enabled types with valid active templates; selecting one renders its versioned long form/formsets with source/override cues and accessible full/HTMX validation/draft saving.
 - **SPEC:** §§5.3, 6.3, 13–15; **FR:** `FR-DOC-01`, `FR-DOC-02`, `FR-DOC-04`–`FR-DOC-07`; **AC:** `AC-03`, `AC-08`, `AC-09`, `AC-11`.
@@ -606,7 +615,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** The form framework can host any explicit VDS schema without database-driven behavior or client-owned truth.
 - **Size:** L. **Blockers/skills:** `frontend-ui-engineering`, **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-010 — Define the case transfer value and explicit prefill boundary
+### [x] DOC-010 — Define the case transfer value and explicit prefill boundary
 
 - **Outcome:** `cases` exports one typed immutable document-prefill value; `documents` explicitly maps it to each form without mutating case data.
 - **SPEC:** §§6.3–6.4, 9–11, 12; **FR:** `FR-DOC-03`, `FR-DOC-04`; **AC:** `AC-11`, `AC-17`.
@@ -622,7 +631,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** `cases` has no `documents` import and prefill is deterministic, typed, explicit and mutation-free.
 - **Size:** M. **Blockers/skills:** `api-and-interface-design`, `code-review-and-quality`.
 
-### [ ] DOC-011 — Implement deterministic Vietnamese legal formatters
+### [x] DOC-011 — Implement deterministic Vietnamese legal formatters
 
 - **Outcome:** Versioned formatters produce approved-form-ready dates, times, identifiers, names, addresses, currency words and XML-safe multiline legal text independent of UI locale.
 - **SPEC:** §§6.7, 7.1, 11.4, 16; **FR:** `FR-I18N-03`, `FR-L10N-01`, `FR-L10N-02`; **AC:** `AC-15`, `AC-27`.
@@ -638,7 +647,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Legal formatting is deterministic and separate from generic Django UI localization.
 - **Size:** M. **Blockers/skills:** Approval of exact template-specific formatting is per VDS contract; **Security skill**, `code-review-and-quality`.
 
-### [ ] DOC-012 — Model generation attempts and reserve idempotently
+### [x] DOC-012 — Model generation attempts and reserve idempotently
 
 - **Outcome:** An authorized confirmed submission creates or returns exactly one immutable generation attempt with exact input/resolved/override/template/schema snapshot facts.
 - **SPEC:** §§10.2, 12, 17.1–17.2; **FR:** `FR-GEN-05`, `FR-GEN-06`; **AC:** `AC-17`–`AC-20`.
@@ -654,7 +663,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** One token produces one attempt and a later case/template edit cannot alter its reserved facts.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-013 — Render with restricted context and validate DOCX output structure
+### [x] DOC-013 — Render with restricted context and validate DOCX output structure
 
 - **Outcome:** The generation core builds only allowlisted context, rechecks template contract, renders via docxtpl/StrictUndefined, and inspects the full output OPC/XML structure and unresolved tokens.
 - **SPEC:** §§6.5, 11–12, 19; **FR:** `FR-GEN-01`–`FR-GEN-04`; **AC:** `AC-12`, `AC-15`, `AC-17`, `AC-20`.
@@ -670,7 +679,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Rendering cannot escape the contract and success requires programmatically verified DOCX structure, not mere file existence.
 - **Size:** L. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-014 — Finalize immutable artifacts and persist recoverable failures
+### [x] DOC-014 — Finalize immutable artifacts and persist recoverable failures
 
 - **Outcome:** Valid output is atomically stored under a unique private key then finalized with SHA/size/name; every failure cleans partials, preserves draft, persists safe failed state and permits a new retry.
 - **SPEC:** §§6.5, 12, 15.3, 18; **FR:** `FR-GEN-05`, `FR-GEN-06`; **AC:** `AC-17`–`AC-20`, `AC-22`.
@@ -686,7 +695,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** No failed attempt exposes a usable partial and no successful artifact/snapshot can be overwritten.
 - **Size:** L. **Blockers/skills:** **Security skill**, `debugging-and-error-recovery`, `code-review-and-quality`.
 
-### [ ] DOC-015 — Deliver confirmed generation through full and HTMX workflows
+### [x] DOC-015 — Deliver confirmed generation through full and HTMX workflows
 
 - **Outcome:** Reviewed valid drafts generate synchronously through POST confirmation/idempotency, display busy/success/failure recovery, and never duplicate on resubmit.
 - **SPEC:** §§4.3, 5.3, 12–15; **FR:** `FR-DOC-06`, `FR-GEN-01`–`FR-GEN-06`; **AC:** `AC-03`, `AC-08`, `AC-09`, `AC-11`, `AC-17`–`AC-20`.
@@ -702,7 +711,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Synthetic case → review → one immutable generation works and every failure is recoverable without lost draft.
 - **Size:** L. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `incremental-implementation`, `code-review-and-quality`.
 
-### [ ] DOC-016 — Deliver generation history and retry seeding
+### [x] DOC-016 — Deliver generation history and retry seeding
 
 - **Outcome:** Case history lists every attempt newest-first with safe status/type/actor/time/template/schema/filename/failure summary and can seed a distinct retry draft/attempt.
 - **SPEC:** §§5.4, 6.5, 14, 15.3; **FR:** `FR-GEN-06`, `FR-GEN-08`; **AC:** `AC-14`, `AC-18`, `AC-20`.
@@ -718,7 +727,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Historical attempts remain immutable/readable and retry never rewrites a failed or successful row.
 - **Size:** M. **Blockers/skills:** **Security skill**, `frontend-ui-engineering`, `code-review-and-quality`.
 
-### [ ] DOC-017 — Serve only authorized canonical stored artifacts
+### [x] DOC-017 — Serve only authorized canonical stored artifacts
 
 - **Outcome:** Download streams/internal-redirects the stored canonical binary with correct DOCX MIME, `nosniff`, safe ASCII and RFC-compatible UTF-8 attachment names after object authorization and integrity checks.
 - **SPEC:** §§5.3–5.4, 6.5, 16, 18; **FR:** `FR-GEN-07`; **AC:** `AC-14`, `AC-16`, `AC-21`, `AC-22`.
@@ -734,7 +743,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** The exact stored binary is the only downloadable artifact and cannot be fetched by guessing or direct storage access.
 - **Size:** M. **Blockers/skills:** **Security skill**, `doubt-driven-development`, `code-review-and-quality`.
 
-### [ ] DOC-018 — Reconcile database and private template/artifact storage
+### [x] DOC-018 — Reconcile database and private template/artifact storage
 
 - **Outcome:** An idempotent management command verifies SHA-256/size/existence, reports modified/missing/orphaned files safely, quarantines/removes only explicitly authorized staging orphans, and emits operational results.
 - **SPEC:** §§7.1, 12, 18.2, 20.2; **FR:** `FR-GEN-05`; **AC:** `AC-22`, `AC-24`.

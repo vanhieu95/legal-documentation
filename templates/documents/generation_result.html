@@ -1,0 +1,12 @@
+{% extends "base_authenticated.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Generation result" %} · {{ registration.official_code }}{% endblock %}
+{% block page_context %}{% translate "Documents" %}{% endblock %}
+
+{% block main_content %}
+  <section class="surface template-page" aria-labelledby="generation-result-title">
+    <h1 id="generation-result-title" class="gallery-title">{% translate "Generation result" %}</h1>
+    {% include "documents/_generation_result.html" %}
+  </section>
+{% endblock %}

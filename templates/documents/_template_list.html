@@ -1,0 +1,65 @@
+{% load i18n %}
+<div id="template-list" class="template-list" aria-live="polite" data-network-error-message="{% translate 'Template information could not be loaded. Try again.' %}">
+  <section class="surface" aria-labelledby="registered-types-heading">
+    <h2 id="registered-types-heading" class="surface-title">{% translate "Deployed document types" %}</h2>
+    {% if registered_types %}
+      <ul class="template-type-list">
+        {% for item in registered_types %}
+          <li>
+            <div>
+              <strong>{{ item.official_code }}</strong>
+              <span>{{ item.vietnamese_name }}</span>
+            </div>
+            <a class="button button-secondary" href="{% url 'documents:template-upload' item.key %}">{% translate "Upload new version" %}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state" role="status"><p>{% translate "No deployed document types are available." %}</p></div>
+    {% endif %}
+  </section>
+  <section class="surface" aria-labelledby="version-history-heading">
+    <h2 id="version-history-heading" class="surface-title">{% translate "Validation history" %}</h2>
+    {% if version_rows %}
+      <div class="template-version-list">
+        {% for row in version_rows %}
+          <article class="template-version" aria-labelledby="template-version-{{ row.template.id }}">
+            <div>
+              <h3 id="template-version-{{ row.template.id }}">{{ row.registration.official_code }} · {{ row.template.version }}</h3>
+              <p><span class="badge">{{ row.template.get_status_display }}</span> · {{ row.template.uploaded_at }}</p>
+            </div>
+            {% if row.is_candidate and can_activate_templates %}
+              <p class="candidate-note" data-activation-candidate>{% translate "This version passed validation and can be activated." %}</p>
+              <a class="button button-primary" href="{% url 'documents:template-activate' row.template.type_key row.template.id %}" hx-get="{% url 'documents:template-activate' row.template.type_key row.template.id %}" hx-target="#template-transition-dialog-content" hx-swap="innerHTML" data-template-dialog-trigger>{% translate "Activate" %}</a>
+            {% elif row.can_deactivate and can_deactivate_templates %}
+              <a class="button button-danger" href="{% url 'documents:template-deactivate' row.template.type_key row.template.id %}" hx-get="{% url 'documents:template-deactivate' row.template.type_key row.template.id %}" hx-target="#template-transition-dialog-content" hx-swap="innerHTML" data-template-dialog-trigger>{% translate "Deactivate" %}</a>
+            {% endif %}
+            {% if row.report_items %}
+              <div class="validation-report">
+                <h4>{% translate "Safe validation report" %}</h4>
+                <ul>
+                  {% for item in row.report_items %}<li>{{ item }}</li>{% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state" role="status" data-template-empty-state>
+        <p>{% translate "No template versions have been uploaded." %}</p>
+        <p>{% translate "Document generation is unavailable until a valid version is activated later." %}</p>
+      </div>
+    {% endif %}
+    {% if page.has_other_pages %}
+      <nav class="pagination" aria-label="{% translate 'Template version pages' %}">
+        {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">{% translate "Previous" %}</a>{% endif %}
+        <span>{% blocktranslate with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktranslate %}</span>
+        {% if page.has_next %}<a href="?page={{ page.next_page_number }}">{% translate "Next" %}</a>{% endif %}
+      </nav>
+    {% endif %}
+  </section>
+  <dialog id="template-transition-dialog" class="dialog" aria-labelledby="template-transition-title">
+    <div id="template-transition-dialog-content" class="dialog-content"></div>
+  </dialog>
+</div>

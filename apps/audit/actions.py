@@ -33,6 +33,17 @@ class AuditAction(StrEnum):
     CASE_ARCHIVED = "case.archived"
     CASE_RESTORED = "case.restored"
     CASE_RELATIONSHIPS_UPDATED = "case.relationships_updated"
+    TEMPLATE_UPLOADED = "template.uploaded"
+    TEMPLATE_VALIDATED = "template.validated"
+    TEMPLATE_ACTIVATED = "template.activated"
+    TEMPLATE_DEACTIVATED = "template.deactivated"
+    DOCUMENT_DRAFT_CREATED = "document_draft.created"
+    DOCUMENT_DRAFT_UPDATED = "document_draft.updated"
+    DOCUMENT_DRAFT_STATE_CHANGED = "document_draft.state_changed"
+    DOCUMENT_GENERATION_RESERVED = "document_generation.reserved"
+    DOCUMENT_GENERATION_SUCCEEDED = "document_generation.succeeded"
+    DOCUMENT_GENERATION_FAILED = "document_generation.failed"
+    DOCUMENT_DOWNLOADED = "document_generation.downloaded"
 
 
 class AuditOutcome(StrEnum):
@@ -56,3 +67,6 @@ class AuditTargetType(StrEnum):
     ENTITY_ADDRESS = "entity_address"
     OFFICIAL = "official"
     CASE = "case"
+    TEMPLATE_VERSION = "template_version"
+    DOCUMENT_DRAFT = "document_draft"
+    GENERATED_DOCUMENT = "generated_document"
