@@ -173,6 +173,33 @@ def test_dashboard_returns_full_page_and_narrow_htmx_case_activity_fragment(
 
 
 @pytest.mark.django_db
+def test_dashboard_returns_narrow_htmx_document_fragment(
+    client: Client,
+    administrator: User,
+) -> None:
+    client.force_login(administrator)
+
+    fragment = client.get(
+        dashboard_url(),
+        headers={"HX-Request": "true", "HX-Target": "dashboard-documents"},
+    )
+
+    assert fragment.status_code == 200
+    assert "accounts/_dashboard_documents.html" in [
+        template.name for template in fragment.templates
+    ]
+    html = fragment.content.decode()
+    assert "<html" not in html
+    assert 'id="dashboard-documents"' in html
+    assert "01-VDS" in html
+    assert "12-VDS" in html
+    assert "0 / 12" in html
+    assert reverse("documents:template-list") in html
+    assert "HX-Request" in fragment.headers["Vary"]
+    assert "HX-Target" in fragment.headers["Vary"]
+
+
+@pytest.mark.django_db
 def test_dashboard_cards_use_exact_canonical_case_list_filters(
     client: Client,
     administrator: User,
@@ -241,7 +268,7 @@ def test_dashboard_recent_activity_links_only_to_authorized_case_details(
 
 
 @pytest.mark.django_db
-def test_dashboard_exposes_loading_empty_error_and_document_unavailable_states(
+def test_dashboard_exposes_loading_empty_and_error_states(
     client: Client,
     administrator: User,
     monkeypatch: pytest.MonkeyPatch,
@@ -252,7 +279,9 @@ def test_dashboard_exposes_loading_empty_error_and_document_unavailable_states(
     assert 'id="dashboard-case-activity-loading"' in empty_html
     assert 'aria-live="polite"' in empty_html
     assert "Chưa có hoạt động hồ sơ" in empty_html
-    assert "Chức năng tài liệu chưa khả dụng" in empty_html
+    assert "Chưa có lần tạo văn bản" in empty_html
+    assert "Không có lần tạo văn bản thất bại cần xử lý" in empty_html
+    assert "Mức độ sẵn sàng của biểu mẫu" in empty_html
     assert "0" in empty_html
 
     monkeypatch.setattr(
@@ -266,6 +295,22 @@ def test_dashboard_exposes_loading_empty_error_and_document_unavailable_states(
     assert 'role="alert"' in error_html
     assert "Hoạt động hồ sơ tạm thời không khả dụng" in error_html
     assert "synthetic sensitive failure" not in error_html
+
+    monkeypatch.undo()
+    monkeypatch.setattr(
+        "apps.accounts.views.document_dashboard_summary",
+        lambda **kwargs: (_ for _ in ()).throw(DatabaseError("synthetic document failure")),
+    )
+    document_error = client.get(
+        dashboard_url(),
+        headers={"HX-Request": "true", "HX-Target": "dashboard-documents"},
+    )
+    document_error_html = document_error.content.decode()
+
+    assert document_error.status_code == 503
+    assert 'role="alert"' in document_error_html
+    assert "Thông tin tài liệu tạm thời không khả dụng" in document_error_html
+    assert "synthetic document failure" not in document_error_html
 
 
 @pytest.mark.django_db
@@ -300,6 +345,24 @@ def test_dashboard_permission_matrix_and_allowed_get_has_no_audit_side_effect(
     before = AuditEvent.objects.count()
     assert client.get(dashboard_url()).status_code == 200
     assert AuditEvent.objects.count() == before
+
+    history_permission = group.permissions.get(codename="view_document_history")
+    group.permissions.remove(history_permission)
+    administrator = User.objects.get(pk=administrator.pk)
+    client.force_login(administrator)
+    case_only_dashboard = client.get(dashboard_url())
+    assert case_only_dashboard.status_code == 200
+    case_only_html = case_only_dashboard.content.decode()
+    assert "Hồ sơ đang hoạt động" in case_only_html
+    assert "Thông tin tài liệu không khả dụng cho tài khoản này" in case_only_html
+    assert (
+        client.get(
+            dashboard_url(),
+            headers={"HX-Request": "true", "HX-Target": "dashboard-documents"},
+        ).status_code
+        == 403
+    )
+    group.permissions.add(history_permission)
 
     superuser = user_factory(
         username="synthetic-dashboard-superuser", is_staff=True, is_superuser=True
@@ -370,10 +433,19 @@ def test_dashboard_query_budget_is_fixed_as_recent_rows_grow(
         response = client.get(dashboard_url())
 
     assert response.status_code == 200
-    case_queries = [query for query in queries if CaseRecord._meta.db_table in query["sql"]]
+    case_queries = [
+        query
+        for query in queries
+        if CaseRecord._meta.db_table in query["sql"]
+        and "documents_generateddocument" not in query["sql"]
+    ]
     assert len(case_queries) == 2, [query["sql"] for query in queries]
+    generation_queries = [
+        query for query in queries if "documents_generateddocument" in query["sql"]
+    ]
+    assert len(generation_queries) == 3, [query["sql"] for query in queries]
     # Session/authentication plus the existing deny-by-default permission checks are capped too.
-    assert len(queries) <= 16, [query["sql"] for query in queries]
+    assert len(queries) <= 25, [query["sql"] for query in queries]
     assert len(response.context["recent_activity"]) == DASHBOARD_RECENT_CASE_LIMIT
 
 

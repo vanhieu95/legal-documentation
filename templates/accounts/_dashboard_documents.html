@@ -1,0 +1,139 @@
+{% load i18n tz %}
+<div
+  id="dashboard-documents"
+  class="dashboard-documents"
+  aria-live="polite"
+  aria-busy="false"
+  hx-history="false"
+  data-network-error-message="{% translate 'Document information could not be refreshed. Check the connection and try again.' %}"
+>
+  <div id="dashboard-documents-loading" class="dashboard-loading htmx-indicator" role="status" aria-live="polite">
+    <span class="loading-indicator" aria-hidden="true"></span>{% translate "Loading document information…" %}
+  </div>
+
+  {% if document_dashboard_forbidden %}
+    <div class="alert" role="status">
+      <p class="alert-title">{% translate "Document information is unavailable for this account" %}</p>
+      <p class="alert-message">{% translate "Additional document permissions are required to view generation history and template coverage." %}</p>
+    </div>
+  {% elif document_dashboard_unavailable %}
+    <div class="alert alert-error" role="alert">
+      <p class="alert-title">{% translate "Document information is temporarily unavailable" %}</p>
+      <p class="alert-message">{% translate "Try refreshing this section. No document details were displayed." %}</p>
+      <a
+        class="button button-secondary dashboard-refresh"
+        href="{% url 'accounts:dashboard' %}"
+        hx-get="{% url 'accounts:dashboard' %}"
+        hx-target="#dashboard-documents"
+        hx-swap="outerHTML"
+        hx-indicator="#dashboard-documents-loading"
+      >{% translate "Refresh document information" %}</a>
+    </div>
+  {% else %}
+    <section aria-labelledby="document-summary-heading">
+      <div class="dashboard-section-heading">
+        <h2 id="document-summary-heading" class="surface-title">{% translate "Document operations" %}</h2>
+        <a
+          class="button button-quiet dashboard-refresh"
+          href="{% url 'accounts:dashboard' %}"
+          hx-get="{% url 'accounts:dashboard' %}"
+          hx-target="#dashboard-documents"
+          hx-swap="outerHTML"
+          hx-indicator="#dashboard-documents-loading"
+        >{% translate "Refresh document information" %}</a>
+      </div>
+      <div class="dashboard-metric-grid">
+        <a class="surface dashboard-metric-card" href="{{ template_list_url }}" aria-label="{% translate 'Review template coverage' %}">
+          <span class="dashboard-metric-label">{% translate "Active template coverage" %}</span>
+          <strong class="dashboard-metric-value">{{ document_dashboard.active_template_count }} / {{ document_dashboard.template_total }}</strong>
+          <span class="dashboard-metric-context">{% translate "MVP document types ready for generation" %}</span>
+        </a>
+        {% if document_dashboard.failed_attention_url %}
+          <a class="surface dashboard-metric-card" href="{{ document_dashboard.failed_attention_url }}" aria-label="{% translate 'Review failed generations requiring attention' %}">
+            <span class="dashboard-metric-label">{% translate "Failed generations requiring attention" %}</span>
+            <strong class="dashboard-metric-value">{{ document_dashboard.failed_total }}</strong>
+            <span class="dashboard-metric-context">{% translate "Open the latest failed case history to review and retry" %}</span>
+          </a>
+        {% else %}
+          <div class="surface dashboard-metric-card">
+            <span class="dashboard-metric-label">{% translate "Failed generations requiring attention" %}</span>
+            <strong class="dashboard-metric-value">0</strong>
+            <span class="dashboard-metric-context">{% translate "No failed generation histories need review" %}</span>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <div class="dashboard-document-grid">
+      <section class="surface dashboard-activity-panel" aria-labelledby="recent-generations-heading">
+        <h2 id="recent-generations-heading" class="surface-title">{% translate "Recent generation results" %}</h2>
+        {% if document_dashboard.recent_attempts %}
+          <ol class="dashboard-activity-list">
+            {% for item in document_dashboard.recent_attempts %}
+              <li>
+                <div class="dashboard-activity-copy">
+                  <a class="dashboard-activity-reference" href="{{ item.history_url }}">{{ item.case_reference }}</a>
+                  <span class="dashboard-activity-category">{{ item.type_code }} · {{ item.status_label }}</span>
+                </div>
+                <time datetime="{{ item.occurred_at|date:'c' }}">{{ item.occurred_at|localtime|date:"DATETIME_FORMAT" }}</time>
+                <a class="button button-quiet" href="{{ item.history_url }}">{% translate "View history" %}<span class="visually-hidden">: {{ item.case_reference }}</span></a>
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <div class="state" role="status">
+            <p class="state-title">{% translate "No generation attempts yet" %}</p>
+            <p class="state-message">{% translate "Generation results will appear here after a document is created." %}</p>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="surface dashboard-activity-panel" aria-labelledby="failed-generations-heading">
+        <h2 id="failed-generations-heading" class="surface-title">{% translate "Failed generations requiring attention" %}</h2>
+        {% if document_dashboard.failed_attempts %}
+          <ol class="dashboard-activity-list">
+            {% for item in document_dashboard.failed_attempts %}
+              <li>
+                <div class="dashboard-activity-copy">
+                  <a class="dashboard-activity-reference" href="{{ item.history_url }}">{{ item.case_reference }}</a>
+                  <span class="dashboard-activity-category">{{ item.type_code }} · {{ item.status_label }}</span>
+                </div>
+                <time datetime="{{ item.occurred_at|date:'c' }}">{{ item.occurred_at|localtime|date:"DATETIME_FORMAT" }}</time>
+                <a class="button button-quiet" href="{{ item.history_url }}">{% translate "Review failure" %}<span class="visually-hidden">: {{ item.case_reference }}</span></a>
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <div class="state" role="status">
+            <p class="state-title">{% translate "No failed generations need attention" %}</p>
+            <p class="state-message">{% translate "Failed attempts will appear here with a link to their case history." %}</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
+
+    <section class="surface dashboard-template-coverage" aria-labelledby="template-coverage-heading">
+      <div class="dashboard-section-heading">
+        <div>
+          <h2 id="template-coverage-heading" class="surface-title">{% translate "Template readiness" %}</h2>
+          <p class="field-help">{% translate "The synthetic platform type is excluded from the 12 MVP document types." %}</p>
+        </div>
+        <a class="button button-secondary" href="{{ template_list_url }}">{% translate "Manage templates" %}</a>
+      </div>
+      <ul class="dashboard-coverage-list" aria-label="{% translate 'MVP template coverage' %}">
+        {% for item in document_dashboard.template_coverage %}
+          <li>
+            {% if item.upload_url %}<a href="{{ item.upload_url }}">{{ item.official_code }}</a>{% else %}<strong>{{ item.official_code }}</strong>{% endif %}
+            {% if item.has_active_template %}
+              <span class="badge badge-success">{% translate "Active" %}</span>
+            {% elif item.is_deployed %}
+              <span class="badge badge-warning">{% translate "Needs active template" %}</span>
+            {% else %}
+              <span class="badge badge-neutral">{% translate "Not deployed" %}</span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</div>

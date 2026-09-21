@@ -9,6 +9,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -28,7 +29,11 @@ from apps.accounts.forms import (
     GENERIC_AUTHENTICATION_FAILURE,
     AdministratorAuthenticationForm,
 )
-from apps.accounts.policies import ApplicationPermission, application_permission_required
+from apps.accounts.policies import (
+    ApplicationPermission,
+    application_access_policy,
+    application_permission_required,
+)
 from apps.accounts.sessions import establish_session_timestamps, safe_local_destination
 from apps.audit.actions import AuditOutcome
 from apps.cases.selectors import (
@@ -37,6 +42,7 @@ from apps.cases.selectors import (
     case_activity_counts,
     recent_case_activity,
 )
+from apps.documents.dashboard import DocumentDashboardSummary, document_dashboard_summary
 
 
 @never_cache
@@ -95,26 +101,64 @@ def logout(request: HttpRequest) -> HttpResponse:
 @require_GET
 @application_permission_required(ApplicationPermission.VIEW_CASES)
 def dashboard(request: HttpRequest) -> HttpResponse:
+    is_htmx = request.headers.get("HX-Request") == "true"
+    requested_target = request.headers.get("HX-Target", "")
+    document_fragment = is_htmx and requested_target == "dashboard-documents"
+
     unavailable = False
     counts = CaseActivityCounts(active=0, archived=0)
     recent_activity: tuple[CaseActivity, ...] = ()
-    try:
-        counts = case_activity_counts(actor=cast(User, request.user))
-        recent_activity = recent_case_activity(actor=cast(User, request.user))
-    except DatabaseError:
-        unavailable = True
+    if not document_fragment:
+        try:
+            counts = case_activity_counts(actor=cast(User, request.user))
+            recent_activity = recent_case_activity(actor=cast(User, request.user))
+        except DatabaseError:
+            unavailable = True
+
+    document_unavailable = False
+    document_forbidden = False
+    document_summary: DocumentDashboardSummary | None = None
+    if not is_htmx or document_fragment:
+        actor = cast(User, request.user)
+        can_view_documents = all(
+            application_access_policy.has_permission(actor, permission)
+            for permission in (
+                ApplicationPermission.VIEW_TEMPLATES,
+                ApplicationPermission.VIEW_DOCUMENT_HISTORY,
+            )
+        )
+        if not can_view_documents:
+            if document_fragment:
+                raise PermissionDenied
+            document_forbidden = True
+        else:
+            try:
+                document_summary = document_dashboard_summary(actor=actor)
+            except DatabaseError:
+                document_unavailable = True
 
     context = {
         "case_counts": counts,
         "recent_activity": recent_activity,
         "dashboard_unavailable": unavailable,
+        "document_dashboard_unavailable": document_unavailable,
+        "document_dashboard_forbidden": document_forbidden,
+        "document_dashboard": document_summary,
         "active_cases_url": f"{reverse('cases:list')}?archive_state=active",
         "archived_cases_url": f"{reverse('cases:list')}?archive_state=archived",
+        "template_list_url": reverse("documents:template-list"),
     }
-    is_htmx = request.headers.get("HX-Request") == "true"
-    template = "accounts/_dashboard_case_activity.html" if is_htmx else "accounts/dashboard.html"
-    response = render(request, template, context, status=503 if unavailable else 200)
-    patch_vary_headers(response, ("HX-Request",))
+    if document_fragment:
+        template = "accounts/_dashboard_documents.html"
+        status = 503 if document_unavailable else 200
+    elif is_htmx:
+        template = "accounts/_dashboard_case_activity.html"
+        status = 503 if unavailable else 200
+    else:
+        template = "accounts/dashboard.html"
+        status = 503 if unavailable or document_unavailable else 200
+    response = render(request, template, context, status=status)
+    patch_vary_headers(response, ("HX-Request", "HX-Target"))
     return response
 
 

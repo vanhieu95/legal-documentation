@@ -352,7 +352,12 @@ for (const viewport of [
       "/cases/?archive_state=archived",
     );
     await expect(page.getByRole("heading", { name: "Hoạt động hồ sơ gần đây" })).toBeVisible();
-    await expect(page.getByText("Chức năng tài liệu chưa khả dụng")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Hoạt động tài liệu" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Xem mức độ sẵn sàng của biểu mẫu" })).toContainText(
+      "0 / 12",
+    );
+    await expect(page.getByRole("heading", { name: "Mức độ sẵn sàng của biểu mẫu" })).toBeVisible();
+    await expect(page.locator(".dashboard-coverage-list li")).toHaveCount(12);
     await expectNoPageOverflow(page);
 
     const activeCard = page.getByRole("link", { name: /Xem \d+ hồ sơ đang hoạt động/ });
@@ -385,6 +390,7 @@ test("dashboard case activity refreshes as a narrow HTMX fragment", async ({ pag
   const click = page.getByRole("link", { name: "Làm mới hoạt động hồ sơ" }).click();
   await requestObserved;
   await expect(page.locator("#dashboard-case-activity")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator("#dashboard-documents")).toHaveAttribute("aria-busy", "false");
   await expect(page.locator("#dashboard-case-activity-loading")).toBeVisible();
   releaseRequest();
   await click;
@@ -401,6 +407,75 @@ test("dashboard case activity refreshes as a narrow HTMX fragment", async ({ pag
   }));
   expect(browserStorage.session).toEqual({});
   expect(JSON.stringify(browserStorage)).not.toContain("SYN-");
+});
+
+test("dashboard document information refreshes as a narrow HTMX fragment", async ({ page }) => {
+  await signInAsAdministrator(page);
+  let releaseRequest;
+  const requestReleased = new Promise((resolve) => {
+    releaseRequest = resolve;
+  });
+  let observeRequest;
+  const requestObserved = new Promise((resolve) => {
+    observeRequest = resolve;
+  });
+  await page.route("**/dashboard/", async (route) => {
+    if (route.request().headers()["hx-target"] !== "dashboard-documents") {
+      await route.continue();
+      return;
+    }
+    observeRequest();
+    await requestReleased;
+    await route.continue();
+  });
+  const fragmentResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/dashboard/") &&
+      response.request().headers()["hx-target"] === "dashboard-documents",
+  );
+  const click = page.getByRole("link", { name: "Làm mới thông tin tài liệu" }).click();
+  await requestObserved;
+  await expect(page.locator("#dashboard-documents")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator("#dashboard-case-activity")).toHaveAttribute("aria-busy", "false");
+  await expect(page.locator("#dashboard-documents-loading")).toBeVisible();
+  releaseRequest();
+  await click;
+  const response = await fragmentResponse;
+
+  expect(response.status()).toBe(200);
+  expect(response.headers().vary).toContain("HX-Target");
+  await expect(page.locator("#dashboard-documents")).toHaveCount(1);
+  await expect(page.locator("#dashboard-case-activity")).toHaveCount(1);
+  await expect(page.locator(".dashboard-coverage-list li")).toHaveCount(12);
+  await expect(page).toHaveURL(/\/dashboard\/$/);
+});
+
+test("dashboard replaces the document panel with its safe 503 state", async ({ page }) => {
+  await signInAsAdministrator(page);
+  await page.route("**/dashboard/", async (route) => {
+    if (route.request().headers()["hx-target"] !== "dashboard-documents") {
+      await route.continue();
+      return;
+    }
+    await route.fulfill({
+      status: 503,
+      contentType: "text/html",
+      body: `
+        <div id="dashboard-documents" aria-live="polite" aria-busy="false">
+          <div role="alert">
+            <p>Thông tin tài liệu tạm thời không khả dụng</p>
+          </div>
+        </div>`,
+    });
+  });
+
+  await page.getByRole("link", { name: "Làm mới thông tin tài liệu" }).click();
+
+  await expect(page.locator("#dashboard-documents")).toHaveCount(1);
+  await expect(page.locator("#dashboard-documents").getByRole("alert")).toContainText(
+    "Thông tin tài liệu tạm thời không khả dụng",
+  );
+  await expect(page.locator("#global-error")).toHaveText("");
 });
 
 test("dashboard announces a case-activity network error without exposing case data", async ({ page }) => {
@@ -757,7 +832,7 @@ test("an Administrator receives the authenticated application shell", async ({ p
     "page",
   );
   await expect(page.getByRole("link", { name: "Hồ sơ việc dân sự" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Biểu mẫu" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Biểu mẫu", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Nhật ký kiểm tra" })).toBeVisible();
   await expect(page.getByText(browserAdministrator.username)).toBeVisible();
 });

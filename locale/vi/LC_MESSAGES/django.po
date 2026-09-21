@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: VDS Administration 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 08:08+0700\n"
+"POT-Creation-Date: 2026-09-17 18:32+0700\n"
 "PO-Revision-Date: 2026-09-02 10:01+0700\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -277,6 +277,7 @@ msgstr "Trạng thái"
 #: apps/cases/forms.py:155 apps/cases/models.py:247
 #: apps/documents/models.py:261
 #: templates/accounts/_dashboard_case_activity.html:65
+#: templates/accounts/_dashboard_documents.html:128
 #: templates/cases/references/_reference_results.html:38
 #: templates/cases/references/_reference_results.html:52
 msgid "Active"
@@ -1240,6 +1241,128 @@ msgid "Case activity will appear here after a case is created or updated."
 msgstr ""
 "Hoạt động hồ sơ sẽ xuất hiện tại đây sau khi hồ sơ được tạo hoặc cập nhật."
 
+#: templates/accounts/_dashboard_documents.html:8
+msgid ""
+"Document information could not be refreshed. Check the connection and try "
+"again."
+msgstr "Không thể làm mới thông tin tài liệu. Hãy kiểm tra kết nối và thử lại."
+
+#: templates/accounts/_dashboard_documents.html:11
+msgid "Loading document information…"
+msgstr "Đang tải thông tin tài liệu…"
+
+#: templates/accounts/_dashboard_documents.html:16
+msgid "Document information is unavailable for this account"
+msgstr "Thông tin tài liệu không khả dụng cho tài khoản này"
+
+#: templates/accounts/_dashboard_documents.html:17
+msgid ""
+"Additional document permissions are required to view generation history and "
+"template coverage."
+msgstr ""
+"Cần thêm quyền tài liệu để xem lịch sử tạo văn bản và mức độ sẵn sàng của "
+"biểu mẫu."
+
+#: templates/accounts/_dashboard_documents.html:21
+msgid "Document information is temporarily unavailable"
+msgstr "Thông tin tài liệu tạm thời không khả dụng"
+
+#: templates/accounts/_dashboard_documents.html:22
+msgid "Try refreshing this section. No document details were displayed."
+msgstr "Hãy thử làm mới mục này. Không có chi tiết tài liệu nào được hiển thị."
+
+#: templates/accounts/_dashboard_documents.html:30
+#: templates/accounts/_dashboard_documents.html:43
+msgid "Refresh document information"
+msgstr "Làm mới thông tin tài liệu"
+
+#: templates/accounts/_dashboard_documents.html:35
+msgid "Document operations"
+msgstr "Hoạt động tài liệu"
+
+#: templates/accounts/_dashboard_documents.html:46
+msgid "Review template coverage"
+msgstr "Xem mức độ sẵn sàng của biểu mẫu"
+
+#: templates/accounts/_dashboard_documents.html:47
+msgid "Active template coverage"
+msgstr "Biểu mẫu đang hoạt động"
+
+#: templates/accounts/_dashboard_documents.html:49
+msgid "MVP document types ready for generation"
+msgstr "Loại tài liệu MVP đã sẵn sàng để tạo"
+
+#: templates/accounts/_dashboard_documents.html:52
+msgid "Review failed generations requiring attention"
+msgstr "Xem xét các lần tạo văn bản thất bại cần xử lý"
+
+#: templates/accounts/_dashboard_documents.html:53
+#: templates/accounts/_dashboard_documents.html:59
+#: templates/accounts/_dashboard_documents.html:92
+msgid "Failed generations requiring attention"
+msgstr "Lần tạo văn bản thất bại cần xử lý"
+
+#: templates/accounts/_dashboard_documents.html:55
+msgid "Open the latest failed case history to review and retry"
+msgstr "Mở lịch sử hồ sơ thất bại gần nhất để xem xét và thử lại"
+
+#: templates/accounts/_dashboard_documents.html:61
+msgid "No failed generation histories need review"
+msgstr "Không có lịch sử tạo văn bản thất bại cần xem xét"
+
+#: templates/accounts/_dashboard_documents.html:69
+msgid "Recent generation results"
+msgstr "Kết quả tạo văn bản gần đây"
+
+#: templates/accounts/_dashboard_documents.html:79
+msgid "View history"
+msgstr "Xem lịch sử"
+
+#: templates/accounts/_dashboard_documents.html:85
+#: templates/documents/_generation_history.html:63
+msgid "No generation attempts yet"
+msgstr "Chưa có lần tạo văn bản nào"
+
+#: templates/accounts/_dashboard_documents.html:86
+msgid "Generation results will appear here after a document is created."
+msgstr "Kết quả tạo văn bản sẽ xuất hiện tại đây sau khi tài liệu được tạo."
+
+#: templates/accounts/_dashboard_documents.html:102
+msgid "Review failure"
+msgstr "Xem lỗi"
+
+#: templates/accounts/_dashboard_documents.html:108
+msgid "No failed generations need attention"
+msgstr "Không có lần tạo văn bản thất bại cần xử lý"
+
+#: templates/accounts/_dashboard_documents.html:109
+msgid "Failed attempts will appear here with a link to their case history."
+msgstr "Lần tạo thất bại sẽ xuất hiện tại đây cùng liên kết đến lịch sử hồ sơ."
+
+#: templates/accounts/_dashboard_documents.html:118
+msgid "Template readiness"
+msgstr "Mức độ sẵn sàng của biểu mẫu"
+
+#: templates/accounts/_dashboard_documents.html:119
+msgid "The synthetic platform type is excluded from the 12 MVP document types."
+msgstr "Loại thử nghiệm nền tảng không được tính vào 12 loại tài liệu MVP."
+
+#: templates/accounts/_dashboard_documents.html:121
+msgid "Manage templates"
+msgstr "Quản lý biểu mẫu"
+
+#: templates/accounts/_dashboard_documents.html:123
+msgid "MVP template coverage"
+msgstr "Mức độ sẵn sàng của biểu mẫu MVP"
+
+#: templates/accounts/_dashboard_documents.html:130
+msgid "Needs active template"
+msgstr "Cần biểu mẫu đang hoạt động"
+
+#: templates/accounts/_dashboard_documents.html:132
+msgid "Not deployed"
+msgstr "Chưa triển khai"
+
 #: templates/accounts/dashboard.html:11 templates/cases/list.html:10
 msgid "Civil matters"
 msgstr "Các việc dân sự"
@@ -1247,28 +1370,6 @@ msgstr "Các việc dân sự"
 #: templates/accounts/dashboard.html:13
 msgid "Review current case activity and continue case administration."
 msgstr "Xem hoạt động hồ sơ hiện tại và tiếp tục công việc quản lý hồ sơ."
-
-#: templates/accounts/dashboard.html:20
-#: templates/documents/document_draft.html:4
-#: templates/documents/document_draft.html:5
-#: templates/documents/document_selector.html:4
-#: templates/documents/document_selector.html:5
-#: templates/documents/generation_history.html:5
-#: templates/documents/generation_result.html:5
-msgid "Documents"
-msgstr "Tài liệu"
-
-#: templates/accounts/dashboard.html:22
-msgid "Document features are not yet available"
-msgstr "Chức năng tài liệu chưa khả dụng"
-
-#: templates/accounts/dashboard.html:23
-msgid ""
-"Generation results and template coverage will appear after the document "
-"platform is available."
-msgstr ""
-"Kết quả tạo tài liệu và phạm vi biểu mẫu sẽ xuất hiện sau khi nền tảng tài "
-"liệu khả dụng."
 
 #: templates/accounts/login.html:4 templates/accounts/login.html:48
 msgid "Sign in"
@@ -2206,10 +2307,6 @@ msgstr "Thử tạo lại"
 msgid "Generation history pages"
 msgstr "Các trang lịch sử tạo văn bản"
 
-#: templates/documents/_generation_history.html:63
-msgid "No generation attempts yet"
-msgstr "Chưa có lần tạo văn bản nào"
-
 #: templates/documents/_generation_history.html:64
 msgid "Generated and failed attempts for this case will appear here."
 msgstr "Các lần tạo thành công và thất bại của hồ sơ này sẽ xuất hiện tại đây."
@@ -2382,6 +2479,15 @@ msgstr "Đang tải lên và xác thực cả hai kết xuất tổng hợp…"
 #: templates/documents/_template_upload_workflow.html:49
 msgid "Upload and validate"
 msgstr "Tải lên và xác thực"
+
+#: templates/documents/document_draft.html:4
+#: templates/documents/document_draft.html:5
+#: templates/documents/document_selector.html:4
+#: templates/documents/document_selector.html:5
+#: templates/documents/generation_history.html:5
+#: templates/documents/generation_result.html:5
+msgid "Documents"
+msgstr "Tài liệu"
 
 #: templates/documents/document_selector.html:9
 msgid "Select a document"

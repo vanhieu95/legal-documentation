@@ -759,7 +759,7 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 - **Done:** Tampering/divergence is detected and operationally visible without destructive default behavior.
 - **Size:** M. **Blockers/skills:** **Security skill**, `observability-and-instrumentation`, `code-review-and-quality`.
 
-### [ ] DASH-001 — Complete document-aware dashboard panels
+### [x] DASH-001 — Complete document-aware dashboard panels
 
 - **Outcome:** Dashboard adds recent generation results, failed attention items, and active-template coverage for all 12 MVP types with canonical links and bounded queries.
 - **SPEC:** §§6.1, 14; **FR:** `FR-DASH-01`, `FR-DASH-02`; **AC:** `AC-06`, `AC-08`, `AC-09`.
@@ -777,8 +777,8 @@ Completed tasks remain in place as dependency history; when choosing the next ta
 
 ### Checkpoint M5
 
-- [ ] A synthetic registered type completes upload → hostile validation → activation → prefill/draft → reservation → render/output inspection → private artifact → history/download → reconciliation.
-- [ ] Platform evidence covers `422`, `409`, session expiry, CSRF, IDOR, idempotency, activation races, all forced failures and audit events.
+- [x] A synthetic registered type completes upload → hostile validation → activation → prefill/draft → reservation → render/output inspection → private artifact → history/download → reconciliation.
+- [x] Platform evidence covers `422`, `409`, session expiry, CSRF, IDOR, idempotency, activation races, all forced failures and audit events.
 
 ## VDS onboarding execution contract
 

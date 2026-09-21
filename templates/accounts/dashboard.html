@@ -16,12 +16,6 @@
 
     {% include "accounts/_dashboard_case_activity.html" %}
 
-    <section class="surface dashboard-unavailable" aria-labelledby="document-dashboard-heading">
-      <h2 id="document-dashboard-heading" class="surface-title">{% translate "Documents" %}</h2>
-      <div class="state" role="status">
-        <p class="state-title">{% translate "Document features are not yet available" %}</p>
-        <p class="state-message">{% translate "Generation results and template coverage will appear after the document platform is available." %}</p>
-      </div>
-    </section>
+    {% include "accounts/_dashboard_documents.html" %}
   </div>
 {% endblock %}
